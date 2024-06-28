@@ -1,0 +1,30 @@
+p {
+  color: blue;  
+}
+
+.kai {
+  white-space: pre;
+}
+
+.pad {
+  padding: 1px 17px 2px;
+  font: 400 30px system-ui;
+}
+.pad2 {
+  padding: 1px 17px 2px;
+  font: 400 20px system-ui;
+}
+.butn {
+  grid-column-gap: 10px;
+  grid-row-gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+.tbox {
+  width: 400px;
+}
+.tate {
+  white-space: pre;
+  writing-mode: vertical-rl;
+  width: 100%;
+}
