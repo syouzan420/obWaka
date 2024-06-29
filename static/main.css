@@ -22,9 +22,10 @@ p {
 }
 .tbox {
   width: 400px;
+  height: 280px;
 }
 .tate {
-  white-space: pre;
+  white-space: pre-wrap;
   writing-mode: vertical-rl;
   width: 100%;
 }

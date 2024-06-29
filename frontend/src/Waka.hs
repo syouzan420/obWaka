@@ -35,11 +35,11 @@ wakaMain gs = mdo
   dyGs <- accumDyn wakaUpdate gs evWk
   let dyVText = _txv <$> dyGs
   let dyIsText = _itx <$> dyGs
-  evButtonOk <- evElButton "pad" "◯"
-  evButtonCancel <- evElButton "pad" "△"
+  divClass "tbox" $ divClass "tate" $ dynText dyVText
+  evButtonOk <- evElButton "pad" "●"
+  evButtonCancel <- evElButton "pad" "■"
   let evWOk = WOk <$ evButtonOk
   let evWCancel = WCancel <$ evButtonCancel
-  divClass "tbox" $ divClass "tate" $ dynText dyVText
   pure ()
 
 wakaUpdate :: Game -> WkEvent -> Game
@@ -70,8 +70,9 @@ textUpdate gs =
             ntxv = if isTyping then textView <> T.singleton targetChar
                                else textView
             ntct = textCount + scanLength 
-            ngs = if isCode then exeCode gs codeText else gs
-         in ngs{_itx=nitx,_txv=ntxv,_tct=ntct}
+            ngs0 = gs{_itx=nitx, _txv=ntxv, _tct=ntct}
+            ngs1 = if isCode then exeCode ngs0 codeText else ngs0
+         in ngs1
                                 else gs
 
 
