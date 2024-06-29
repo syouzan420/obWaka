@@ -21,11 +21,12 @@ p {
   grid-template-columns: repeat(5, 1fr);
 }
 .tbox {
-  width: 400px;
+  width: auto;
   height: 280px;
 }
 .tate {
   white-space: pre-wrap;
   writing-mode: vertical-rl;
   width: 100%;
+  overflow-x: auto;
 }

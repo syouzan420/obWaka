@@ -11,7 +11,7 @@ import Obelisk.Generated.Static (static)
 
 import Reflex.Dom.Core 
   ( text, el, elAttr, blank , (=:) 
-  , DomBuilder, MonadHold, PostBuild
+  , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
   )
 
@@ -53,6 +53,7 @@ frontendBody ::
   , MonadIO (Performable m)
   , PerformEvent t m
   , TriggerEvent t m
+  , Prerender t m
   ) => m ()
 frontendBody = do 
   el "h1" $ text "Waka"

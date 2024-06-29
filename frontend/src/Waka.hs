@@ -4,14 +4,14 @@ import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
-  ( dynText, current, gate   
-  , accumDyn, divClass, leftmost 
-  , tickLossyFromPostBuildTime
-  , DomBuilder, MonadHold, PostBuild
+  ( dynText, current, gate, blank, elAttr   
+  , accumDyn, divClass, leftmost, (=:) 
+  , tickLossyFromPostBuildTime, widgetHold_
+  , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
   )
 
-import CWidget (evElButton)
+import CWidget (evElButton,elTextScroll)
 
 import Define
 import Converter (getInfoFromChar)
@@ -25,6 +25,7 @@ wakaMain ::
   , MonadIO (Performable m)
   , PerformEvent t m
   , TriggerEvent t m
+  , Prerender t m
   ) => Game -> m ()
 wakaMain gs = mdo
   evTime <- tickLossyFromPostBuildTime 0.1
@@ -35,9 +36,11 @@ wakaMain gs = mdo
   dyGs <- accumDyn wakaUpdate gs evWk
   let dyVText = _txv <$> dyGs
   let dyIsText = _itx <$> dyGs
-  divClass "tbox" $ divClass "tate" $ dynText dyVText
+  divClass "tbox" $
+    elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
   evButtonOk <- evElButton "pad" "●"
   evButtonCancel <- evElButton "pad" "■"
+  widgetHold_ blank (elTextScroll <$ evNTime)
   let evWOk = WOk <$ evButtonOk
   let evWCancel = WCancel <$ evButtonCancel
   pure ()

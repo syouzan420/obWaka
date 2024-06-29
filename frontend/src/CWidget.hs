@@ -1,6 +1,11 @@
 module CWidget ( elChara, elSpace, evElButton, evElButtonH, mkHidden
-               , evElNumberPad, dyElTimer, dyElCharaAnime) where
+               , evElNumberPad, dyElTimer, dyElCharaAnime, elTextScroll
+               ) where
 
+import JSDOM
+--import qualified JSDOM.Generated.Document as DOM
+import qualified JSDOM.Generated.NonElementParentNode as DOM
+import qualified JSDOM.Generated.Element as DOM
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix (MonadFix)
 import qualified Data.Text as T
@@ -11,10 +16,10 @@ import Obelisk.Generated.Static (static)
 import Reflex.Dom.Core 
   ( text, dynText, el, elAttr, divClass, elAttr', blank
   , (=:), leftmost, elDynAttr, elDynAttr' ,holdDyn, domEvent
-  , current, gate, tickLossyFromPostBuildTime
+  , current, gate, tickLossyFromPostBuildTime, prerender_ 
   , DomBuilder, PerformEvent, TriggerEvent
   , PostBuild, Event, EventName(Click), MonadHold ,Dynamic
-  , Performable, TickInfo(..)
+  , Performable, TickInfo(..), Prerender
   )
 
 mkHidden :: Bool -> Map.Map T.Text T.Text
@@ -87,7 +92,14 @@ dyElCharaAnime dyBool = do
   elDynAttr "div" dHide1 $ do elChara0; dynText dyTime 
   elDynAttr "div" dHide2 $ do elChara1; dynText dyTime 
   pure dyTime 
-    
+
+elTextScroll :: (DomBuilder t m, Prerender t m) => m ()
+elTextScroll = prerender_ blank $ do
+  doc <- currentDocumentUnchecked
+  scrollText <- DOM.getElementById doc ("wkText" :: String)
+  case scrollText of
+    Just scrT -> DOM.scrollTo scrT (-10000) 0
+    Nothing -> return ()
   
 elChara :: DomBuilder t m => m ()
 elChara = elAttr "img" ("src" =: $(static "chara0_mid.png")) blank

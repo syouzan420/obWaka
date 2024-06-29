@@ -19,6 +19,7 @@ library
   build-depends: base
                , common
                , jsaddle
+               , jsaddle-dom
                , lens
                , obelisk-executable-config-lookup
                , obelisk-frontend
