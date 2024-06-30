@@ -5,7 +5,7 @@ import Control.Monad.IO.Class (MonadIO)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr   
-  , accumDyn, divClass, leftmost, (=:) 
+  , accumDyn, divClass, leftmost, (=:), zipDynWith 
   , tickLossyFromPostBuildTime, widgetHold_
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
@@ -29,28 +29,48 @@ wakaMain ::
   ) => Game -> m ()
 wakaMain gs = mdo
   evTime <- tickLossyFromPostBuildTime 0.1
-  let beIsText = current dyIsText
-  let evNTime = gate beIsText evTime
+  let beTxtOn = current dyTxtOn
+  let evNTime = gate beTxtOn evTime
   let evWTick = WTick <$ evNTime
-  let evWk = leftmost [evWTick, evWOk, evWCancel]
+  let evWk = leftmost [evWTick, evWOk, evWLeft, evWUp, evWDown, evWRight]
   dyGs <- accumDyn wakaUpdate gs evWk
   let dyVText = _txv <$> dyGs
   let dyIsText = _itx <$> dyGs
+  let dyIMode = _imd <$> dyGs
+  let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
   divClass "tbox" $
     elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
   evButtonOk <- evElButton "pad" "●"
-  evButtonCancel <- evElButton "pad" "■"
+  evButtonLeft <- evElButton "pad" "←"
+  evButtonUp <- evElButton "pad" "↑"
+  evButtonDown <- evElButton "pad" "↓"
+  evButtonRight <- evElButton "pad" "→"
   widgetHold_ blank (elTextScroll <$ evNTime)
   let evWOk = WOk <$ evButtonOk
-  let evWCancel = WCancel <$ evButtonCancel
+  let evWLeft = WLeft <$ evButtonLeft
+  let evWUp = WUp <$ evButtonUp
+  let evWDown = WDown <$ evButtonDown
+  let evWRight = WRight <$ evButtonRight
   pure ()
 
 wakaUpdate :: Game -> WkEvent -> Game
 wakaUpdate gs wev =
-  case wev of
-    WTick -> textUpdate gs
-    WOk -> okButton gs
-    WCancel -> cancelButton gs
+  let imode = _imd gs
+   in if imode==Txt then
+        case wev of
+          WTick -> textUpdate gs
+          WOk -> okButton gs
+          WCancel -> cancelButton gs
+          _ -> gs
+                    else
+        case wev of
+          WOk -> gs
+          WCancel -> gs
+          WLeft -> gs
+          WUp -> gs
+          WDown -> gs
+          WRight -> gs
+          _ -> gs
 
 okButton :: Game -> Game
 okButton gs = gs{_itx=True} 
@@ -77,5 +97,4 @@ textUpdate gs =
             ngs1 = if isCode then exeCode ngs0 codeText else ngs0
          in ngs1
                                 else gs
-
 

@@ -55,7 +55,7 @@ data Game = Game {_imd :: !IMode
                  ,_evas :: ![EvAct]
                  } deriving stock (Eq,Show)
 
-data WkEvent = WTick | WOk | WCancel deriving stock (Eq,Show)
+data WkEvent = WTick | WOk | WCancel | WLeft | WUp | WDown | WRight deriving stock (Eq,Show)
 
 textWidth :: Int
 textWidth = 15
