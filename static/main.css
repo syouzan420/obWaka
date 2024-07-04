@@ -4,6 +4,8 @@ p {
 
 .kai {
   white-space: pre;
+  text-align: justify;
+  font: 400 18px monospace;
 }
 
 .pad {
@@ -20,6 +22,9 @@ p {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
 }
+.flexbox {
+  display: flex;
+}
 .tbox {
   width: auto;
   height: 280px;
@@ -29,4 +34,5 @@ p {
   writing-mode: vertical-rl;
   width: 100%;
   overflow-x: auto;
+  font: 400 18px monospace;
 }

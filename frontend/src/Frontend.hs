@@ -15,7 +15,7 @@ import Reflex.Dom.Core
   , Performable, PerformEvent, TriggerEvent
   )
 
-import CWidget (elChara, elSpace)
+import CWidget (elSpace)
 import Define
 import Initialize (newGame)
 import Converter (getSections)
@@ -30,7 +30,7 @@ frontend = Frontend
 
 frontendHead :: DomBuilder t m => m ()
 frontendHead = do
-  el "title" $ text "Waka"
+  el "title" $ text "waka"
   elAttr
     "meta"
     ( "name" =: "viewport"
@@ -56,9 +56,6 @@ frontendBody ::
   , Prerender t m
   ) => m ()
 frontendBody = do 
-  el "h1" $ text "Waka"
-  elSpace
-  elChara
   elSpace
 
   let sections = getSections $ T.lines textData 

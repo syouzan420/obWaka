@@ -33,10 +33,19 @@ lookupFromSections gs tx =
    in fromMaybe T.empty (lookup tx tsKeyValues)  
 
 setPlayer :: Game -> Game 
-setPlayer gs = gs{_imd = Ply} 
+setPlayer gs = gs{_itx=False,_imd = Ply} 
 
 setEventAction :: Game -> T.Text -> Code -> Game 
-setEventAction gs ev ac = gs{_evas = _evas gs <> [EA ENon (T.replace "." "_" ac) 0]} 
+setEventAction gs ead pcd = 
+  let eaData = T.splitOn "." ead
+      cd = T.replace "." "_" pcd
+  in if length eaData == 3 then 
+          let [act,dt,num] = eaData
+              ea = case act of
+                "block" -> EA (PBlock dt) cd ((read . T.unpack) num) 0
+                _ -> EA PNon cd 0 0
+           in gs{_evas = _evas gs<>[ea]} 
+                           else gs
 
 setMap :: Game -> T.Text -> Game 
 setMap gs i = 
@@ -45,11 +54,11 @@ setMap gs i =
       obMap = map (\(Ob ch nme l ps pr) -> let nm = lookupFromSections gs ("name" <> T.singleton ch) in Ob ch (if nm==T.empty then nme else T.init nm) l ps pr)  obMapPre
       pps = getPosByName "player" obMap 
       mpos = setMapStartPos pps mapWinSize mapSize
-   in gs{_mps = mpos, _omp = obMap}
+   in gs{_msz = mapSize, _mps = mpos, _omp = obMap}
 
 moveDialog :: Game -> T.Text -> Game 
 moveDialog gs title = 
   let newText = lookupFromSections gs title
    in if newText==T.empty then gs else 
-    gs{_imd=Txt, _tct=0, _txw=newText, _txv=_txv gs <> "\n \n"}
+    gs{_imd=Txt, _itx=True, _tct=0, _txw=newText, _txv=_txv gs <> "\n \n"}
 

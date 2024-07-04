@@ -10,39 +10,22 @@ type Width = Int
 type Height = Int
 type Scroll = Int
 
-
-takeWidth :: Scroll -> Width -> T.Text -> T.Text
-takeWidth s w tx = let lngT = T.length tx 
-                    in if w > lngT then T.replicate (w-lngT) "　" <> tx 
-                                   else T.take w (T.drop s tx)
-
-takeHeight :: Height -> T.Text -> [T.Text]
-takeHeight h tx
-  | tx==T.empty = []
-  | otherwise = let t = T.take h tx 
-                    lngT = T.length t
-                 in if lngT < h then [t <> T.replicate (h-lngT) "　"]   
-                                else t : takeHeight h (T.drop h tx)
-
 getText :: T.Text -> [TextSection]
 getText = getSections . T.lines
 
-
 type PlyPos = Pos
-type MapSize = Pos
-type MapWinSize = Pos
+type MapWinSize = Size 
 type MapPos = Pos
 type IsDiagonal = Bool
+type FlatMap = [T.Text]
 
---inpToDir :: IsDiagonal -> Input -> Direction
---inpToDir True p = case p of Ri -> EN; Up -> NW; Lf -> WS; Dn -> SE; _ -> NoDir
---inpToDir False p = case p of
---  Ri -> East; Up -> North; Lf -> West; Dn -> South; _ -> NoDir
+inpToDir :: WkEvent -> Dir
+inpToDir p = case p of
+  WRight -> East; WUp -> North; WLeft -> West; WDown -> South; _ -> NoDir
 
---dirToDelta :: Direction -> Pos
---dirToDelta dr = case dr of
---  East -> V2 1 0; EN -> V2 1 (-1); North -> V2 0 (-1); NW -> V2 (-1) (-1)
---  West -> V2 (-1) 0; WS -> V2 (-1) 1; South -> V2 0 1; SE -> V2 1 1; NoDir -> V2 0 0
+dirToDelta :: Dir -> Pos
+dirToDelta dr = case dr of
+  East -> V2 1 0; North -> V2 0 (-1); West -> V2 (-1) 0; South -> V2 0 1; NoDir -> V2 0 0
       
 setMapStartPos :: PlyPos -> MapWinSize -> MapSize -> MapPos
 setMapStartPos (V2 x y) (V2 w h) (V2 mw mh) =
@@ -57,17 +40,8 @@ setMapStartPos (V2 x y) (V2 w h) (V2 mw mh) =
 
 putMapInFrame :: MapWinSize -> MapPos -> T.Text -> T.Text
 putMapInFrame (V2 mw mh) (V2 mx my) mpText =
-  let mw' = fromIntegral mw; mh' = fromIntegral mh
-      mx' = fromIntegral mx; my' = fromIntegral my
-      lns = map (T.take mw' . T.drop mx') $ take mh' $ drop my' $ T.lines mpText
+  let lns = map (T.take mw . T.drop mx) $ take mh $ drop my $ T.lines mpText
    in T.unlines lns
-
---convertMap :: T.Text -> MapWhole
---convertMap tx =
---  let lns = T.lines tx
---   in map (map (\ch -> toEnum (fromMaybe 0 (T.findIndex (==ch) mapCh)) :: MapCell) . T.unpack) lns
-
-type PropNLayerNums = [(Int,Int)]
 
 makeObjectMap :: T.Text -> (ObMap,MapSize) 
 makeObjectMap tx =  
@@ -77,7 +51,8 @@ makeObjectMap tx =
       searchResult = searchObject 0 (T.unpack txnc)
    in (map (\(i,ch)->
        let p = mod i w ; q = div i w 
-        in Ob ch T.empty Cha T.empty (V2 p q) ) searchResult,V2 w (length lns))
+           oname = if ch=='@' then "player" else T.empty
+        in Ob ch oname Cha T.empty (V2 p q) ) searchResult,V2 w (length lns))
 
 
 searchObject :: Int -> String -> [(Int,Char)]
@@ -85,16 +60,16 @@ searchObject _ [] = []
 searchObject i (x:xs) = if x=='*' then searchObject (i+1) xs
                                   else (i,x):searchObject (i+1) xs
 
+showMap :: MapSize -> ObMap -> T.Text
+showMap ms om = T.unlines $ showObMap om (makeFlatMap ms) 
 
---showMap :: MapObject -> MapObject -> MapWhole -> T.Text
---showMap mo mt mw = T.unlines $ showMapObject (sortByLayers mo <> mt) $ showMapWhole mw 
+makeFlatMap :: MapSize -> FlatMap
+makeFlatMap (V2 w h) = replicate h $ T.pack (replicate w '.')
 
---showMapObject :: MapObject -> [T.Text] -> [T.Text]
---showMapObject [] mtx = mtx 
---showMapObject ((Ob ch _ _ (V2 x y) _):xs) mtx =
---  let x' = fromIntegral x; y' = fromIntegral y
---   in showMapObject xs (insertChar ch x' y' mtx)
---
+showObMap :: ObMap -> FlatMap -> [T.Text]
+showObMap [] mtx = mtx 
+showObMap ((Ob ch _ _ _ (V2 x y)):xs) mtx = showObMap xs (insertChar ch x y mtx)
+
 insertChar :: Char -> Int -> Int -> [T.Text] -> [T.Text]
 insertChar ch x y txs =  
   let ln = txs!!y
@@ -102,15 +77,6 @@ insertChar ch x y txs =
       nln = hd <> T.singleton ch <> T.tail tl
       (bln,aln) = splitAt y txs
     in bln ++ [nln] ++ tail aln 
-
---sortByLayers :: MapObject -> MapObject
---sortByLayers [] = []
---sortByLayers (ob@(Ob _ _ x _ _):xs) = sortSmaller ++ [ob] ++ sortLarger
---  where sortSmaller = [o | o@(Ob _ _ l _ _) <- xs, l <= x] 
---        sortLarger = [o | o@(Ob _ _ l _ _) <- xs, l > x]
-
---showMapWhole ::  MapWhole -> [T.Text]
---showMapWhole = map (T.pack. map (\mc -> if mc==Wall || mc==Block || mc==Water then '#' else '.')) 
 
 getSections :: [T.Text] -> [TextSection]
 getSections = getSections' Nothing []

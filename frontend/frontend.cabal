@@ -44,6 +44,7 @@ library
     TextData
     Object
     Code
+    Action
     Waka
   ghc-options: -Wall -O -fno-show-valid-hole-fits
                -- unsafe code
