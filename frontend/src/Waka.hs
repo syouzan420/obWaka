@@ -28,40 +28,41 @@ wakaMain ::
   , TriggerEvent t m
   , Prerender t m
   ) => Game -> m ()
-wakaMain gs = mdo
-  evTime <- tickLossyFromPostBuildTime 0.1
-  let beTxtOn = current dyTxtOn
-  let beScrOn = current dyScrOn
-  let evNTime = gate beTxtOn evTime
-  let evScrOn = gate beScrOn evNTime
-  let evWTick = WTick <$ evNTime
-  let evWk = leftmost [evWOk, evWLeft, evWUp, evWDown, evWRight, evWTick]
-  dyGs <- accumDyn wakaUpdate gs evWk
-  let dyVText = _txv <$> dyGs
-  let dyIsText = _itx <$> dyGs
-  let dyIMode = _imd <$> dyGs
-  let dyTexCountSub = _tcs <$> dyGs
-  let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
-  let dyScrOn = zipDynWith (\a b -> a && b `mod` 3 == 2) dyTxtOn dyTexCountSub
-  divClass "flexbox" $ do
-    elChara
-    divClass "kai" $ dynText (showMapRect <$> dyGs)
-  elSpace
-  divClass "tbox" $
-    elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
-  elSpace
-  evButtonOk <- evElButton "pad" "●"
-  evButtonLeft <- evElButton "pad" "←"
-  evButtonUp <- evElButton "pad" "↑"
-  evButtonDown <- evElButton "pad" "↓"
-  evButtonRight <- evElButton "pad" "→"
-  widgetHold_ blank (elTextScroll <$ evScrOn)
-  let evWOk = WOk <$ evButtonOk
-  let evWLeft = WLeft <$ evButtonLeft
-  let evWUp = WUp <$ evButtonUp
-  let evWDown = WDown <$ evButtonDown
-  let evWRight = WRight <$ evButtonRight
-  pure ()
+wakaMain gs = do
+  elAttr "div" ("id" =: "map") $ mdo
+    evTime <- tickLossyFromPostBuildTime 0.1
+    let beTxtOn = current dyTxtOn
+    let beScrOn = current dyScrOn
+    let evNTime = gate beTxtOn evTime
+    let evScrOn = gate beScrOn evNTime
+    let evWTick = WTick <$ evNTime
+    let evWk = leftmost [evWOk, evWLeft, evWUp, evWDown, evWRight, evWTick]
+    dyGs <- accumDyn wakaUpdate gs evWk
+    let dyVText = _txv <$> dyGs
+    let dyIsText = _itx <$> dyGs
+    let dyIMode = _imd <$> dyGs
+    let dyTexCountSub = _tcs <$> dyGs
+    let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
+    let dyScrOn = zipDynWith (\a b -> a && b `mod` 3 == 2) dyTxtOn dyTexCountSub
+    divClass "flexbox" $ do
+      elChara
+      divClass "kai" $ dynText (showMapRect <$> dyGs)
+    elSpace
+    divClass "tbox" $ 
+      elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
+    elSpace  
+    evButtonOk <- evElButton "pad" "●"
+    evButtonLeft <- evElButton "pad" "←"
+    evButtonUp <- evElButton "pad" "↑"
+    evButtonDown <- evElButton "pad" "↓"
+    evButtonRight <- evElButton "pad" "→"
+    widgetHold_ blank (elTextScroll <$ evScrOn)
+    let evWOk = WOk <$ evButtonOk
+    let evWLeft = WLeft <$ evButtonLeft
+    let evWUp = WUp <$ evButtonUp
+    let evWDown = WDown <$ evButtonDown
+    let evWRight = WRight <$ evButtonRight
+    pure ()
 
 showMapRect :: Game -> T.Text
 showMapRect gs =

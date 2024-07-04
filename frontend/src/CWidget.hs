@@ -27,7 +27,7 @@ mkHidden False = "hidden" =: ""
 mkHidden True = mempty
 
 elSpace :: DomBuilder t m => m ()
-elSpace = el "p" $ text ""
+elSpace = el "p" $ text " "
 
 evElButton :: DomBuilder t m => T.Text -> T.Text -> m (Event t ())
 evElButton c s = do

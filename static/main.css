@@ -1,9 +1,10 @@
 body {
-  touch-action: non;
+  touch-action: none;
 }
 
 p {
   color: blue;  
+  font-size: 30px;
 }
 
 button {
@@ -15,6 +16,10 @@ button {
 
 button:active {
   background-color: #FFF7BA;
+}
+
+#map {
+  touch-action: none;
 }
 
 .kai {
