@@ -98,7 +98,7 @@ elTextScroll = prerender_ blank $ do
   doc <- currentDocumentUnchecked
   scrollText <- DOM.getElementById doc ("wkText" :: String)
   case scrollText of
-    Just scrT -> DOM.scrollTo scrT (-10000) 0
+    Just scrT -> DOM.scrollBy scrT (-20) 0 
     Nothing -> return ()
   
 elChara :: DomBuilder t m => m ()

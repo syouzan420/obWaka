@@ -1,5 +1,20 @@
+body {
+  touch-action: non;
+}
+
 p {
   color: blue;  
+}
+
+button {
+  background-color: #BAFFBD;
+  margin: 3px 2px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:active {
+  background-color: #FFF7BA;
 }
 
 .kai {
