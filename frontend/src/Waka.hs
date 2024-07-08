@@ -14,8 +14,9 @@ import Reflex.Dom.Core
 import CWidget (elChara,elSpace,evElButton,elTextScroll)
 
 import Define
-import Converter (getInfoFromChar,showMap,putMapInFrame)
-import Action (movePlayer)
+import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir)
+import Object (getDirByName,updateDirByName)
+import Action (movePlayer,hitAction)
 import Code (exeCode)
 
 wakaMain ::
@@ -32,18 +33,18 @@ wakaMain gs = do
   elAttr "div" ("id" =: "map") $ mdo
     evTime <- tickLossyFromPostBuildTime 0.1
     let beTxtOn = current dyTxtOn
-    let beScrOn = current dyScrOn
-    let evNTime = gate beTxtOn evTime
-    let evScrOn = gate beScrOn evNTime
-    let evWTick = WTick <$ evNTime
+--    let beScrOn = current dyScrOn
+    let evTxTime = gate beTxtOn evTime
+--    let evScrOn = gate beScrOn evNTime
+    let evWTick = WTick <$ evTime
     let evWk = leftmost [evWOk, evWLeft, evWUp, evWDown, evWRight, evWTick]
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
     let dyIMode = _imd <$> dyGs
-    let dyTexCountSub = _tcs <$> dyGs
+--    let dyTexCountSub = _tcs <$> dyGs
     let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
-    let dyScrOn = zipDynWith (\a b -> a && b `mod` 3 == 2) dyTxtOn dyTexCountSub
+--    let dyScrOn = zipDynWith (\a b -> a && b `mod` 3 == 2) dyTxtOn dyTexCountSub
     divClass "flexbox" $ do
       elChara
       divClass "kai" $ dynText (showMapRect <$> dyGs)
@@ -56,7 +57,7 @@ wakaMain gs = do
     evButtonUp <- evElButton "pad" "↑"
     evButtonDown <- evElButton "pad" "↓"
     evButtonRight <- evElButton "pad" "→"
-    widgetHold_ blank (elTextScroll <$ evScrOn)
+    widgetHold_ blank (elTextScroll <$ evTxTime)
     let evWOk = WOk <$ evButtonOk
     let evWLeft = WLeft <$ evButtonLeft
     let evWUp = WUp <$ evButtonUp
@@ -67,9 +68,10 @@ wakaMain gs = do
 showMapRect :: Game -> T.Text
 showMapRect gs =
   let obMap = _omp gs
+      tMap = _tmp gs
       mapSize = _msz gs
       mapPos = _mps gs
-   in putMapInFrame mapWinSize mapPos $ showMap mapSize obMap
+   in putMapInFrame mapWinSize mapPos $ showMap mapSize obMap tMap
 
 wakaUpdate :: Game -> WkEvent -> Game
 wakaUpdate gs wev =
@@ -81,14 +83,22 @@ wakaUpdate gs wev =
           _ -> gs
                     else
         case wev of
-          WOk -> gs
+          WTick -> effectUpdate gs
+          WOk -> 
+            let obMap = _omp gs
+                mapSize = _msz gs
+             in gs{_tmp=hitAction "player" mapSize obMap (_tmp gs)}
           dirEv -> 
             let obMap = _omp gs
                 mapSize = _msz gs
                 mapPos = _mps gs
                 evActs = _evas gs
-                (nomp,nmps,npevs) = 
-                      movePlayer dirEv mapSize mapWinSize mapPos obMap
+                pDir = getDirByName "player" obMap 
+                keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
+                isSameDir = pDir == keyDir
+                (nomp,nmps,npevs) = if isSameDir 
+                      then movePlayer dirEv mapSize mapWinSize mapPos obMap
+                      else (updateDirByName "player" keyDir obMap,mapPos,[])
                 ngs = exeEvActs gs npevs evActs
              in ngs{_omp=nomp,_mps=nmps} 
 
@@ -117,6 +127,17 @@ okButton :: Game -> Game
 okButton gs = 
   let imd = _imd gs
    in gs{_itx=imd==Txt,_tcs=0} 
+
+
+scanEffect :: ObMap -> ObMap
+scanEffect [] = []
+scanEffect (ob@(Ob ch nm tp df oc dr ps):xs)
+  | ch=='/' = Ob '\\' nm tp df oc dr ps:scanEffect xs
+  | ch=='\\' = scanEffect xs
+  | otherwise = ob:scanEffect xs
+
+effectUpdate :: Game -> Game
+effectUpdate gs = gs{_tmp = scanEffect (_tmp gs)}
 
 textUpdate :: Game -> Game
 textUpdate gs =

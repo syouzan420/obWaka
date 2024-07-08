@@ -51,7 +51,7 @@ setMap :: Game -> T.Text -> Game
 setMap gs i = 
   let obMapText = lookupFromSections gs ("map" <> i)
       (obMapPre,mapSize) = makeObjectMap obMapText
-      obMap = map (\(Ob ch nme l ps pr) -> let nm = lookupFromSections gs ("name" <> T.singleton ch) in Ob ch (if nm==T.empty then nme else T.init nm) l ps pr)  obMapPre
+      obMap = map (\(Ob ch nme tp df oc dr ps) -> let nm = lookupFromSections gs ("name" <> T.singleton ch) in Ob ch (if nm==T.empty then nme else T.init nm) tp df oc dr ps)  obMapPre
       pps = getPosByName "player" obMap 
       mpos = setMapStartPos pps mapWinSize mapSize
    in gs{_msz = mapSize, _mps = mpos, _omp = obMap}

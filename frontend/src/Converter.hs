@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Converter where
 
 --import Data.Maybe (fromMaybe)
@@ -52,7 +51,7 @@ makeObjectMap tx =
    in (map (\(i,ch)->
        let p = mod i w ; q = div i w 
            oname = if ch=='@' then "player" else T.empty
-        in Ob ch oname Cha T.empty (V2 p q) ) searchResult,V2 w (length lns))
+        in Ob ch oname TLive T.empty CBlock North (V2 p q) ) searchResult,V2 w (length lns))
 
 
 searchObject :: Int -> String -> [(Int,Char)]
@@ -60,15 +59,15 @@ searchObject _ [] = []
 searchObject i (x:xs) = if x=='*' then searchObject (i+1) xs
                                   else (i,x):searchObject (i+1) xs
 
-showMap :: MapSize -> ObMap -> T.Text
-showMap ms om = T.unlines $ showObMap om (makeFlatMap ms) 
+showMap :: MapSize -> ObMap -> ObMap -> T.Text
+showMap ms om tm = T.unlines $ showObMap (om <> tm) (makeFlatMap ms) 
 
 makeFlatMap :: MapSize -> FlatMap
 makeFlatMap (V2 w h) = replicate h $ T.pack (replicate w '.')
 
 showObMap :: ObMap -> FlatMap -> [T.Text]
 showObMap [] mtx = mtx 
-showObMap ((Ob ch _ _ _ (V2 x y)):xs) mtx = showObMap xs (insertChar ch x y mtx)
+showObMap ((Ob ch _ _ _ _ _ (V2 x y)):xs) mtx = showObMap xs (insertChar ch x y mtx)
 
 insertChar :: Char -> Int -> Int -> [T.Text] -> [T.Text]
 insertChar ch x y txs =  

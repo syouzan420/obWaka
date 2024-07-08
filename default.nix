@@ -24,7 +24,7 @@ project ./. ({ pkgs, ... }: {
   };
 
   android = {
-    applicationId = "org.yokop.quiz";
+    applicationId = "org.yokop.waka";
     displayName = "Waka";
     isRelease = androidIsRelease;
     resources = reflex-platform.android.buildIcons {
