@@ -2,6 +2,7 @@ module Waka (wakaMain) where
 
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
+import Data.Functor ((<&>))
 import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr 
@@ -37,7 +38,8 @@ wakaMain gs = do
     let evTxTime = gate beTxtOn evTime
 --    let evScrOn = gate beScrOn evNTime
     let evWTick = WTick <$ evTime
-    let evWk = leftmost [evWOk, evWLeft, evWUp, evWDown, evWRight, evWTick]
+--    let evWk = leftmost [evWOk, evWLeft, evWUp, evWDown, evWRight, evWTick]
+    let evWk = leftmost (evWDir<>[evWTick])
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
@@ -52,18 +54,8 @@ wakaMain gs = do
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
-    evButtonOk <- evElButton "pad" "●"
-    evButtonLeft <- evElButton "pad" "←"
-    evButtonUp <- evElButton "pad" "↑"
-    evButtonDown <- evElButton "pad" "↓"
-    evButtonRight <- evElButton "pad" "→"
+    evWDir <- mapM (evElButton "pad") ["●","←","↑","↓","→"] <&> zipWith (<$) [WOk,WLeft,WUp,WDown,WRight]
     widgetHold_ blank (elTextScroll <$ evTxTime)
-    let evWOk = WOk <$ evButtonOk
-    let evWLeft = WLeft <$ evButtonLeft
-    let evWUp = WUp <$ evButtonUp
-    let evWDown = WDown <$ evButtonDown
-    let evWRight = WRight <$ evButtonRight
-    pure ()
 
 showMapRect :: Game -> T.Text
 showMapRect gs =
