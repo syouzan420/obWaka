@@ -51,6 +51,8 @@ wakaMain gs = do
       elChara
       divClass "kai" $ dynText (showMapRect <$> dyGs)
     elSpace
+--    let dyObjectMap = _omp <$> dyGs
+--    dynText (T.pack . show <$> dyObjectMap)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  

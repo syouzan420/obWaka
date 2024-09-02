@@ -3,6 +3,8 @@ module Converter where
 --import Data.Maybe (fromMaybe)
 import Linear.V2 (V2(..))
 import qualified Data.Text as T
+import Data.Maybe (fromMaybe)
+import Data.List (find)
 import Define
 
 type Width = Int
@@ -53,6 +55,35 @@ makeObjectMap tx =
            oname = if ch=='@' then "player" else T.empty
         in Ob ch oname TLive T.empty CBlock North (V2 p q) ) searchResult,V2 w (length lns))
 
+setObjectData :: [T.Text] -> ObMap -> ObMap
+setObjectData _ [] = [] 
+setObjectData obdts (ob@(Ob ch _ _ _ _ _ ps):obs) =
+  let tgtDt = fromMaybe T.empty $
+                 find (\obdt -> fmap fst (T.uncons obdt) == Just ch) obdts
+      dtList = T.splitOn "," tgtDt
+      newObj = case dtList of
+        [_,tnm,ttp,tdf,tcn,tdr] ->
+               Ob ch tnm (txToType ttp) tdf (txToCon tcn) (txToDir tdr) ps 
+        _ -> ob
+   in newObj:setObjectData obdts obs
+
+txToType :: T.Text -> ObType
+txToType txt = fromMaybe TBlock $ lookup txt txType
+
+txToCon :: T.Text -> ObCon
+txToCon txt = fromMaybe CBlock $ lookup txt txCon 
+
+txToDir :: T.Text -> Dir
+txToDir txt = fromMaybe NoDir $ lookup txt txDir
+
+txType :: [(T.Text,ObType)]
+txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive),("food",TFood),("tool",TTool),("block",TBlock),("func",TFunc [])]
+
+txCon :: [(T.Text,ObCon)]
+txCon = [("block",CBlock),("move",CMove),("get",CGet),("on",COn),("enter",CEnter)]
+
+txDir :: [(T.Text,Dir)]
+txDir = [("east",East),("north",North),("west",West),("south",South),("nodir",NoDir)]
 
 searchObject :: Int -> String -> [(Int,Char)]
 searchObject _ [] = []

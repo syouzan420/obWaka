@@ -20,6 +20,11 @@ map0:
 nameA:
 Anna
 
+obj0:
+A,Anna,live,,block,north
+B,Box,block,,move,north
+C,Cake,food,,get,north
+
 scene0:
 私が言ふより 自分で確かめた方が よく分かると思ふ。
 だから 歩き出して。

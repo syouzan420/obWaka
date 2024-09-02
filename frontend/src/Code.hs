@@ -3,7 +3,7 @@ module Code(exeCode) where
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
 import Data.List (uncons)
-import Converter (makeObjectMap,setMapStartPos)
+import Converter (makeObjectMap,setObjectData,setMapStartPos)
 import Object (getPosByName)
 import Define
 
@@ -39,19 +39,21 @@ setEventAction :: Game -> T.Text -> Code -> Game
 setEventAction gs ead pcd = 
   let eaData = T.splitOn "." ead
       cd = T.replace "." "_" pcd
-  in if length eaData == 3 then 
-          let [act,dt,num] = eaData
-              ea = case act of
-                "block" -> EA (PBlock dt) cd ((read . T.unpack) num) 0
-                _ -> EA PNon cd 0 0
-           in gs{_evas = _evas gs<>[ea]} 
-                           else gs
+  in case eaData of
+      [act,dt,num] -> 
+        let ea = case act of
+              "block" -> EA (PBlock dt) cd ((read . T.unpack) num) 0
+              _ -> EA PNon cd 0 0
+                       in gs{_evas = _evas gs<>[ea]} 
+      _ -> gs
 
 setMap :: Game -> T.Text -> Game 
 setMap gs i = 
   let obMapText = lookupFromSections gs ("map" <> i)
       (obMapPre,mapSize) = makeObjectMap obMapText
-      obMap = map (\(Ob ch nme tp df oc dr ps) -> let nm = lookupFromSections gs ("name" <> T.singleton ch) in Ob ch (if nm==T.empty then nme else T.init nm) tp df oc dr ps)  obMapPre
+  --    obMap = map (\(Ob ch nme tp df oc dr ps) -> let nm = lookupFromSections gs ("name" <> T.singleton ch) in Ob ch (if nm==T.empty then nme else T.init nm) tp df oc dr ps)  obMapPre
+      objData = lookupFromSections gs ("obj" <> i)
+      obMap = setObjectData (T.lines objData) obMapPre
       pps = getPosByName "player" obMap 
       mpos = setMapStartPos pps mapWinSize mapSize
    in gs{_msz = mapSize, _mps = mpos, _omp = obMap}
