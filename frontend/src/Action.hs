@@ -20,9 +20,15 @@ movePlayer ev (V2 mw mh) (V2 w h) (V2 mx my) omp =
       isBlock = case obj of
                   Just (Ob _ _ _ _ oc _ _) -> oc==CBlock
                   Nothing -> False
+      isPush = case obj of
+                  Just (Ob _ _ _ _ oc _ _) -> oc==CMove
+                  Nothing -> False
       oname = case obj of
                   Just (Ob _ nm _ _ _ _ _) -> nm
                   Nothing -> T.empty
+      tops@(V2 tox toy) = if isPush then tps + dps else tps
+      isObInMap = tox>=0 && tox<mw && toy>=0 && toy<mh 
+      nops = if isObInMap then tops else tps
       npps@(V2 nx ny) = if isInMap && not isBlock then tps else pps
       nmx 
         | nx-mx < 1 && mx > 0 = mx - 1 
@@ -33,8 +39,9 @@ movePlayer ev (V2 mw mh) (V2 w h) (V2 mx my) omp =
         | ny-my > h-2 && my < mh-h = my + 1
         | otherwise = my
       nomp = if npps/=pps then updatePosByName "player" npps omp else omp
-      npevs = [PMove npps]<>[PBlock oname | isBlock]
-   in (nomp, V2 nmx nmy, npevs)
+      nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
+      npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
+   in (nomp2, V2 nmx nmy, npevs)
 
 hitAction :: ObName -> MapSize -> ObMap -> ObMap -> ObMap 
 hitAction onm (V2 mw mh) om tm = 
