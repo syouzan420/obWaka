@@ -1,9 +1,9 @@
-module Action (movePlayer,hitAction) where
+module Action (movePlayer,hitAction,putAction) where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
 import Object (getPosByName,getDirByName,getObjByPos
-              ,updatePosByName,deleteObjByPos)
+              ,updatePosByName,deleteObjByPos,isObjOnPos,putObjOnPos)
 import Converter (inpToDir,dirToDelta)
 import Data.Maybe (isNothing)
 import Define 
@@ -54,3 +54,11 @@ hitAction onm (V2 mw mh) om tm =
       eps@(V2 ex ey) = pPos + dirToDelta pDir 
       isShow = ex>=0 && ex<mw && ey>=0 && ey<mh
    in if isShow then Ob '/' "hit" TLive T.empty COn pDir eps:tm else tm 
+
+putAction :: Object -> Dir -> MapSize -> ObMap -> (ObMap,Maybe Object)
+putAction tob pDir (V2 mw mh) om =
+  let pPos = getPosByName "player" om
+      tps@(V2 tx ty) = pPos + dirToDelta pDir   
+      canPut = tx>=0 && tx<mw && ty>=0 && ty<mh && not (isObjOnPos tps om)
+   in if canPut then (putObjOnPos tob tps om,Nothing) else (om,Just tob)    
+

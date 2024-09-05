@@ -41,4 +41,14 @@ deleteObjByPos _ _ [] = []
 deleteObjByPos tnm pos (ob@(Ob _ nm _ _ _ _ ps):xs) =  
   if pos==ps && tnm==nm then deleteObjByPos tnm pos xs 
                         else ob:deleteObjByPos tnm pos xs
+
+isObjOnPos :: Pos -> ObMap -> Bool
+isObjOnPos _ [] = False
+isObjOnPos pos ((Ob _ _ _ _ _ _ ps):xs) = pos==ps || isObjOnPos pos xs 
+
+putObjOnPos :: Object -> Pos -> ObMap -> ObMap
+putObjOnPos (Ob ch nm tp df oc dr _) pos om = Ob ch nm tp df oc dr pos:om 
+
+getObjName :: Object -> ObName
+getObjName (Ob _ nm _ _ _ _ _) = nm
 --

@@ -3,9 +3,10 @@ module Waka (wakaMain) where
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Functor ((<&>))
+import Data.Maybe (isNothing)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
-  ( dynText, current, gate, blank, elAttr, constDyn 
+  ( dynText, current, gate, blank, elAttr, constDyn, el 
   , accumDyn, divClass, leftmost, (=:), zipDynWith 
   , tickLossyFromPostBuildTime, widgetHold_
   , DomBuilder, MonadHold, PostBuild, Prerender
@@ -16,8 +17,8 @@ import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
 
 import Define
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir)
-import Object (getDirByName,updateDirByName)
-import Action (movePlayer,hitAction)
+import Object (getDirByName,updateDirByName,getObjName)
+import Action (movePlayer,hitAction,putAction)
 import Code (exeCode)
 
 wakaMain ::
@@ -43,13 +44,16 @@ wakaMain gs = do
     let dyIMode = _imd <$> dyGs
     let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
     let dyImg = dyGs >>= (\n -> constDyn (imgsrc!!n)) . _chn
+    let dyHave = _hav <$> dyGs
     divClass "flexbox" $ do
-      dyChara dyImg
+      el "div" $ dyChara dyImg
       divClass "kai" $ dynText (showMapRect <$> dyGs)
+      el "div" $ dynText $ dyHave <&> 
+          \hav -> case hav of Just hv -> " >:"<>getObjName hv; Nothing -> T.empty 
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
---    dynText (T.pack . show <$> dyEvas)
+--    dynText (T.pack . show <$> dyObjectMap)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -73,26 +77,31 @@ wakaUpdate gs wev =
           WOk -> okButton gs
           _ -> gs
                     else
-        case wev of
-          WTick -> effectUpdate gs
-          WOk -> 
-            let obMap = _omp gs
-                mapSize = _msz gs
-             in gs{_tmp=hitAction "player" mapSize obMap (_tmp gs)}
-          dirEv -> 
-            let obMap = _omp gs
-                mapSize = _msz gs
-                mapPos = _mps gs
-                evActs = _evas gs
-                pHave = _hav gs
-                pDir = getDirByName "player" obMap 
-                keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
-                isSameDir = pDir == keyDir
-                (nomp,nmps,npevs,nphv) = if isSameDir 
+        let obMap = _omp gs
+            mapSize = _msz gs
+            pHave = _hav gs    
+            pDir = getDirByName "player" obMap
+         in case wev of
+           WTick -> effectUpdate gs
+           WOk -> 
+             let tmpMap = _tmp gs
+                 ntmp = if isNothing pHave 
+                             then hitAction "player" mapSize obMap tmpMap
+                             else tmpMap
+                 (nomp,nphv) = case pHave of
+                          Nothing -> (obMap,Nothing) 
+                          Just tob -> putAction tob pDir mapSize obMap  
+              in gs{_tmp=ntmp, _omp=nomp, _hav=nphv}
+           dirEv -> 
+             let mapPos = _mps gs
+                 evActs = _evas gs
+                 keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
+                 isSameDir = pDir == keyDir
+                 (nomp,nmps,npevs,nphv) = if isSameDir 
                       then movePlayer dirEv pHave mapSize mapWinSize mapPos obMap
                       else (updateDirByName "player" keyDir obMap,mapPos,[],pHave)
-                ngs = exeEvActs gs npevs evActs
-             in ngs{_omp=nomp,_mps=nmps,_hav=nphv} 
+                 ngs = exeEvActs gs npevs evActs
+              in ngs{_omp=nomp,_mps=nmps,_hav=nphv} 
 
 exeEvActs :: Game -> [PEvent] -> [EvAct] -> Game
 exeEvActs gs [] nevas = gs{_evas = nevas} 

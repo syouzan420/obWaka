@@ -47,6 +47,10 @@ button:active {
 .flexbox {
   display: flex;
 }
+.flexbox > div {
+  margin: 1px;
+  padding: 3px;
+}
 .tbox {
   width: auto;
   height: 280px;
