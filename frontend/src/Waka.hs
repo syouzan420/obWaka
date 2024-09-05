@@ -159,5 +159,6 @@ textUpdate gs =
             ngs0 = gs{_itx=nitx, _txv=ntxv, _tct=ntct, _tcs=_tcs gs + 1}
             ngs1 = if isCode then exeCode ngs0 codeText else ngs0
          in ngs1
-                                else gs
+                                else 
+         if isTextShowing then gs else exeCode gs "ch_0 stpl"
 
