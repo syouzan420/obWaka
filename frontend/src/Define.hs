@@ -65,9 +65,8 @@ data Game = Game {_imd :: !IMode
                  ,_msz :: !MapSize
                  ,_mps :: !Pos
                  ,_evas :: ![EvAct]
+                 ,_chn :: !Int
                  } deriving stock (Eq,Show)
-
-
 
 mapWinSize :: Size 
 mapWinSize = V2 12 6

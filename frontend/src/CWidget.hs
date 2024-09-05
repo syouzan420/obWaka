@@ -1,4 +1,4 @@
-module CWidget ( elChara, elSpace, evElButton, evElButtonH, mkHidden
+module CWidget (dyChara, imgsrc, elSpace, evElButton, evElButtonH, mkHidden
                , evElNumberPad, dyElTimer, dyElCharaAnime, elTextScroll
                ) where
 
@@ -101,8 +101,11 @@ elTextScroll = prerender_ blank $ do
     Just scrT -> DOM.scrollBy scrT (-20) 0 
     Nothing -> return ()
   
-elChara :: DomBuilder t m => m ()
-elChara = elAttr "img" ("src" =: $(static "chara0_mid.png")) blank
+--elChara :: DomBuilder t m => m ()
+--elChara = elAttr "img" ("src" =: $(static "chara0_mid.png")) blank
+
+dyChara :: (DomBuilder t m, PostBuild t m) => Dynamic t (Map.Map T.Text T.Text) -> m ()
+dyChara di = elDynAttr "img" di blank
 
 elChara0 :: DomBuilder t m => m ()
 elChara0 = elAttr "img" ("src" =: $(static "chara0.png")) blank
@@ -110,3 +113,11 @@ elChara0 = elAttr "img" ("src" =: $(static "chara0.png")) blank
 elChara1 :: DomBuilder t m => m ()
 elChara1 = elAttr "img" ("src" =: $(static "chara1.png")) blank
 
+imgsrc :: [Map.Map T.Text T.Text]
+imgsrc = ["src" =: $(static "chara0.png")
+         ,"src" =: $(static "chara1.png")
+         ,"src" =: $(static "chara2.png")
+         ,"src" =: $(static "chara3.png")
+         ,"src" =: $(static "chara4.png")
+         ,"src" =: $(static "chara5.png")
+         ]

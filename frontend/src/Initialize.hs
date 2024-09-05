@@ -11,4 +11,5 @@ newGame = Game{_imd=Txt
               ,_itx=True
               ,_omp=[],_tmp=[],_msz=V2 0 0,_mps=V2 0 0
               ,_evas=[]
+              ,_chn=0
               }

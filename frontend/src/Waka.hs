@@ -5,14 +5,14 @@ import Control.Monad.IO.Class (MonadIO)
 import Data.Functor ((<&>))
 import qualified Data.Text as T
 import Reflex.Dom.Core 
-  ( dynText, current, gate, blank, elAttr 
+  ( dynText, current, gate, blank, elAttr, constDyn 
   , accumDyn, divClass, leftmost, (=:), zipDynWith 
   , tickLossyFromPostBuildTime, widgetHold_
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
   )
 
-import CWidget (elChara,elSpace,evElButton,elTextScroll)
+import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
 
 import Define
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir)
@@ -34,25 +34,22 @@ wakaMain gs = do
   elAttr "div" ("id" =: "map") $ mdo
     evTime <- tickLossyFromPostBuildTime 0.1
     let beTxtOn = current dyTxtOn
---    let beScrOn = current dyScrOn
     let evTxTime = gate beTxtOn evTime
---    let evScrOn = gate beScrOn evNTime
     let evWTick = WTick <$ evTime
---    let evWk = leftmost [evWOk, evWLeft, evWUp, evWDown, evWRight, evWTick]
     let evWk = leftmost (evWDir<>[evWTick])
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
     let dyIMode = _imd <$> dyGs
---    let dyTexCountSub = _tcs <$> dyGs
     let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
---    let dyScrOn = zipDynWith (\a b -> a && b `mod` 3 == 2) dyTxtOn dyTexCountSub
+    let dyImg = dyGs >>= (\n -> constDyn (imgsrc!!n)) . _chn
     divClass "flexbox" $ do
-      elChara
+      dyChara dyImg
       divClass "kai" $ dynText (showMapRect <$> dyGs)
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
---    dynText (T.pack . show <$> dyObjectMap)
+--    let dyEvas = _evas <$> dyGs
+--    dynText (T.pack . show <$> dyEvas)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -110,12 +107,13 @@ getCodes pe (nevas,ncodes) (ea@(EA te cd n i):eas) =
    in case ast of
       NAct -> getCodes pe (nevas<>[ea],ncodes) eas
       TAct -> getCodes pe (nevas<>[EA te cd n (i+1)],ncodes) eas
-      EAct -> getCodes pe (nevas,ncodes<>[cd]) eas
+      EAct -> if n==0 then getCodes pe (nevas<>[ea],ncodes<>[cd]) eas
+                      else getCodes pe (nevas,ncodes<>[cd]) eas
 
 checkAct :: PEvent -> EvAct -> Ast
 checkAct pe (EA te _ n co) = 
   let isAct = pe==te
-   in if isAct then if co+1==n then EAct else TAct else NAct
+   in if isAct then if co+1==n || n==0 then EAct else TAct else NAct
 
 okButton :: Game -> Game
 okButton gs = 

@@ -24,6 +24,7 @@ exeOneCode gs evt = do
     "a" -> if length ags==2 then setEventAction gs (head ags) (last ags) else gs 
     "mvdi" -> moveDialog gs (head ags)
     "stmp" -> setMap gs (head ags)
+    "ch" -> changeChara gs (head ags)
     _ -> gs 
 
 lookupFromSections :: Game -> T.Text -> T.Text
@@ -51,7 +52,6 @@ setMap :: Game -> T.Text -> Game
 setMap gs i = 
   let obMapText = lookupFromSections gs ("map" <> i)
       (obMapPre,mapSize) = makeObjectMap obMapText
-  --    obMap = map (\(Ob ch nme tp df oc dr ps) -> let nm = lookupFromSections gs ("name" <> T.singleton ch) in Ob ch (if nm==T.empty then nme else T.init nm) tp df oc dr ps)  obMapPre
       objData = lookupFromSections gs ("obj" <> i)
       obMap = setObjectData (T.lines objData) obMapPre
       pps = getPosByName "player" obMap 
@@ -62,5 +62,7 @@ moveDialog :: Game -> T.Text -> Game
 moveDialog gs title = 
   let newText = lookupFromSections gs title
    in if newText==T.empty then gs else 
-    gs{_imd=Txt, _itx=True, _tct=0, _txw=newText, _txv=_txv gs <> "\n \n"}
+    gs{_imd=Txt, _itx=True, _tct=0, _txw=newText, _txv=T.empty}
 
+changeChara :: Game -> T.Text -> Game
+changeChara gs chn = gs{_chn = (read . T.unpack) chn}
