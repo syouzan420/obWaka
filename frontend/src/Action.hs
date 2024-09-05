@@ -2,27 +2,29 @@ module Action (movePlayer,hitAction) where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
-import Object (getPosByName,getDirByName,getObjByPos,updatePosByName)
+import Object (getPosByName,getDirByName,getObjByPos
+              ,updatePosByName,deleteObjByPos)
 import Converter (inpToDir,dirToDelta)
+import Data.Maybe (isNothing)
 import Define 
 
 type MapPos = Pos
 type MapWinPos = Pos
 
-movePlayer :: WkEvent -> MapSize -> MapWinPos -> MapPos  
-                                   -> ObMap -> (ObMap,MapPos,[PEvent]) 
-movePlayer ev (V2 mw mh) (V2 w h) (V2 mx my) omp =  
+movePlayer :: WkEvent -> Maybe Object -> MapSize -> MapWinPos -> MapPos  
+                             -> ObMap -> (ObMap,MapPos,[PEvent],Maybe Object) 
+movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =  
   let pps = getPosByName "player" omp
       dps = dirToDelta $ inpToDir ev 
       tps@(V2 tx ty) = pps + dps
       isInMap = tx>=0 && tx<mw && ty>=0 && ty<mh 
       obj = getObjByPos tps omp  -- map opr on target
-      isBlock = case obj of
-                  Just (Ob _ _ _ _ oc _ _) -> oc==CBlock
-                  Nothing -> False
-      isPush = case obj of
-                  Just (Ob _ _ _ _ oc _ _) -> oc==CMove
-                  Nothing -> False
+      obc = case obj of
+              Just (Ob _ _ _ _ oc _ _) -> Just oc
+              Nothing -> Nothing
+      isBlock = case obc of Just oc-> oc==CBlock; Nothing -> False
+      isPush = case obc of Just oc -> oc==CMove; Nothing -> False
+      isGet = case obc of Just oc -> oc==CGet; Nothing -> False
       oname = case obj of
                   Just (Ob _ nm _ _ _ _ _) -> nm
                   Nothing -> T.empty
@@ -40,8 +42,10 @@ movePlayer ev (V2 mw mh) (V2 w h) (V2 mx my) omp =
         | otherwise = my
       nomp = if npps/=pps then updatePosByName "player" npps omp else omp
       nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
+      nomp3 = if isGet && isNothing hv then deleteObjByPos oname nops nomp2 else nomp2  
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
-   in (nomp2, V2 nmx nmy, npevs)
+      nphv = if isGet && isNothing hv then obj else hv
+   in (nomp3, V2 nmx nmy, npevs, nphv)
 
 hitAction :: ObName -> MapSize -> ObMap -> ObMap -> ObMap 
 hitAction onm (V2 mw mh) om tm = 

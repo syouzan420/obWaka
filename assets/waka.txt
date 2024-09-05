@@ -6,7 +6,7 @@ init:
 
 map0:
 *******************
-*******************
+**************s****
 ***A***************
 *******************
 *******************
@@ -17,14 +17,25 @@ map0:
 ******B************
 *******************
 *******************
-*******************
+*************g*****
 *******************
 
 obj0:
 A,Anna,live,,block,north
 B,Box,block,,move,north
-C,Cake,food,,get,north
+C,Conbiner,func tool tool,map1,enter,north
 Y,Yoko,live,,block,north
+g,Glasses,tool,,get,nodir
+s,Super,tool,,get,nodir
+
+map1:
+con**********@
+**************
+**con*g*s*=*G*
+**************
+**con*h*s*=*H*
+**************
+*************%
 
 scene0:
 君が慣れ親しんできた世界とは 違って見えるかな。

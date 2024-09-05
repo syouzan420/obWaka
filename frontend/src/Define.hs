@@ -43,6 +43,7 @@ data IMode = Txt | Ply deriving stock (Eq,Show)
 data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 
 
+--imd: input mode (Txt or Ply)
 --txs: text sections
 --txw: tate text whole
 --txv: tate text view
@@ -50,9 +51,12 @@ data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --tcs: text count sub
 --itx: is text showing?
 --omp: object map
+--tmp: temporary object map (for animation effect)
 --msz: map size
 --mps: map position
 --evas: event actions
+--chn: character number (0:NoChara)
+--hav: something having (not having: Nothing)
 data Game = Game {_imd :: !IMode
                  ,_txs :: ![TextSection]
                  ,_txw :: !T.Text
@@ -66,6 +70,7 @@ data Game = Game {_imd :: !IMode
                  ,_mps :: !Pos
                  ,_evas :: ![EvAct]
                  ,_chn :: !Int
+                 ,_hav :: !(Maybe Object)
                  } deriving stock (Eq,Show)
 
 mapWinSize :: Size 

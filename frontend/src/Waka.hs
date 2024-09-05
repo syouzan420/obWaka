@@ -84,14 +84,15 @@ wakaUpdate gs wev =
                 mapSize = _msz gs
                 mapPos = _mps gs
                 evActs = _evas gs
+                pHave = _hav gs
                 pDir = getDirByName "player" obMap 
                 keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
                 isSameDir = pDir == keyDir
-                (nomp,nmps,npevs) = if isSameDir 
-                      then movePlayer dirEv mapSize mapWinSize mapPos obMap
-                      else (updateDirByName "player" keyDir obMap,mapPos,[])
+                (nomp,nmps,npevs,nphv) = if isSameDir 
+                      then movePlayer dirEv pHave mapSize mapWinSize mapPos obMap
+                      else (updateDirByName "player" keyDir obMap,mapPos,[],pHave)
                 ngs = exeEvActs gs npevs evActs
-             in ngs{_omp=nomp,_mps=nmps} 
+             in ngs{_omp=nomp,_mps=nmps,_hav=nphv} 
 
 exeEvActs :: Game -> [PEvent] -> [EvAct] -> Game
 exeEvActs gs [] nevas = gs{_evas = nevas} 
