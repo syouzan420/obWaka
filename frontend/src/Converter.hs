@@ -68,7 +68,15 @@ setObjectData obdts (ob@(Ob ch _ _ _ _ _ ps):obs) =
    in newObj:setObjectData obdts obs
 
 txToType :: T.Text -> ObType
-txToType txt = fromMaybe TBlock $ lookup txt txType
+txToType "" = TBlock
+txToType txt = let txts = T.words txt
+                in case txts of
+                    ("func":tps) -> TFunc (map findType tps)
+                    [tp] -> findType tp
+                    _ -> TBlock
+
+findType :: T.Text -> ObType
+findType txt = fromMaybe TBlock $ lookup txt txType
 
 txToCon :: T.Text -> ObCon
 txToCon txt = fromMaybe CBlock $ lookup txt txCon 
@@ -77,7 +85,7 @@ txToDir :: T.Text -> Dir
 txToDir txt = fromMaybe NoDir $ lookup txt txDir
 
 txType :: [(T.Text,ObType)]
-txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive),("food",TFood),("tool",TTool),("block",TBlock),("func",TFunc [])]
+txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive),("food",TFood),("tool",TTool),("block",TBlock)]
 
 txCon :: [(T.Text,ObCon)]
 txCon = [("block",CBlock),("move",CMove),("get",CGet),("on",COn),("enter",CEnter)]
@@ -137,3 +145,10 @@ getInfoFromChar wtx i =
       codeText = if isCode then T.tail (T.takeWhile (/='\n') (T.drop i wtx)) else T.empty
       scanLength = if isCode then T.length codeText + 1 else 1
    in (isStop,isTyping,isCode,ch,codeText,scanLength)
+
+lookupFromSections :: Game -> T.Text -> T.Text
+lookupFromSections gs tx = 
+  let textSections = _txs gs
+      tsKeyValues = map (\(TS ti t) -> (ti,t)) textSections
+   in fromMaybe T.empty (lookup tx tsKeyValues)  
+

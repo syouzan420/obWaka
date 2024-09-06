@@ -12,6 +12,7 @@ common defaults
     RankNTypes
     RecursiveDo
     DerivingStrategies
+    LambdaCase
 
 library
   import: defaults

@@ -1,11 +1,13 @@
-module Action (movePlayer,hitAction,putAction) where
+module Action (movePlayer,hitAction,putAction,triggerFunc) where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
-import Object (getPosByName,getDirByName,getObjByPos
+import Object (getPosByName,getDirByName,getObjByPos,blankObj,changeObjCh
+              ,getObjType,getObjName,getObjCon,getObjCh,getObjDef
               ,updatePosByName,deleteObjByPos,isObjOnPos,putObjOnPos)
-import Converter (inpToDir,dirToDelta)
-import Data.Maybe (isNothing)
+import Converter (inpToDir,dirToDelta,lookupFromSections,setObjectData)
+import Data.Maybe (isNothing,fromMaybe)
+import Data.Functor ((<&>))
 import Define 
 
 type MapPos = Pos
@@ -19,15 +21,11 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       tps@(V2 tx ty) = pps + dps
       isInMap = tx>=0 && tx<mw && ty>=0 && ty<mh 
       obj = getObjByPos tps omp  -- map opr on target
-      obc = case obj of
-              Just (Ob _ _ _ _ oc _ _) -> Just oc
-              Nothing -> Nothing
+      obc = obj <&> getObjCon
       isBlock = case obc of Just oc-> oc==CBlock; Nothing -> False
       isPush = case obc of Just oc -> oc==CMove; Nothing -> False
       isGet = case obc of Just oc -> oc==CGet; Nothing -> False
-      oname = case obj of
-                  Just (Ob _ nm _ _ _ _ _) -> nm
-                  Nothing -> T.empty
+      oname = maybe T.empty getObjName obj
       tops@(V2 tox toy) = if isPush then tps + dps else tps
       isObInMap = tox>=0 && tox<mw && toy>=0 && toy<mh 
       nops = if isObInMap then tops else tps
@@ -42,7 +40,7 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
         | otherwise = my
       nomp = if npps/=pps then updatePosByName "player" npps omp else omp
       nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
-      nomp3 = if isGet && isNothing hv then deleteObjByPos oname nops nomp2 else nomp2  
+      nomp3 = if isGet && isNothing hv then deleteObjByPos nomp2 nops else nomp2  
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
       nphv = if isGet && isNothing hv then obj else hv
    in (nomp3, V2 nmx nmy, npevs, nphv)
@@ -62,3 +60,62 @@ putAction tob pDir (V2 mw mh) om =
       canPut = tx>=0 && tx<mw && ty>=0 && ty<mh && not (isObjOnPos tps om)
    in if canPut then (putObjOnPos tob tps om,Nothing) else (om,Just tob)    
 
+triggerFunc :: Game -> Dir -> ObMap -> ObMap
+triggerFunc gs pDir om =
+  let pPos = getPosByName "player" om
+      tps = pPos + dirToDelta pDir   
+      tob = getObjByPos tps om
+      otp = maybe TBlock getObjType tob
+      odf = maybe T.empty getObjDef tob
+      isFunc = case otp of TFunc _ -> True; _ -> False
+      argTps = case otp of TFunc args -> args; _ -> []
+   in if isFunc then exeFunc gs pDir tps odf om $ getArgs pDir tps om argTps  
+                else om
+
+getArgs :: Dir -> Pos -> ObMap -> [ObType] -> [ObChar]  
+getArgs _ _ _ [] = [] 
+getArgs pDir tps om (atp:xs) =   
+  let agPos = tps + dirToDelta pDir 
+      agObj = getObjByPos agPos om
+      agTp = maybe TBlock getObjType agObj
+      agCh = maybe ' ' getObjCh agObj
+   in if atp==agTp then agCh:getArgs pDir agPos om xs else [] 
+
+exeFunc :: Game -> Dir -> Pos -> ObDef -> ObMap -> [ObChar] -> ObMap
+exeFunc gs pDir tps df om chs = 
+  let defList = makeDef gs df
+      objList = makeObj gs df
+      resExp = patternMatch chs defList
+      isRes = resExp /= T.empty
+   in if isRes then let agPosList = zipWith (\ i _y -> 
+                          tps + V2 i i*dirToDelta pDir) [1..] chs  
+                        nomp = foldl deleteObjByPos om agPosList 
+                        resCh = getResult resExp
+                        resObj = fromMaybe blankObj $ lookup resCh objList
+                        resPos = tps + dirToDelta pDir
+                     in putObjOnPos resObj resPos nomp 
+               else om 
+
+makeDef :: Game -> ObDef -> [[T.Text]]
+makeDef _ _ = [["g","s","G"],["h","s","H"]] -- not complete
+
+makeObj :: Game -> ObDef -> [(ObChar,Object)]
+makeObj gs df =
+  let mpn = if T.take 3 df == "map" then T.drop 3 df else T.empty 
+      objTxts = T.lines $ lookupFromSections gs ("obj"<>mpn)
+      preObjs = map (\txt -> changeObjCh (T.head txt) blankObj) objTxts
+      objList = setObjectData objTxts preObjs 
+      chList = map getObjCh objList 
+   in zip chList objList
+
+patternMatch :: [ObChar] -> [[T.Text]] -> T.Text
+patternMatch _ [] = T.empty
+patternMatch chs (dfs:xs) =
+  let isMatch = foldl (\acc (ch,df) -> [ch]==T.unpack df && acc) True (zip chs dfs) 
+   in if isMatch && (length chs + 1)==length dfs then last dfs
+                                                 else patternMatch chs xs 
+
+getResult :: T.Text -> ObChar
+getResult res
+  | T.length res == 1 = T.head res 
+  | otherwise = ' ' -- not complete

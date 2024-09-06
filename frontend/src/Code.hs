@@ -3,7 +3,8 @@ module Code(exeCode) where
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
 import Data.List (uncons)
-import Converter (makeObjectMap,setObjectData,setMapStartPos)
+import Converter (makeObjectMap,setObjectData,setMapStartPos
+                 ,lookupFromSections)
 import Object (getPosByName,getObjName)
 import Define
 
@@ -27,12 +28,6 @@ exeOneCode gs evt = do
     "stmp" -> setMap gs (head ags)
     "ch" -> changeChara gs (head ags)
     _ -> gs 
-
-lookupFromSections :: Game -> T.Text -> T.Text
-lookupFromSections gs tx = 
-  let textSections = _txs gs
-      tsKeyValues = map (\(TS ti t) -> (ti,t)) textSections
-   in fromMaybe T.empty (lookup tx tsKeyValues)  
 
 setPlayer :: Game -> Game 
 setPlayer gs = gs{_itx=False,_imd = Ply} 

@@ -36,11 +36,11 @@ updateDirByName tnm dir (ob@(Ob ch nm tp df oc _ ps):xs) =
   if tnm==nm then Ob ch nm tp df oc dir ps :xs
              else ob:updateDirByName tnm dir xs
 
-deleteObjByPos :: ObName -> Pos -> ObMap -> ObMap
-deleteObjByPos _ _ [] = []
-deleteObjByPos tnm pos (ob@(Ob _ nm _ _ _ _ ps):xs) =  
-  if pos==ps && tnm==nm then deleteObjByPos tnm pos xs 
-                        else ob:deleteObjByPos tnm pos xs
+deleteObjByPos :: ObMap -> Pos -> ObMap
+deleteObjByPos [] _ = []
+deleteObjByPos (ob@(Ob _ nm _ _ _ _ ps):xs) pos =  
+  if pos==ps && nm/="player" then deleteObjByPos xs pos 
+                        else ob:deleteObjByPos xs pos
 
 isObjOnPos :: Pos -> ObMap -> Bool
 isObjOnPos _ [] = False
@@ -51,4 +51,23 @@ putObjOnPos (Ob ch nm tp df oc dr _) pos om = Ob ch nm tp df oc dr pos:om
 
 getObjName :: Object -> ObName
 getObjName (Ob _ nm _ _ _ _ _) = nm
+
+getObjType :: Object -> ObType
+getObjType (Ob _ _ tp _ _ _ _) = tp
+
+getObjCon :: Object -> ObCon
+getObjCon (Ob _ _ _ _ oc _ _) = oc
+
+getObjCh :: Object -> ObChar
+getObjCh (Ob ch _ _ _ _ _ _) = ch
+
+getObjDef :: Object -> ObDef
+getObjDef (Ob _ _ _ df _ _ _) = df 
+
+changeObjCh :: ObChar -> Object -> Object
+changeObjCh ch (Ob _ nm tp df oc dr ps) = Ob ch nm tp df oc dr ps 
+
+blankObj :: Object
+blankObj = Ob ' ' T.empty TBlock T.empty CBlock NoDir (V2 0 0)
 --
+

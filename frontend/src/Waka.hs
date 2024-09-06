@@ -18,7 +18,7 @@ import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
 import Define
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir)
 import Object (getDirByName,updateDirByName,getObjName)
-import Action (movePlayer,hitAction,putAction)
+import Action (movePlayer,hitAction,putAction,triggerFunc)
 import Code (exeCode)
 
 wakaMain ::
@@ -49,7 +49,7 @@ wakaMain gs = do
       el "div" $ dyChara dyImg
       divClass "kai" $ dynText (showMapRect <$> dyGs)
       el "div" $ dynText $ dyHave <&> 
-          \hav -> case hav of Just hv -> " >:"<>getObjName hv; Nothing -> T.empty 
+          \case Just hv -> " >:"<>getObjName hv; Nothing -> T.empty 
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
@@ -89,7 +89,7 @@ wakaUpdate gs wev =
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
                  (nomp,nphv) = case pHave of
-                          Nothing -> (obMap,Nothing) 
+                          Nothing -> (triggerFunc gs pDir obMap,Nothing) 
                           Just tob -> putAction tob pDir mapSize obMap  
               in gs{_tmp=ntmp, _omp=nomp, _hav=nphv}
            dirEv -> 

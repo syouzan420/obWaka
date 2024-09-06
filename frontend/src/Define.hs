@@ -24,7 +24,8 @@ data ObType = TKazu | TMozi | TLive | TFood | TTool | TBlock | TFunc [ObType]
 
 type ObDef = T.Text
 
-data Object = Ob ObChar ObName ObType ObDef ObCon Dir Pos deriving stock (Eq,Show)
+data Object = Ob ObChar ObName ObType ObDef ObCon Dir Pos
+                                                deriving stock (Eq,Show)
 
 type ObMap = [Object]
 

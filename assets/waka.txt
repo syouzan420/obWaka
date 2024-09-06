@@ -23,7 +23,7 @@ map0:
 obj0:
 A,Anna,live,,block,north
 B,Box,block,,move,north
-C,Conbiner,func tool tool,map1,enter,north
+C,Conbiner,func tool tool tool,map1,enter,north
 Y,Yoko,live,,block,north
 g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
@@ -36,6 +36,9 @@ con**********@
 **con*h*s*=*H*
 **************
 *************%
+
+obj1:
+G,SuperGlasses,tool,,get,nodir
 
 scene0:
 君が慣れ親しんできた世界とは 違って見えるかな。
