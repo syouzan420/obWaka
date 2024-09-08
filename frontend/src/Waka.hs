@@ -82,6 +82,7 @@ wakaUpdate gs wev =
             mapSize = _msz gs
             pHave = _hav gs    
             pDir = getDirByName "player" obMap
+            evActs = _evas gs
          in case wev of
            WTick -> effectUpdate gs
            WOk -> 
@@ -90,13 +91,14 @@ wakaUpdate gs wev =
                  ntmp = if isNothing pHave 
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
-                 (nomp,nphv) = case pHave of
-                          Nothing -> (triggerFunc txSec pDir obMap,Nothing) 
+                 (npevs,nomp,nphv) = case pHave of
+                          Nothing -> ([],triggerFunc txSec pDir obMap,Nothing) 
+                              -- must determin player event
                           Just tob -> putAction tob pDir mapSize obMap  
-              in gs{_tmp=ntmp, _omp=nomp, _hav=nphv}
+                 ngs = exeEvActs gs npevs evActs
+              in ngs{_tmp=ntmp, _omp=nomp, _hav=nphv}
            dirEv -> 
              let mapPos = _mps gs
-                 evActs = _evas gs
                  keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
                  isSameDir = pDir == keyDir
                  (nomp,nmps,npevs,nphv) = if isSameDir 

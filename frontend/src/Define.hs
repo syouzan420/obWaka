@@ -29,7 +29,7 @@ data Object = Ob ObChar ObName ObType ObDef ObCon Dir Pos
 
 type ObMap = [Object]
 
-data PEvent = PMove Pos | PBlock ObName | PPush ObName | PNon deriving stock (Eq,Show)
+data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPut ObName Pos | PNon deriving stock (Eq,Show)
 
 type Code = T.Text
 
