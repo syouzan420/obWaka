@@ -9,6 +9,7 @@ type Title = T.Text
 
 data TextSection = TS Title T.Text deriving stock (Eq,Show)
 
+type MapName = T.Text
 type MapSize = Size 
 
 type ObChar = Char
@@ -54,6 +55,7 @@ data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --iths: is text high speed?
 --omp: object map
 --tmp: temporary object map (for animation effect)
+--mnm: map name
 --msz: map size
 --mps: map position
 --evas: event actions
@@ -69,6 +71,7 @@ data Game = Game {_imd :: !IMode
                  ,_iths :: !Bool
                  ,_omp :: !ObMap
                  ,_tmp :: !ObMap
+                 ,_mnm :: !MapName
                  ,_msz :: !MapSize
                  ,_mps :: !Pos
                  ,_evas :: ![EvAct]

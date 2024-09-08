@@ -88,11 +88,12 @@ wakaUpdate gs wev =
            WOk -> 
              let tmpMap = _tmp gs
                  txSec = _txs gs
+                 mnm = _mnm gs
                  ntmp = if isNothing pHave 
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
                  (npevs,nomp,nphv) = case pHave of
-                          Nothing -> ([],triggerFunc txSec pDir obMap,Nothing) 
+                          Nothing -> ([],triggerFunc txSec pDir mnm obMap,Nothing) 
                               -- must determin player event
                           Just tob -> putAction tob pDir mapSize obMap  
                  ngs = exeEvActs gs npevs evActs

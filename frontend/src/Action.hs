@@ -62,8 +62,8 @@ putAction tob pDir (V2 mw mh) om =
    in if canPut then ([PPut oName tps],putObjOnPos tob tps om,Nothing)
                 else ([],om,Just tob)    
 
-triggerFunc :: [TextSection] -> Dir -> ObMap -> ObMap
-triggerFunc txSec pDir om =
+triggerFunc :: [TextSection] -> Dir -> MapName -> ObMap -> ObMap
+triggerFunc txSec pDir mnm om =
   let pPos = getPosByName "player" om
       tps = pPos + dirToDelta pDir   
       tob = getObjByPos tps om
@@ -72,7 +72,8 @@ triggerFunc txSec pDir om =
       odf = maybe T.empty getObjDef tob
       isFunc = case otp of TFunc _ -> True; _ -> False
       argTps = case otp of TFunc args -> args; _ -> []
-   in if isFunc then exeFunc txSec pDir och tps odf om $ getArgs pDir tps om argTps  
+   in if isFunc then exeFunc txSec pDir mnm och tps odf om $
+                                       getArgs pDir tps om argTps  
                 else om
 
 getArgs :: Dir -> Pos -> ObMap -> [ObType] -> [ObChar]  
@@ -84,11 +85,11 @@ getArgs pDir tps om (atp:xs) =
       agCh = maybe ' ' getObjCh agObj
    in if atp==agTp then agCh:getArgs pDir agPos om xs else [] 
 
-exeFunc :: [TextSection] -> Dir -> ObChar -> Pos 
+exeFunc :: [TextSection] -> Dir -> MapName -> ObChar -> Pos 
                         -> ObDef -> ObMap -> [ObChar] -> ObMap
-exeFunc txSec pDir och tps df om chs = 
+exeFunc txSec pDir mnm och tps df om chs = 
   let defList = makeDef txSec och df
-      objList = makeObj txSec df
+      objList = makeObj txSec mnm 
       resExp = patternMatch chs defList
       isRes = resExp /= T.empty
    in if isRes then let agPosList = zipWith (\ i _y -> 
@@ -120,10 +121,9 @@ defLine ch ln =
       leftChs = map T.singleton $ T.unpack leftEqual
    in leftChs <> [rightEqual] 
 
-makeObj :: [TextSection] -> ObDef -> [(ObChar,Object)]
-makeObj txSec df =
-  let mpn = if T.take 3 df == "map" then T.drop 3 df else T.empty 
-      objTxts = T.lines $ lookupFromSections txSec ("obj"<>mpn)
+makeObj :: [TextSection] -> MapName -> [(ObChar,Object)]
+makeObj txSec mnm =
+  let objTxts = T.lines $ lookupFromSections txSec ("obj"<>mnm)
       preObjs = map (\txt -> changeObjCh (T.head txt) blankObj) objTxts
       objList = setObjectData objTxts preObjs 
       chList = map getObjCh objList 
