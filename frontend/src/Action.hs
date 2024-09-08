@@ -60,8 +60,8 @@ putAction tob pDir (V2 mw mh) om =
       canPut = tx>=0 && tx<mw && ty>=0 && ty<mh && not (isObjOnPos tps om)
    in if canPut then (putObjOnPos tob tps om,Nothing) else (om,Just tob)    
 
-triggerFunc :: Game -> Dir -> ObMap -> ObMap
-triggerFunc gs pDir om =
+triggerFunc :: [TextSection] -> Dir -> ObMap -> ObMap
+triggerFunc txSec pDir om =
   let pPos = getPosByName "player" om
       tps = pPos + dirToDelta pDir   
       tob = getObjByPos tps om
@@ -70,7 +70,7 @@ triggerFunc gs pDir om =
       odf = maybe T.empty getObjDef tob
       isFunc = case otp of TFunc _ -> True; _ -> False
       argTps = case otp of TFunc args -> args; _ -> []
-   in if isFunc then exeFunc gs pDir och tps odf om $ getArgs pDir tps om argTps  
+   in if isFunc then exeFunc txSec pDir och tps odf om $ getArgs pDir tps om argTps  
                 else om
 
 getArgs :: Dir -> Pos -> ObMap -> [ObType] -> [ObChar]  
@@ -82,10 +82,11 @@ getArgs pDir tps om (atp:xs) =
       agCh = maybe ' ' getObjCh agObj
    in if atp==agTp then agCh:getArgs pDir agPos om xs else [] 
 
-exeFunc :: Game -> Dir -> ObChar -> Pos -> ObDef -> ObMap -> [ObChar] -> ObMap
-exeFunc gs pDir och tps df om chs = 
-  let defList = makeDef gs och df
-      objList = makeObj gs df
+exeFunc :: [TextSection] -> Dir -> ObChar -> Pos 
+                        -> ObDef -> ObMap -> [ObChar] -> ObMap
+exeFunc txSec pDir och tps df om chs = 
+  let defList = makeDef txSec och df
+      objList = makeObj txSec df
       resExp = patternMatch chs defList
       isRes = resExp /= T.empty
    in if isRes then let agPosList = zipWith (\ i _y -> 
@@ -97,9 +98,9 @@ exeFunc gs pDir och tps df om chs =
                      in putObjOnPos resObj resPos nomp 
                else om 
 
-makeDef :: Game -> ObChar -> ObDef -> [[T.Text]]
-makeDef gs ch df =
-  let obMapText = lookupFromSections gs df
+makeDef :: [TextSection] -> ObChar -> ObDef -> [[T.Text]]
+makeDef txSec ch df =
+  let obMapText = lookupFromSections txSec df
       textLines = T.lines (T.replace "*" "" obMapText)
    in makeDefLines ch textLines 
 
@@ -117,10 +118,10 @@ defLine ch ln =
       leftChs = map T.singleton $ T.unpack leftEqual
    in leftChs <> [rightEqual] 
 
-makeObj :: Game -> ObDef -> [(ObChar,Object)]
-makeObj gs df =
+makeObj :: [TextSection] -> ObDef -> [(ObChar,Object)]
+makeObj txSec df =
   let mpn = if T.take 3 df == "map" then T.drop 3 df else T.empty 
-      objTxts = T.lines $ lookupFromSections gs ("obj"<>mpn)
+      objTxts = T.lines $ lookupFromSections txSec ("obj"<>mpn)
       preObjs = map (\txt -> changeObjCh (T.head txt) blankObj) objTxts
       objList = setObjectData objTxts preObjs 
       chList = map getObjCh objList 

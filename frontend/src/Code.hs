@@ -69,9 +69,10 @@ conditions _ _ _ = False
 
 setMap :: Game -> T.Text -> Game 
 setMap gs i = 
-  let obMapText = lookupFromSections gs ("map" <> i)
+  let textSections = _txs gs 
+      obMapText = lookupFromSections textSections ("map" <> i)
       (obMapPre,mapSize) = makeObjectMap obMapText
-      objData = lookupFromSections gs ("obj" <> i)
+      objData = lookupFromSections textSections ("obj" <> i)
       obMap = setObjectData (T.lines objData) obMapPre
       pps = getPosByName "player" obMap 
       mpos = setMapStartPos pps mapWinSize mapSize
@@ -79,7 +80,8 @@ setMap gs i =
 
 moveDialog :: Game -> T.Text -> Game 
 moveDialog gs title = 
-  let newText = lookupFromSections gs title
+  let textSections = _txs gs 
+      newText = lookupFromSections textSections title
    in if newText==T.empty then gs else 
     gs{_imd=Txt, _itx=True, _tct=0, _txw=newText, _txv=T.empty}
 

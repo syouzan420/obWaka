@@ -48,18 +48,23 @@ scene0:
 そんなんで 僕の話を信じて欲しいなんて 虫が良すぎるとは思ってる。
 でも どうか 少し この世界を散策してくれないか。
 この世界に君が來た意味を 君自信が 知っていくために それが一番いいと思ふんだ。
-;a_block.Yoko.0_if_?pHave.Super_mvdi.textYS_el_mvdi.textY0
+;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_el_mvdi.textY0
 
 textY0:
 ;ch_1
 どうか この邊を見て巡ってくれないか。
 何か氣になるものがあったら 教へてほしい。
 
-textYS:
+textYs:
 ;ch_1
 これは 何だらうね？。
 スーパー？。
 よく分からないけど 何かといっしょに使ふのかな。
+
+textYg:
+;ch_1
+メガネだね。
+そんなものが どうしてあるんだらう。
 
 textA0:
 ;ch_2

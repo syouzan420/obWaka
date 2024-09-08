@@ -51,6 +51,7 @@ data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --tct: text count
 --tcs: text count sub
 --itx: is text showing?
+--iths: is text high speed?
 --omp: object map
 --tmp: temporary object map (for animation effect)
 --msz: map size
@@ -65,6 +66,7 @@ data Game = Game {_imd :: !IMode
                  ,_tct :: !Int
                  ,_tcs :: !Int
                  ,_itx :: !Bool
+                 ,_iths :: !Bool
                  ,_omp :: !ObMap
                  ,_tmp :: !ObMap
                  ,_msz :: !MapSize

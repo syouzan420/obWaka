@@ -73,7 +73,8 @@ wakaUpdate gs wev =
   let imode = _imd gs
    in if imode==Txt then
         case wev of
-          WTick -> textUpdate gs
+          WTick -> let iths = _iths gs
+                    in if iths then repeatTexUpdate gs else textUpdate gs
           WOk -> okButton gs
           _ -> gs
                     else
@@ -85,11 +86,12 @@ wakaUpdate gs wev =
            WTick -> effectUpdate gs
            WOk -> 
              let tmpMap = _tmp gs
+                 txSec = _txs gs
                  ntmp = if isNothing pHave 
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
                  (nomp,nphv) = case pHave of
-                          Nothing -> (triggerFunc gs pDir obMap,Nothing) 
+                          Nothing -> (triggerFunc txSec pDir obMap,Nothing) 
                           Just tob -> putAction tob pDir mapSize obMap  
               in gs{_tmp=ntmp, _omp=nomp, _hav=nphv}
            dirEv -> 
@@ -128,7 +130,10 @@ checkAct pe (EA te _ n co) =
 okButton :: Game -> Game
 okButton gs = 
   let imd = _imd gs
-   in gs{_itx=imd==Txt,_tcs=0} 
+      itx = _itx gs
+      iths = _iths gs
+      niths = itx && not iths
+   in gs{_itx=imd==Txt,_tcs=0,_iths=niths} 
 
 
 scanEffect :: ObMap -> ObMap
@@ -140,6 +145,11 @@ scanEffect (ob@(Ob ch nm tp df oc dr ps):xs)
 
 effectUpdate :: Game -> Game
 effectUpdate gs = gs{_tmp = scanEffect (_tmp gs)}
+
+repeatTexUpdate :: Game -> Game
+repeatTexUpdate gs =
+  let isText = _itx gs
+   in if isText then repeatTexUpdate (textUpdate gs) else gs{_iths=False}
 
 textUpdate :: Game -> Game
 textUpdate gs =

@@ -146,9 +146,8 @@ getInfoFromChar wtx i =
       scanLength = if isCode then T.length codeText + 1 else 1
    in (isStop,isTyping,isCode,ch,codeText,scanLength)
 
-lookupFromSections :: Game -> T.Text -> T.Text
-lookupFromSections gs tx = 
-  let textSections = _txs gs
-      tsKeyValues = map (\(TS ti t) -> (ti,t)) textSections
+lookupFromSections :: [TextSection] -> T.Text -> T.Text
+lookupFromSections textSections tx = 
+  let tsKeyValues = map (\(TS ti t) -> (ti,t)) textSections
    in fromMaybe T.empty (lookup tx tsKeyValues)  
 
