@@ -66,10 +66,11 @@ triggerFunc gs pDir om =
       tps = pPos + dirToDelta pDir   
       tob = getObjByPos tps om
       otp = maybe TBlock getObjType tob
+      och = maybe ' ' getObjCh tob
       odf = maybe T.empty getObjDef tob
       isFunc = case otp of TFunc _ -> True; _ -> False
       argTps = case otp of TFunc args -> args; _ -> []
-   in if isFunc then exeFunc gs pDir tps odf om $ getArgs pDir tps om argTps  
+   in if isFunc then exeFunc gs pDir och tps odf om $ getArgs pDir tps om argTps  
                 else om
 
 getArgs :: Dir -> Pos -> ObMap -> [ObType] -> [ObChar]  
@@ -81,9 +82,9 @@ getArgs pDir tps om (atp:xs) =
       agCh = maybe ' ' getObjCh agObj
    in if atp==agTp then agCh:getArgs pDir agPos om xs else [] 
 
-exeFunc :: Game -> Dir -> Pos -> ObDef -> ObMap -> [ObChar] -> ObMap
-exeFunc gs pDir tps df om chs = 
-  let defList = makeDef gs df
+exeFunc :: Game -> Dir -> ObChar -> Pos -> ObDef -> ObMap -> [ObChar] -> ObMap
+exeFunc gs pDir och tps df om chs = 
+  let defList = makeDef gs och df
       objList = makeObj gs df
       resExp = patternMatch chs defList
       isRes = resExp /= T.empty
@@ -96,8 +97,25 @@ exeFunc gs pDir tps df om chs =
                      in putObjOnPos resObj resPos nomp 
                else om 
 
-makeDef :: Game -> ObDef -> [[T.Text]]
-makeDef _ _ = [["g","s","G"],["h","s","H"]] -- not complete
+makeDef :: Game -> ObChar -> ObDef -> [[T.Text]]
+makeDef gs ch df =
+  let obMapText = lookupFromSections gs df
+      textLines = T.lines (T.replace "*" "" obMapText)
+   in makeDefLines ch textLines 
+
+makeDefLines :: ObChar -> [T.Text] -> [[T.Text]]
+makeDefLines _ [] = []
+makeDefLines ch (ln:xs) = 
+  let str = T.unpack ln
+   in if elem '=' str && elem ch str then defLine ch ln:makeDefLines ch xs  
+                                     else makeDefLines ch xs
+
+defLine :: ObChar -> T.Text -> [T.Text]
+defLine ch ln = 
+  let leftEqual = maybe T.empty (fst . T.breakOn "=" <$> snd) $ T.uncons (snd $ T.breakOn (T.singleton ch) ln)
+      rightEqual = maybe T.empty snd (T.uncons $ snd $ T.breakOn "=" ln)
+      leftChs = map T.singleton $ T.unpack leftEqual
+   in leftChs <> [rightEqual] 
 
 makeObj :: Game -> ObDef -> [(ObChar,Object)]
 makeObj gs df =
