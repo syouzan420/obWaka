@@ -21,12 +21,14 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       tps@(V2 tx ty) = pps + dps
       isInMap = tx>=0 && tx<mw && ty>=0 && ty<mh 
       obj = getObjByPos tps omp  -- map opr on target
+      oname = maybe T.empty getObjName obj
       obc = obj <&> getObjCon
       isBlock = case obc of Just oc-> oc==CBlock; Nothing -> False
       isPush = case obc of Just oc -> oc==CMove; Nothing -> False
       isGet = case obc of Just oc -> oc==CGet; Nothing -> False
       isEnter = case obc of Just oc -> oc==CEnter; Nothing -> False
-      oname = maybe T.empty getObjName obj
+      isOn = case obc of Just oc -> oc==COn; Nothing -> False
+      isLeave = isOn && oname=="leave"
       tops@(V2 tox toy) = if isPush then tps + dps else tps
       isObInMap = tox>=0 && tox<mw && toy>=0 && toy<mh 
       nops = if isObInMap then tops else tps
@@ -43,7 +45,8 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
       nomp3 = if isGet && isNothing hv then deleteObjByPos nomp2 nops else nomp2  
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
-                          <>[PEnter pps obj | isEnter] 
+                          <>[PEnter pps obj | isEnter]<>[POn oname | isOn] 
+                          <>[PLeave | isLeave]
       nphv = if isGet && isNothing hv then obj else hv
    in (npevs, nomp3, V2 nmx nmy, nphv)
 

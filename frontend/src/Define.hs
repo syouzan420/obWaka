@@ -19,7 +19,7 @@ data Dir = East | North | West | South | NoDir deriving stock (Eq,Show)
 
 data ObCon = CBlock | CMove | CGet | COn | CEnter deriving stock (Eq,Show)
 
-data ObType = TKazu | TMozi | TLive | TFood | TTool | TBlock | TFunc [ObType] 
+data ObType = TKazu | TMozi | TLive | TFood | TTool | TTile | TBlock | TFunc [ObType] 
                                               deriving stock (Eq,Show) 
 
 
@@ -32,7 +32,7 @@ type ObMap = [Object]
 
 data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPut ObName Pos |
               PFunc ObName ObChar | PEnter Pos (Maybe Object) |
-              PLeave | PNon
+              PLeave | POn ObName | PNon
                                                  deriving stock (Eq,Show)
 
 type Code = T.Text

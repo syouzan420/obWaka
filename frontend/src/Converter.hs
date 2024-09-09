@@ -52,8 +52,19 @@ makeObjectMap tx =
       searchResult = searchObject 0 (T.unpack txnc)
    in (map (\(i,ch)->
        let p = mod i w ; q = div i w 
-           oname = if ch=='@' then "player" else T.empty
-        in Ob ch oname TLive T.empty CBlock North (V2 p q) ) searchResult,V2 w (length lns))
+           oname = case ch of
+                    '@' -> "player"
+                    '%' -> "leave"
+                    _   -> T.empty
+           otype = case ch of 
+                    '@' -> TLive
+                    '%' -> TTile
+                    _   -> TBlock
+           ocon = case ch of
+                    '%' -> COn
+                    _   -> CBlock
+        in Ob ch oname otype T.empty ocon North (V2 p q))
+                               searchResult,V2 w (length lns))
 
 setObjectData :: [T.Text] -> ObMap -> ObMap
 setObjectData _ [] = [] 
