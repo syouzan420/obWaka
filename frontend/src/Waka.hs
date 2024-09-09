@@ -16,10 +16,10 @@ import Reflex.Dom.Core
 import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
 
 import Define
-import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir)
-import Object (getDirByName,updateDirByName,getObjName)
+import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir,setMapStartPos)
+import Object (getDirByName,updateDirByName,updatePosByName,getObjName,getObjDef)
 import Action (movePlayer,hitAction,putAction,triggerFunc)
-import Code (exeCode)
+import Code (exeCode,setMap)
 
 wakaMain ::
   ( DomBuilder t m
@@ -83,18 +83,17 @@ wakaUpdate gs wev =
             pHave = _hav gs    
             pDir = getDirByName "player" obMap
             evActs = _evas gs
+            mnm = _mnm gs
          in case wev of
            WTick -> effectUpdate gs
            WOk -> 
              let tmpMap = _tmp gs
                  txSec = _txs gs
-                 mnm = _mnm gs
                  ntmp = if isNothing pHave 
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
                  (npevs,nomp,nphv) = case pHave of
-                          Nothing -> ([],triggerFunc txSec pDir mnm obMap,Nothing) 
-                              -- must determin player event
+                          Nothing -> triggerFunc txSec pDir mnm obMap 
                           Just tob -> putAction tob pDir mapSize obMap  
                  ngs = exeEvActs gs npevs evActs
               in ngs{_tmp=ntmp, _omp=nomp, _hav=nphv}
@@ -102,11 +101,29 @@ wakaUpdate gs wev =
              let mapPos = _mps gs
                  keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
                  isSameDir = pDir == keyDir
-                 (nomp,nmps,npevs,nphv) = if isSameDir 
+                 (npevs,nomp,nmps,nphv) = if isSameDir 
                       then movePlayer dirEv pHave mapSize mapWinSize mapPos obMap
-                      else (updateDirByName "player" keyDir obMap,mapPos,[],pHave)
-                 ngs = exeEvActs gs npevs evActs
-              in ngs{_omp=nomp,_mps=nmps,_hav=nphv} 
+                      else ([],updateDirByName "player" keyDir obMap,mapPos,pHave)
+                 ngs = exeEvActs gs{_omp=nomp,_mps=nmps,_hav=nphv} npevs evActs
+                 ngs2 = enterNewMap ngs npevs
+              in ngs2 
+
+enterNewMap :: Game -> [PEvent] -> Game 
+enterNewMap gs [] = gs 
+enterNewMap gs (PEnter pps obj:_) = 
+  let mnm = _mnm gs
+      tdf = maybe T.empty getObjDef obj
+   in setMap gs{_pmp = (mnm,pps)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
+enterNewMap gs (PLeave:_) =
+  let (tmnm,tps) = _pmp gs 
+      ngs = setMap gs tmnm
+      omp = _omp ngs
+      msz = _msz ngs
+      nomp = updatePosByName "player" tps omp
+      mpos = setMapStartPos tps mapWinSize msz
+   in ngs{_mps=mpos, _omp=nomp}
+enterNewMap gs (_:xs) = enterNewMap gs xs
+
 
 exeEvActs :: Game -> [PEvent] -> [EvAct] -> Game
 exeEvActs gs [] nevas = gs{_evas = nevas} 

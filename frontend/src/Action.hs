@@ -14,7 +14,7 @@ type MapPos = Pos
 type MapWinPos = Pos
 
 movePlayer :: WkEvent -> Maybe Object -> MapSize -> MapWinPos -> MapPos  
-                             -> ObMap -> (ObMap,MapPos,[PEvent],Maybe Object) 
+                             -> ObMap -> ([PEvent],ObMap,MapPos,Maybe Object) 
 movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =  
   let pps = getPosByName "player" omp
       dps = dirToDelta $ inpToDir ev 
@@ -25,6 +25,7 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       isBlock = case obc of Just oc-> oc==CBlock; Nothing -> False
       isPush = case obc of Just oc -> oc==CMove; Nothing -> False
       isGet = case obc of Just oc -> oc==CGet; Nothing -> False
+      isEnter = case obc of Just oc -> oc==CEnter; Nothing -> False
       oname = maybe T.empty getObjName obj
       tops@(V2 tox toy) = if isPush then tps + dps else tps
       isObInMap = tox>=0 && tox<mw && toy>=0 && toy<mh 
@@ -42,8 +43,9 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
       nomp3 = if isGet && isNothing hv then deleteObjByPos nomp2 nops else nomp2  
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
+                          <>[PEnter pps obj | isEnter] 
       nphv = if isGet && isNothing hv then obj else hv
-   in (nomp3, V2 nmx nmy, npevs, nphv)
+   in (npevs, nomp3, V2 nmx nmy, nphv)
 
 hitAction :: ObName -> MapSize -> ObMap -> ObMap -> ObMap 
 hitAction onm (V2 mw mh) om tm = 
@@ -62,19 +64,23 @@ putAction tob pDir (V2 mw mh) om =
    in if canPut then ([PPut oName tps],putObjOnPos tob tps om,Nothing)
                 else ([],om,Just tob)    
 
-triggerFunc :: [TextSection] -> Dir -> MapName -> ObMap -> ObMap
+triggerFunc :: [TextSection] -> Dir -> MapName 
+                      -> ObMap -> ([PEvent],ObMap,Maybe Object)
 triggerFunc txSec pDir mnm om =
   let pPos = getPosByName "player" om
       tps = pPos + dirToDelta pDir   
       tob = getObjByPos tps om
       otp = maybe TBlock getObjType tob
       och = maybe ' ' getObjCh tob
+      oName = maybe T.empty getObjName tob
       odf = maybe T.empty getObjDef tob
       isFunc = case otp of TFunc _ -> True; _ -> False
       argTps = case otp of TFunc args -> args; _ -> []
-   in if isFunc then exeFunc txSec pDir mnm och tps odf om $
-                                       getArgs pDir tps om argTps  
-                else om
+   in if isFunc then let (resCh,nom) = exeFunc txSec pDir mnm och tps odf om $
+                                                      getArgs pDir tps om argTps  
+                      in if resCh==' ' then ([],nom,Nothing)
+                                       else ([PFunc oName resCh],nom,Nothing)
+                else ([],om,Nothing)
 
 getArgs :: Dir -> Pos -> ObMap -> [ObType] -> [ObChar]  
 getArgs _ _ _ [] = [] 
@@ -86,7 +92,7 @@ getArgs pDir tps om (atp:xs) =
    in if atp==agTp then agCh:getArgs pDir agPos om xs else [] 
 
 exeFunc :: [TextSection] -> Dir -> MapName -> ObChar -> Pos 
-                        -> ObDef -> ObMap -> [ObChar] -> ObMap
+                        -> ObDef -> ObMap -> [ObChar] -> (ObChar,ObMap)
 exeFunc txSec pDir mnm och tps df om chs = 
   let defList = makeDef txSec och df
       objList = makeObj txSec mnm 
@@ -98,8 +104,8 @@ exeFunc txSec pDir mnm och tps df om chs =
                         resCh = getResult resExp
                         resObj = fromMaybe blankObj $ lookup resCh objList
                         resPos = tps + dirToDelta pDir
-                     in putObjOnPos resObj resPos nomp 
-               else om 
+                     in (resCh,putObjOnPos resObj resPos nomp) 
+               else (' ',om) 
 
 makeDef :: [TextSection] -> ObChar -> ObDef -> [[T.Text]]
 makeDef txSec ch df =

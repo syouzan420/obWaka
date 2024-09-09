@@ -30,7 +30,10 @@ data Object = Ob ObChar ObName ObType ObDef ObCon Dir Pos
 
 type ObMap = [Object]
 
-data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPut ObName Pos | PNon deriving stock (Eq,Show)
+data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPut ObName Pos |
+              PFunc ObName ObChar | PEnter Pos (Maybe Object) |
+              PLeave | PNon
+                                                 deriving stock (Eq,Show)
 
 type Code = T.Text
 
@@ -58,6 +61,7 @@ data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --mnm: map name
 --msz: map size
 --mps: map position
+--pmp: previous map (Name,Position)
 --evas: event actions
 --chn: character number (0:NoChara)
 --hav: something having (not having: Nothing)
@@ -74,6 +78,7 @@ data Game = Game {_imd :: !IMode
                  ,_mnm :: !MapName
                  ,_msz :: !MapSize
                  ,_mps :: !Pos
+                 ,_pmp :: !(MapName,Pos)
                  ,_evas :: ![EvAct]
                  ,_chn :: !Int
                  ,_hav :: !(Maybe Object)

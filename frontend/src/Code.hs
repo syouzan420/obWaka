@@ -1,4 +1,4 @@
-module Code(exeCode) where
+module Code(exeCode,setMap) where
 
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
@@ -74,10 +74,12 @@ setMap gs mnm =
       nmnm = if obMapText==T.empty then T.empty else mnm
       (obMapPre,mapSize) = makeObjectMap obMapText
       objData = lookupFromSections textSections ("obj" <> mnm)
-      obMap = setObjectData (T.lines objData) obMapPre
+      obMap = if objData==T.empty then obMapPre 
+                                  else setObjectData (T.lines objData) obMapPre
       pps = getPosByName "player" obMap 
       mpos = setMapStartPos pps mapWinSize mapSize
    in gs{_mnm = nmnm, _msz = mapSize, _mps = mpos, _omp = obMap}
+   
 
 moveDialog :: Game -> T.Text -> Game 
 moveDialog gs title = 
