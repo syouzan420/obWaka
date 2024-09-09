@@ -30,8 +30,8 @@ data Object = Ob ObChar ObName ObType ObDef ObCon Dir Pos
 
 type ObMap = [Object]
 
-data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPut ObName Pos |
-              PFunc ObName ObChar | PEnter Pos (Maybe Object) |
+data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPushTo ObName ObName |
+              PPut ObName Pos | PFunc ObName ObChar | PEnter Pos (Maybe Object) |
               PLeave | POn ObName | PNon
                                                  deriving stock (Eq,Show)
 

@@ -31,8 +31,11 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       isLeave = isOn && oname=="leave"
       tops@(V2 tox toy) = if isPush then tps + dps else tps
       isObInMap = tox>=0 && tox<mw && toy>=0 && toy<mh 
-      nops = if isObInMap then tops else tps
-      npps@(V2 nx ny) = if isInMap && not isBlock then tps else pps
+      isAnotherObj = isObjOnPos tops omp
+      isPushTo = isPush && isAnotherObj
+      aoName = maybe T.empty getObjName (getObjByPos tops omp)
+      nops = if isObInMap && not isAnotherObj then tops else tps
+      npps@(V2 nx ny) = if isInMap && not isBlock && not isPushTo then tps else pps
       nmx 
         | nx-mx < 1 && mx > 0 = mx - 1 
         | nx-mx > w-2 && mx < mw-w = mx + 1
@@ -47,6 +50,7 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
                           <>[PEnter pps obj | isEnter]<>[POn oname | isOn] 
                           <>[PLeave | isLeave]
+                          <>[PPushTo oname aoName | isPushTo]
       nphv = if isGet && isNothing hv then obj else hv
    in (npevs, nomp3, V2 nmx nmy, nphv)
 
