@@ -40,7 +40,8 @@ data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPushTo ObName ObName |
 
 type Code = T.Text
 
-data WkEvent = WTick | WOk | WLeft | WUp | WDown | WRight deriving stock (Eq,Show)
+data WkEvent = WTick | WOk | WSub | WLeft | WUp | WDown | WRight
+                                             deriving stock (Eq,Show)
 
 data EvAct = EA PEvent Code Int Int deriving stock (Eq,Show)
 
@@ -48,7 +49,7 @@ data Ast = NAct | TAct | EAct deriving stock (Eq,Show)
 
 data IMode = Txt | Cho | Ply deriving stock (Eq,Show)
 
-data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
+data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 
 
 --imd: input mode (Txt or Cho or Ply)
@@ -82,7 +83,7 @@ data Game = Game {_imd :: !IMode
                  ,_mnm :: !MapName
                  ,_msz :: !MapSize
                  ,_mps :: !Pos
-                 ,_pmp :: !(MapName,Pos)
+                 ,_pmp :: !(MapName,Pos,ObMap)
                  ,_evas :: ![EvAct]
                  ,_chn :: !Int
                  ,_hav :: !(Maybe Object)

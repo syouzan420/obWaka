@@ -85,7 +85,7 @@ setMap gs mnm =
 choiceDialog :: Game -> [T.Text] -> Game
 choiceDialog gs args = 
   choiceDialog' gs{_imd=Cho,_cho=[],_txv=_txv gs<>"\n",_tct=_tct gs + 1}
-                                          args ["●","↓","←","→","↑"] 
+                                          args ["●","↑","←","□","↓","→"] 
 
 choiceDialog' :: Game -> [T.Text] -> [T.Text] -> Game
 choiceDialog' gs [] _ = gs

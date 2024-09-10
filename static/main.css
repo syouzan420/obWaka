@@ -32,7 +32,7 @@ button:active {
   padding: 1px 17px 2px;
   font: 400 30px system-ui;
   position: relative;
-  top: 50px;
+  top: 30px;
 }
 .pad2 {
   padding: 1px 17px 2px;
@@ -53,7 +53,7 @@ button:active {
 }
 .tbox {
   width: auto;
-  height: 280px;
+  height: 300px;
 }
 .tate {
   white-space: pre-wrap;

@@ -6,7 +6,7 @@ import Data.Functor ((<&>))
 import Data.Maybe (isNothing)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
-  ( dynText, current, gate, blank, elAttr, constDyn, el 
+  ( dynText, current, gate, blank, elAttr, constDyn, el, text 
   , accumDyn, divClass, leftmost, (=:), zipDynWith 
   , tickLossyFromPostBuildTime, widgetHold_
   , DomBuilder, MonadHold, PostBuild, Prerender
@@ -37,7 +37,7 @@ wakaMain gs = do
     let beTxtOn = current dyTxtOn
     let evTxTime = gate beTxtOn evTime
     let evWTick = WTick <$ evTime
-    let evWk = leftmost (evWDir<>[evWTick])
+    let evWk = leftmost (evWDir1<>evWDir2<>[evWTick])
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
@@ -57,7 +57,11 @@ wakaMain gs = do
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
-    evWDir <- mapM (evElButton "pad") ["●","←","↑","↓","→"] <&> zipWith (<$) [WOk,WLeft,WUp,WDown,WRight]
+    evWDir1 <- mapM (evElButton "pad") ["●","→","↑"] <&>
+                                     zipWith (<$) [WOk,WRight,WUp]
+    _ <- el "div" $ text " " 
+    evWDir2 <- mapM (evElButton "pad") ["□","←","↓"] <&>
+                                     zipWith (<$) [WSub,WLeft,WDown]
     widgetHold_ blank (elTextScroll <$ evTxTime)
 
 showMapRect :: Game -> T.Text
@@ -123,12 +127,12 @@ enterNewMap :: Game -> [PEvent] -> Game
 enterNewMap gs [] = gs 
 enterNewMap gs (PEnter pps obj:_) = 
   let mnm = _mnm gs
+      omp = _omp gs
       tdf = maybe T.empty getObjDef obj
-   in setMap gs{_pmp = (mnm,pps)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
+   in setMap gs{_pmp = (mnm,pps,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 enterNewMap gs (PLeave:_) =
-  let (tmnm,tps) = _pmp gs 
+  let (tmnm,tps,omp) = _pmp gs 
       ngs = setMap gs tmnm
-      omp = _omp ngs
       msz = _msz ngs
       nomp = updatePosByName "player" tps omp
       mpos = setMapStartPos tps mapWinSize msz
