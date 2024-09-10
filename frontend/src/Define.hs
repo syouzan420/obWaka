@@ -19,8 +19,11 @@ data Dir = East | North | West | South | NoDir deriving stock (Eq,Show)
 
 data ObCon = CBlock | CMove | CGet | COn | CEnter deriving stock (Eq,Show)
 
-data ObType = TKazu | TMozi | TLive | TFood | TTool | TTile | TBlock | TFunc [ObType] 
+data ObType = TKazu | TMozi | TFood | TTool | TTile | TBlock |
+                      TFunc [ObType] | TLive ObLive
                                               deriving stock (Eq,Show) 
+
+data ObLive = LStand | LMove | LAttack deriving stock (Eq,Show)
 
 
 type ObDef = T.Text
@@ -43,12 +46,12 @@ data EvAct = EA PEvent Code Int Int deriving stock (Eq,Show)
 
 data Ast = NAct | TAct | EAct deriving stock (Eq,Show)
 
-data IMode = Txt | Ply deriving stock (Eq,Show)
+data IMode = Txt | Cho | Ply deriving stock (Eq,Show)
 
 data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 
 
---imd: input mode (Txt or Ply)
+--imd: input mode (Txt or Cho or Ply)
 --txs: text sections
 --txw: tate text whole
 --txv: tate text view
@@ -65,6 +68,7 @@ data Input = Ok | Cn | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --evas: event actions
 --chn: character number (0:NoChara)
 --hav: something having (not having: Nothing)
+--cho: choice destination (titles of texts)
 data Game = Game {_imd :: !IMode
                  ,_txs :: ![TextSection]
                  ,_txw :: !T.Text
@@ -82,6 +86,7 @@ data Game = Game {_imd :: !IMode
                  ,_evas :: ![EvAct]
                  ,_chn :: !Int
                  ,_hav :: !(Maybe Object)
+                 ,_cho :: ![T.Text]
                  } deriving stock (Eq,Show)
 
 mapWinSize :: Size 

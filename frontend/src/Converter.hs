@@ -57,7 +57,7 @@ makeObjectMap tx =
                     '%' -> "leave"
                     _   -> T.empty
            otype = case ch of 
-                    '@' -> TLive
+                    '@' -> TLive LStand
                     '%' -> TTile
                     _   -> TBlock
            ocon = case ch of
@@ -96,7 +96,7 @@ txToDir :: T.Text -> Dir
 txToDir txt = fromMaybe NoDir $ lookup txt txDir
 
 txType :: [(T.Text,ObType)]
-txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive),("food",TFood),("tool",TTool),("block",TBlock)]
+txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive LStand),("food",TFood),("tool",TTool),("block",TBlock)]
 
 txCon :: [(T.Text,ObCon)]
 txCon = [("block",CBlock),("move",CMove),("get",CGet),("on",COn),("enter",CEnter)]

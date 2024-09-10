@@ -19,7 +19,7 @@ import Define
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir,setMapStartPos)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName,getObjDef)
 import Action (movePlayer,hitAction,putAction,triggerFunc)
-import Code (exeCode,setMap)
+import Code (exeCode,setMap,moveDialog)
 
 wakaMain ::
   ( DomBuilder t m
@@ -53,7 +53,7 @@ wakaMain gs = do
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
---    dynText (T.pack . show <$> dyObjectMap)
+--    dynText (T.pack . show <$> dyEvas)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -71,42 +71,53 @@ showMapRect gs =
 wakaUpdate :: Game -> WkEvent -> Game
 wakaUpdate gs wev =
   let imode = _imd gs
-   in if imode==Txt then
-        case wev of
+   in case imode of
+        Txt -> case wev of
           WTick -> let iths = _iths gs
                     in if iths then repeatTexUpdate gs else textUpdate gs
           WOk -> okButton gs
           _ -> gs
-                    else
-        let obMap = _omp gs
-            mapSize = _msz gs
-            pHave = _hav gs    
-            pDir = getDirByName "player" obMap
-            evActs = _evas gs
-            mnm = _mnm gs
-         in case wev of
-           WTick -> effectUpdate gs
-           WOk -> 
-             let tmpMap = _tmp gs
-                 txSec = _txs gs
-                 ntmp = if isNothing pHave 
+        Cho -> 
+          let titles = _cho gs
+              tln = length titles
+              title = case wev of
+                WOk -> if tln>0 then head titles else T.empty 
+                WLeft -> if tln>1 then titles!!1 else T.empty
+                WUp -> if tln>2 then titles!!2 else T.empty
+                WDown -> if tln>3 then titles!!3 else T.empty
+                WRight -> if tln>4 then titles!!4 else T.empty
+                _ -> T.empty 
+           in if title==T.empty then gs else moveDialog gs{_imd=Txt} title
+        Ply -> 
+          let obMap = _omp gs
+              mapSize = _msz gs
+              pHave = _hav gs    
+              pDir = getDirByName "player" obMap
+              evActs = _evas gs
+              mnm = _mnm gs
+           in case wev of
+             WTick -> effectUpdate gs
+             WOk -> 
+               let tmpMap = _tmp gs
+                   txSec = _txs gs
+                   ntmp = if isNothing pHave 
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
-                 (npevs,nomp,nphv) = case pHave of
+                   (npevs,nomp,nphv) = case pHave of
                           Nothing -> triggerFunc txSec pDir mnm obMap 
                           Just tob -> putAction tob pDir mapSize obMap  
-                 ngs = exeEvActs gs npevs evActs
-              in ngs{_tmp=ntmp, _omp=nomp, _hav=nphv}
-           dirEv -> 
-             let mapPos = _mps gs
-                 keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
-                 isSameDir = pDir == keyDir
-                 (npevs,nomp,nmps,nphv) = if isSameDir 
+                   ngs = exeEvActs gs npevs evActs
+                in ngs{_tmp=ntmp, _omp=nomp, _hav=nphv}
+             dirEv -> 
+               let mapPos = _mps gs
+                   keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
+                   isSameDir = pDir == keyDir
+                   (npevs,nomp,nmps,nphv) = if isSameDir 
                       then movePlayer dirEv pHave mapSize mapWinSize mapPos obMap
                       else ([],updateDirByName "player" keyDir obMap,mapPos,pHave)
-                 ngs = exeEvActs gs{_omp=nomp,_mps=nmps,_hav=nphv} npevs evActs
-                 ngs2 = enterNewMap ngs npevs
-              in ngs2 
+                   ngs = exeEvActs gs{_omp=nomp,_mps=nmps,_hav=nphv} npevs evActs
+                   ngs2 = enterNewMap ngs npevs
+                in ngs2 
 
 enterNewMap :: Game -> [PEvent] -> Game 
 enterNewMap gs [] = gs 
@@ -140,7 +151,7 @@ getCodes pe (nevas,ncodes) (ea@(EA te cd n i):eas) =
       NAct -> getCodes pe (nevas<>[ea],ncodes) eas
       TAct -> getCodes pe (nevas<>[EA te cd n (i+1)],ncodes) eas
       EAct -> if n==0 then getCodes pe (nevas<>[ea],ncodes<>[cd]) eas
-                      else getCodes pe (nevas,ncodes<>[cd]) eas
+                      else (nevas<>eas,ncodes<>[cd])
 
 checkAct :: PEvent -> EvAct -> Ast
 checkAct pe (EA te _ n co) = 

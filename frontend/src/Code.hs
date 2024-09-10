@@ -1,4 +1,4 @@
-module Code(exeCode,setMap) where
+module Code(exeCode,setMap,moveDialog) where
 
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
@@ -27,6 +27,7 @@ exeOneCode gs evt = do
     "mvdi" -> moveDialog gs (head ags)
     "stmp" -> setMap gs (head ags)
     "ch" -> changeChara gs (head ags)
+    "cho" -> choiceDialog gs ags
     _ -> gs 
 
 setPlayer :: Game -> Game 
@@ -40,7 +41,7 @@ setEventAction gs ead pcd =
         let ea = case act of
               "block" -> EA (PBlock dt) pcd ((read . T.unpack) num) 0
               _ -> EA PNon pcd 0 0
-         in gs{_evas = _evas gs<>[ea]} 
+         in gs{_evas = ea:_evas gs} 
       _ -> gs
 
 exeCondition :: Game -> [T.Text] -> Game
@@ -80,6 +81,19 @@ setMap gs mnm =
       mpos = setMapStartPos pps mapWinSize mapSize
    in gs{_mnm = nmnm, _msz = mapSize, _mps = mpos, _omp = obMap}
    
+
+choiceDialog :: Game -> [T.Text] -> Game
+choiceDialog gs args = 
+  choiceDialog' gs{_imd=Cho,_cho=[],_txv=_txv gs<>"\n",_tct=_tct gs + 1}
+                                          args ["●","↓","←","→","↑"] 
+
+choiceDialog' :: Game -> [T.Text] -> [T.Text] -> Game
+choiceDialog' gs [] _ = gs
+choiceDialog' gs [_] _ = gs
+choiceDialog' gs _ [] = gs
+choiceDialog' gs (tx:title:xs) (hd:ys) = let tlen = T.length tx + 3
+  in choiceDialog' gs{_cho=_cho gs<>[title],_txv=_txv gs<>hd<>" "<>tx<>"\n"
+                     ,_tct=_tct gs + tlen} xs ys
 
 moveDialog :: Game -> T.Text -> Game 
 moveDialog gs title = 

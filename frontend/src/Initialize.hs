@@ -15,4 +15,5 @@ newGame = Game{_imd=Txt
               ,_evas=[]
               ,_chn=0
               ,_hav=Nothing
+              ,_cho=[]
               }
