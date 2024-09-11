@@ -78,6 +78,18 @@ setObjectData obdts (ob@(Ob ch _ _ _ _ _ ps):obs) =
         _ -> ob
    in newObj:setObjectData obdts obs
 
+makeObjectByName :: ObName -> [T.Text] -> Maybe Object
+makeObjectByName _ [] = Nothing
+makeObjectByName oname (obdt:xs) =
+  let dtList = T.splitOn "," obdt 
+   in case dtList of
+        [tch,tnm,ttp,tdf,tcn,tdr] ->
+            if tnm==oname then 
+                Just (Ob (T.head tch) tnm (txToType ttp) tdf 
+                                        (txToCon tcn) (txToDir tdr) (V2 0 0))
+                          else makeObjectByName oname xs 
+        _ -> makeObjectByName oname xs 
+
 txToType :: T.Text -> ObType
 txToType "" = TBlock
 txToType txt = let txts = T.words txt
@@ -96,7 +108,7 @@ txToDir :: T.Text -> Dir
 txToDir txt = fromMaybe NoDir $ lookup txt txDir
 
 txType :: [(T.Text,ObType)]
-txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive LStand),("food",TFood),("tool",TTool),("block",TBlock)]
+txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive LStand),("move",TLive LMove),("attack",TLive LAttack),("food",TFood),("tool",TTool),("block",TBlock)]
 
 txCon :: [(T.Text,ObCon)]
 txCon = [("block",CBlock),("move",CMove),("get",CGet),("on",COn),("enter",CEnter)]

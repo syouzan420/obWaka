@@ -3,9 +3,10 @@ module Code(exeCode,setMap,moveDialog) where
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
 import Data.List (uncons)
+import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
-                 ,lookupFromSections)
-import Object (getPosByName,getObjName)
+                 ,lookupFromSections,makeObjectByName)
+import Object (getPosByName,getObjName,putObjOnPos)
 import Define
 
 
@@ -28,7 +29,27 @@ exeOneCode gs evt = do
     "stmp" -> setMap gs (head ags)
     "ch" -> changeChara gs (head ags)
     "cho" -> choiceDialog gs ags
+    "p" -> putObject gs ags
     _ -> gs 
+
+putObject :: Game -> [T.Text] -> Game
+putObject gs [] = gs
+putObject gs (objNamePos:xs) =
+  let npData = T.splitOn "," objNamePos
+   in case npData of
+        [oname,opx,opy] -> 
+          let textSections = _txs gs
+              mnm = _mnm gs
+              omp = _omp gs
+              obDatas = T.lines $ lookupFromSections textSections ("obj"<>mnm)
+              obj = makeObjectByName oname obDatas
+              nomp = case obj of
+                      Just ob -> putObjOnPos ob (V2 ((read . T.unpack) opx)
+                                                     ((read . T.unpack) opy)) omp 
+                      Nothing -> omp
+           in putObject gs{_omp=nomp} xs
+        _ -> putObject gs xs
+
 
 setPlayer :: Game -> Game 
 setPlayer gs = gs{_itx=False,_imd = Ply} 

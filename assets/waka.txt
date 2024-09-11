@@ -28,6 +28,8 @@ Y,Yoko,live,,block,north
 g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
 G,SuperGlasses,tool,,get,nodir
+V,virus1,move,,block,north
+V,virus2,attack,,block,north
 
 map1:
 ************@
