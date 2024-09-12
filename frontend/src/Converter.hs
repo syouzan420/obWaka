@@ -27,6 +27,10 @@ inpToDir p = case p of
 dirToDelta :: Dir -> Pos
 dirToDelta dr = case dr of
   East -> V2 1 0; North -> V2 0 (-1); West -> V2 (-1) 0; South -> V2 0 1; NoDir -> V2 0 0
+
+dirToText :: Dir -> T.Text
+dirToText dr = case dr of
+  East -> "→"; North -> "↑"; West -> "←"; South -> "↓"; NoDir -> ""
       
 setMapStartPos :: PlyPos -> MapWinSize -> MapSize -> MapPos
 setMapStartPos (V2 x y) (V2 w h) (V2 mw mh) =
@@ -173,4 +177,7 @@ lookupFromSections :: [TextSection] -> T.Text -> T.Text
 lookupFromSections textSections tx = 
   let tsKeyValues = map (\(TS ti t) -> (ti,t)) textSections
    in fromMaybe T.empty (lookup tx tsKeyValues)  
+
+isInMap :: Pos -> MapSize -> Bool
+isInMap (V2 px py) (V2 mw mh) = px>0 && px<mw && py>=0 && py<mh
 

@@ -5,8 +5,8 @@ import Data.Maybe (fromMaybe)
 import Data.List (uncons)
 import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
-                 ,lookupFromSections,makeObjectByName)
-import Object (getPosByName,getObjName,putObjOnPos)
+                 ,lookupFromSections,makeObjectByName,isInMap)
+import Object (getPosByName,getObjName,putObjOnPos,isObjOnPos)
 import Define
 
 
@@ -21,6 +21,7 @@ exeOneCode gs evt = do
       (en,ags) = fromMaybe ("null",[]) (uncons en_ags)
    in if null ags then case en of
     "stpl" -> setPlayer gs
+    "cs" -> consumeItem gs
     _ -> gs 
                     else case en of
     "a" -> setEventAction gs (head ags) (T.intercalate "_" (tail ags)) 
@@ -35,7 +36,7 @@ exeOneCode gs evt = do
 putObject :: Game -> [T.Text] -> Game
 putObject gs [] = gs
 putObject gs (objNamePos:xs) =
-  let npData = T.splitOn "," objNamePos
+  let npData = T.splitOn "." objNamePos
    in case npData of
         [oname,opx,opy] -> 
           let textSections = _txs gs
@@ -44,12 +45,27 @@ putObject gs (objNamePos:xs) =
               obDatas = T.lines $ lookupFromSections textSections ("obj"<>mnm)
               obj = makeObjectByName oname obDatas
               nomp = case obj of
-                      Just ob -> putObjOnPos ob (V2 ((read . T.unpack) opx)
-                                                     ((read . T.unpack) opy)) omp 
+                      Just ob -> 
+                        let msz = _msz gs
+                            tps = V2 ((read. T.unpack) opx) ((read . T.unpack) opy)
+                            nps = putablePos tps msz omp
+                         in putObjOnPos ob nps omp 
                       Nothing -> omp
            in putObject gs{_omp=nomp} xs
         _ -> putObject gs xs
 
+putablePos :: Pos -> MapSize -> ObMap -> Pos
+putablePos pos@(V2 px py) msz omp = 
+  let imp = isInMap pos msz
+      iob = imp && isObjOnPos pos omp  
+      nps 
+        | iob = V2 (px+1) py
+        | imp = pos
+        | otherwise = V2 (px-2) py
+   in if iob || not imp then putablePos nps msz omp else nps
+
+consumeItem :: Game -> Game
+consumeItem gs = gs{_hav = Nothing}
 
 setPlayer :: Game -> Game 
 setPlayer gs = gs{_itx=False,_imd = Ply} 

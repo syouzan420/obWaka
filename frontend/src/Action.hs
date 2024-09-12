@@ -5,7 +5,7 @@ import Linear.V2 (V2(..))
 import Object (getPosByName,getDirByName,getObjByPos,blankObj,changeObjCh
               ,getObjType,getObjName,getObjCon,getObjCh,getObjDef
               ,updatePosByName,deleteObjByPos,isObjOnPos,putObjOnPos)
-import Converter (inpToDir,dirToDelta,lookupFromSections,setObjectData)
+import Converter (inpToDir,dirToDelta,lookupFromSections,setObjectData,isInMap)
 import Data.Maybe (isNothing,fromMaybe)
 import Data.Functor ((<&>))
 import Define 
@@ -15,11 +15,11 @@ type MapWinPos = Pos
 
 movePlayer :: WkEvent -> Maybe Object -> MapSize -> MapWinPos -> MapPos  
                              -> ObMap -> ([PEvent],ObMap,MapPos,Maybe Object) 
-movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =  
+movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =  
   let pps = getPosByName "player" omp
       dps = dirToDelta $ inpToDir ev 
-      tps@(V2 tx ty) = pps + dps
-      isInMap = tx>=0 && tx<mw && ty>=0 && ty<mh 
+      tps = pps + dps
+      imp = isInMap tps msz 
       obj = getObjByPos tps omp  -- map opr on target
       oname = maybe T.empty getObjName obj
       obc = obj <&> getObjCon
@@ -29,13 +29,13 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
       isEnter = case obc of Just oc -> oc==CEnter; Nothing -> False
       isOn = case obc of Just oc -> oc==COn; Nothing -> False
       isLeave = isOn && oname=="leave"
-      tops@(V2 tox toy) = if isPush then tps + dps else tps
-      isObInMap = tox>=0 && tox<mw && toy>=0 && toy<mh 
+      tops = if isPush then tps + dps else tps
+      isObInMap = isInMap tops msz 
       isAnotherObj = isObjOnPos tops omp
       isPushTo = isPush && isAnotherObj
       aoName = maybe T.empty getObjName (getObjByPos tops omp)
       nops = if isObInMap && not isAnotherObj then tops else tps
-      npps@(V2 nx ny) = if isInMap && not isBlock && not isPushTo then tps else pps
+      npps@(V2 nx ny) = if imp && not isBlock && not isPushTo then tps else pps
       nmx 
         | nx-mx < 1 && mx > 0 = mx - 1 
         | nx-mx > w-2 && mx < mw-w = mx + 1
@@ -55,19 +55,19 @@ movePlayer ev hv (V2 mw mh) (V2 w h) (V2 mx my) omp =
    in (npevs, nomp3, V2 nmx nmy, nphv)
 
 hitAction :: ObName -> MapSize -> ObMap -> ObMap -> ObMap 
-hitAction onm (V2 mw mh) om tm = 
+hitAction onm msz om tm = 
   let pPos = getPosByName onm om 
       pDir = getDirByName onm om
-      eps@(V2 ex ey) = pPos + dirToDelta pDir 
-      isShow = ex>=0 && ex<mw && ey>=0 && ey<mh
+      eps = pPos + dirToDelta pDir 
+      isShow = isInMap eps msz
    in if isShow then Ob '/' "hit" (TLive LStand) T.empty COn pDir eps:tm else tm 
 
 putAction :: Object -> Dir -> MapSize -> ObMap -> ([PEvent],ObMap,Maybe Object)
-putAction tob pDir (V2 mw mh) om =
+putAction tob pDir msz om =
   let pPos = getPosByName "player" om
       oName = getObjName tob
-      tps@(V2 tx ty) = pPos + dirToDelta pDir   
-      canPut = tx>=0 && tx<mw && ty>=0 && ty<mh && not (isObjOnPos tps om)
+      tps = pPos + dirToDelta pDir   
+      canPut = isInMap tps msz && not (isObjOnPos tps om)
    in if canPut then ([PPut oName tps],putObjOnPos tob tps om,Nothing)
                 else ([],om,Just tob)    
 

@@ -27,7 +27,7 @@ C,Conbiner,func tool tool tool,map1,enter,north
 Y,Yoko,live,,block,north
 g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
-G,SuperGlasses,tool,,get,nodir
+G,SuperG,tool,,get,nodir
 V,virus1,move,,block,north
 V,virus2,attack,,block,north
 
@@ -49,7 +49,7 @@ scene0:
 どうしてなのか 何をすればいいのか 正直どう話せばいいか 分からない。
 それより 少し この世界を見てまはってくれないか。
 たぶん それが一番いいと思ふんだ。
-;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_el_mvdi.textY0
+;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_if_?pHave.SuperG_mvdi.textYG_el_mvdi.textY0
 
 textY0:
 ;ch_1
@@ -72,6 +72,12 @@ textYg:
 ;ch_1
 メガネだね。
 そんなものが どうしてあるんだらう。
+
+textYG:
+;ch_1
+スーパーメガネ？。
+あっ！ メガネが消えた。
+;cs p_virus1.10.10_virus2.15.13
 
 textA0:
 ;ch_2

@@ -35,7 +35,7 @@ type ObMap = [Object]
 
 data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPushTo ObName ObName |
               PPut ObName Pos | PFunc ObName ObChar | PEnter Pos (Maybe Object) |
-              PLeave | POn ObName | PNon
+              PLeave | POn ObName | PConsume ObName | PNon
                                                  deriving stock (Eq,Show)
 
 type Code = T.Text

@@ -16,7 +16,8 @@ import Reflex.Dom.Core
 import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
 
 import Define
-import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir,setMapStartPos)
+import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir
+                 ,setMapStartPos,dirToText)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName,getObjDef)
 import Action (movePlayer,hitAction,putAction,triggerFunc)
 import Code (exeCode,setMap,moveDialog)
@@ -44,12 +45,15 @@ wakaMain gs = do
     let dyIMode = _imd <$> dyGs
     let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
     let dyImg = dyGs >>= (\n -> constDyn (imgsrc!!n)) . _chn
+    let dyDir = (dirToText <$> getDirByName "player") . _omp <$> dyGs
     let dyHave = _hav <$> dyGs
     divClass "flexbox" $ do
       el "div" $ dyChara dyImg
       divClass "kai" $ dynText (showMapRect <$> dyGs)
-      el "div" $ dynText $ dyHave <&> 
-          \case Just hv -> " >:"<>getObjName hv; Nothing -> T.empty 
+      divClass "kai" $ do
+         dynText (fmap (<>"\n") dyDir) 
+         dynText $ dyHave <&> 
+            \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
