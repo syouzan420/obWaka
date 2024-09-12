@@ -18,8 +18,9 @@ import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
 import Define
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir
                  ,setMapStartPos,dirToText)
-import Object (getDirByName,updateDirByName,updatePosByName,getObjName,getObjDef)
-import Action (movePlayer,hitAction,putAction,triggerFunc)
+import Object (getDirByName,updateDirByName,updatePosByName,getObjName
+              ,getObjDef)
+import Action (movePlayer,hitAction,putAction,triggerFunc,moveObject)
 import Code (exeCode,setMap,moveDialog)
 
 wakaMain ::
@@ -51,13 +52,13 @@ wakaMain gs = do
       el "div" $ dyChara dyImg
       divClass "kai" $ dynText (showMapRect <$> dyGs)
       divClass "kai" $ do
-         dynText (fmap (<>"\n") dyDir) 
+         dynText $ fmap (<>"\n") dyDir 
          dynText $ dyHave <&> 
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
---    dynText (T.pack . show <$> dyEvas)
+--    dynText (T.pack . show <$> dyObjectMap)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -104,7 +105,7 @@ wakaUpdate gs wev =
               evActs = _evas gs
               mnm = _mnm gs
            in case wev of
-             WTick -> effectUpdate gs
+             WTick -> objectUpdate $ effectUpdate gs
              WOk -> 
                let tmpMap = _tmp gs
                    txSec = _txs gs
@@ -126,6 +127,13 @@ wakaUpdate gs wev =
                    ngs = exeEvActs gs{_omp=nomp,_mps=nmps,_hav=nphv} npevs evActs
                    ngs2 = enterNewMap ngs npevs
                 in ngs2 
+
+objectUpdate :: Game -> Game
+objectUpdate gs = let omp = _omp gs
+                      msz = _msz gs
+                      stg = _stg gs
+                      (nomp,nstg) = moveObject stg msz omp omp 
+                   in gs{_omp=nomp,_stg=nstg}
 
 enterNewMap :: Game -> [PEvent] -> Game 
 enterNewMap gs [] = gs 

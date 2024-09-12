@@ -2,6 +2,7 @@ module Define where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
+import System.Random (StdGen)
 
 type Pos = V2 Int
 type Size = V2 Int
@@ -15,7 +16,7 @@ type MapSize = Size
 type ObChar = Char
 type ObName = T.Text
 
-data Dir = East | North | West | South | NoDir deriving stock (Eq,Show)
+data Dir = NoDir | East | North | West | South deriving stock (Eq,Show,Enum)
 
 data ObCon = CBlock | CMove | CGet | COn | CEnter deriving stock (Eq,Show)
 
@@ -23,7 +24,8 @@ data ObType = TKazu | TMozi | TFood | TTool | TTile | TBlock |
                       TFunc [ObType] | TLive ObLive
                                               deriving stock (Eq,Show) 
 
-data ObLive = LStand | LMove | LAttack deriving stock (Eq,Show)
+data ObLive = LStand | LMove Int Int | LAttack Int Int 
+                                               deriving stock (Eq,Show)
 
 
 type ObDef = T.Text
@@ -70,6 +72,7 @@ data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --chn: character number (0:NoChara)
 --hav: something having (not having: Nothing)
 --cho: choice destination (titles of texts)
+--stg: standard random generator
 data Game = Game {_imd :: !IMode
                  ,_txs :: ![TextSection]
                  ,_txw :: !T.Text
@@ -88,6 +91,7 @@ data Game = Game {_imd :: !IMode
                  ,_chn :: !Int
                  ,_hav :: !(Maybe Object)
                  ,_cho :: ![T.Text]
+                 ,_stg :: !StdGen
                  } deriving stock (Eq,Show)
 
 mapWinSize :: Size 

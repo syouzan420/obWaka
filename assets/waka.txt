@@ -28,8 +28,9 @@ Y,Yoko,live,,block,north
 g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
 G,SuperG,tool,,get,nodir
-V,virus1,move,,block,north
-V,virus2,attack,,block,north
+V,virus1,move 5,,block,north
+V,virus2,attack 4,,block,north
+V,virus3,move 4,,block,north
 
 map1:
 ************@
@@ -77,7 +78,8 @@ textYG:
 ;ch_1
 スーパーメガネ？。
 あっ！ メガネが消えた。
-;cs p_virus1.10.10_virus2.15.13
+;cs p_virus1.9.9_virus2.14.12_virus3.4.3_virus2.10.5_virus1.5.5
+なんだ あれは？。
 
 textA0:
 ;ch_2

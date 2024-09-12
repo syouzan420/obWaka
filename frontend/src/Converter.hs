@@ -99,6 +99,8 @@ txToType "" = TBlock
 txToType txt = let txts = T.words txt
                 in case txts of
                     ("func":tps) -> TFunc (map findType tps)
+                    ["move",ct] -> TLive (LMove ((read . T.unpack) ct) 0)
+                    ["attack",ct] -> TLive (LAttack ((read . T.unpack) ct) 0)
                     [tp] -> findType tp
                     _ -> TBlock
 
@@ -112,7 +114,7 @@ txToDir :: T.Text -> Dir
 txToDir txt = fromMaybe NoDir $ lookup txt txDir
 
 txType :: [(T.Text,ObType)]
-txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive LStand),("move",TLive LMove),("attack",TLive LAttack),("food",TFood),("tool",TTool),("block",TBlock)]
+txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive LStand),("food",TFood),("tool",TTool),("block",TBlock)]
 
 txCon :: [(T.Text,ObCon)]
 txCon = [("block",CBlock),("move",CMove),("get",CGet),("on",COn),("enter",CEnter)]
@@ -179,5 +181,5 @@ lookupFromSections textSections tx =
    in fromMaybe T.empty (lookup tx tsKeyValues)  
 
 isInMap :: Pos -> MapSize -> Bool
-isInMap (V2 px py) (V2 mw mh) = px>0 && px<mw && py>=0 && py<mh
+isInMap (V2 px py) (V2 mw mh) = px>=0 && px<mw && py>=0 && py<mh
 

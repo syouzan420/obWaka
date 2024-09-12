@@ -1,22 +1,23 @@
 module CWidget (dyChara, imgsrc, elSpace, evElButton, evElButtonH, mkHidden
-               , evElNumberPad, dyElTimer, dyElCharaAnime, elTextScroll
+               , evElNumberPad, dyElTimer, dyElCharaAnime, elTextScroll,elRandom
                ) where
 
 import JSDOM
 --import qualified JSDOM.Generated.Document as DOM
 import qualified JSDOM.Generated.NonElementParentNode as DOM
 import qualified JSDOM.Generated.Element as DOM
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class (liftIO,MonadIO)
 import Control.Monad.Fix (MonadFix)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
+import System.Random (randomRIO)
 
 import Obelisk.Generated.Static (static)
 
 import Reflex.Dom.Core 
-  ( text, dynText, el, elAttr, divClass, elAttr', blank
+  ( text, dynText, el, elAttr, divClass, elAttr', blank, sample
   , (=:), leftmost, elDynAttr, elDynAttr' ,holdDyn, domEvent
-  , current, gate, tickLossyFromPostBuildTime, prerender_ 
+  , current, gate, tickLossyFromPostBuildTime, prerender_, prerender 
   , DomBuilder, PerformEvent, TriggerEvent
   , PostBuild, Event, EventName(Click), MonadHold ,Dynamic
   , Performable, TickInfo(..), Prerender
@@ -92,6 +93,12 @@ dyElCharaAnime dyBool = do
   elDynAttr "div" dHide1 $ do elChara0; dynText dyTime 
   elDynAttr "div" dHide2 $ do elChara1; dynText dyTime 
   pure dyTime 
+
+elRandom :: (DomBuilder t m, MonadHold t m, Prerender t m) => m Int
+elRandom = do
+  dyRand <- prerender (return (0::Int)) $ liftIO $ randomRIO (0,4)
+  sample (current dyRand)
+
 
 elTextScroll :: (DomBuilder t m, Prerender t m) => m ()
 elTextScroll = prerender_ blank $ do

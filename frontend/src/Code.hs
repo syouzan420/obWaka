@@ -5,8 +5,8 @@ import Data.Maybe (fromMaybe)
 import Data.List (uncons)
 import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
-                 ,lookupFromSections,makeObjectByName,isInMap)
-import Object (getPosByName,getObjName,putObjOnPos,isObjOnPos)
+                 ,lookupFromSections,makeObjectByName)
+import Object (getPosByName,getObjName,putObjOnPos,putablePos)
 import Define
 
 
@@ -53,16 +53,6 @@ putObject gs (objNamePos:xs) =
                       Nothing -> omp
            in putObject gs{_omp=nomp} xs
         _ -> putObject gs xs
-
-putablePos :: Pos -> MapSize -> ObMap -> Pos
-putablePos pos@(V2 px py) msz omp = 
-  let imp = isInMap pos msz
-      iob = imp && isObjOnPos pos omp  
-      nps 
-        | iob = V2 (px+1) py
-        | imp = pos
-        | otherwise = V2 (px-2) py
-   in if iob || not imp then putablePos nps msz omp else nps
 
 consumeItem :: Game -> Game
 consumeItem gs = gs{_hav = Nothing}

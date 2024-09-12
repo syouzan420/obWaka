@@ -1,13 +1,16 @@
-module Action (movePlayer,hitAction,putAction,triggerFunc) where
+module Action (movePlayer,hitAction,putAction,triggerFunc,moveObject) where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
 import Object (getPosByName,getDirByName,getObjByPos,blankObj,changeObjCh
               ,getObjType,getObjName,getObjCon,getObjCh,getObjDef
-              ,updatePosByName,deleteObjByPos,isObjOnPos,putObjOnPos)
+              ,updatePosByName,deleteObjByPos,isObjOnPos,putObjOnPos
+              ,getObjPos,setObjPos,setObjType)
 import Converter (inpToDir,dirToDelta,lookupFromSections,setObjectData,isInMap)
 import Data.Maybe (isNothing,fromMaybe)
 import Data.Functor ((<&>))
+import Data.Bifunctor (first)
+import System.Random (StdGen,uniformR)
 import Define 
 
 type MapPos = Pos
@@ -53,6 +56,68 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
                           <>[PPushTo oname aoName | isPushTo]
       nphv = if isGet && isNothing hv then obj else hv
    in (npevs, nomp3, V2 nmx nmy, nphv)
+
+data MoveType = MV | AT | NN deriving stock Eq
+
+moveObject :: StdGen -> MapSize -> ObMap -> ObMap -> (ObMap,StdGen)
+moveObject g _ _ [] = ([],g)
+moveObject g msz omp (obj:xs) =
+  let obType = getObjType obj
+      (mvType,mct,ct) = case obType of
+        TLive (LMove maxCount count) -> (MV,maxCount,count) 
+        TLive (LAttack maxCount count) -> (AT,maxCount,count)
+        _ -> (NN,0,0)
+   in if mvType==NN then let mvo = moveObject g msz omp xs 
+                          in first (obj :) mvo else
+          let isExec = mct==ct
+              newCount = if isExec then 0 else ct+1
+              pos = getObjPos obj
+              (npos,ng) = if isExec then case mvType of
+                       MV -> confirmPos pos msz omp $ nextMVPos g pos
+                       AT -> let pps = getPosByName "player" omp
+                              in confirmPos pos msz omp $ nextATPos g pps pos
+                       _  -> (pos,g)
+                                    else (pos,g)
+              ntp = case mvType of
+                      MV -> TLive (LMove mct newCount)
+                      AT -> TLive (LAttack mct newCount)
+                      _ -> obType
+              nobj = setObjPos npos $ setObjType ntp obj
+              mvo = moveObject ng msz omp xs
+           in first (nobj :) mvo
+
+confirmPos :: Pos -> MapSize -> ObMap -> (Pos,StdGen) -> (Pos,StdGen)
+confirmPos pos msz omp (tps,g) = 
+  let imp = isInMap tps msz
+      isObj = isObjOnPos tps omp
+   in if imp && not isObj then (tps,g) else (pos,g) 
+
+nextMVPos :: StdGen -> Pos -> (Pos,StdGen)
+nextMVPos g pos = let (dirNum,ng) = uniformR (0,4) g
+                      dir = toEnum dirNum :: Dir
+                   in (pos + dirToDelta dir, ng)
+
+nextATPos :: StdGen -> Pos -> Pos -> (Pos,StdGen)
+nextATPos g pps pos = let dff@(V2 dx dy) = pps - pos  
+                          isRange = dx*dx + dy*dy < 25
+                          (dirNum,ng) = if isRange then approach g dff
+                                                   else uniformR (0,4) g
+                          dir = toEnum dirNum :: Dir
+                       in (pos + dirToDelta dir, ng)
+
+approach :: StdGen -> Pos -> (Int,StdGen) 
+approach g (V2 dx dy) = let ixp = dx >= 0
+                            iyp = dy >= 0
+                            abx = abs dx
+                            aby = abs dy
+                            (intForBool,ng) = uniformR (0::Int,1) g
+                            randBool = intForBool==1
+                            ixly = abx > aby || (abx==aby && randBool)
+                            dirNum 
+                              | ixly = if ixp then 1 else 3
+                              | iyp = 4
+                              | otherwise = 2 
+                         in (dirNum,ng)
 
 hitAction :: ObName -> MapSize -> ObMap -> ObMap -> ObMap 
 hitAction onm msz om tm = 

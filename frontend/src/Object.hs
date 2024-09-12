@@ -2,6 +2,7 @@ module Object where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
+import Converter (isInMap)
 import Define 
 
 getPosByName :: ObName -> ObMap -> Pos
@@ -64,10 +65,28 @@ getObjCh (Ob ch _ _ _ _ _ _) = ch
 getObjDef :: Object -> ObDef
 getObjDef (Ob _ _ _ df _ _ _) = df 
 
+getObjPos :: Object -> Pos
+getObjPos (Ob _ _ _ _ _ _ ps) = ps
+
+setObjType :: ObType -> Object -> Object
+setObjType tp (Ob ch nm _ df oc dr ps) =  Ob ch nm tp df oc dr ps
+
+setObjPos :: Pos -> Object -> Object
+setObjPos ps (Ob ch nm tp df oc dr _) =  Ob ch nm tp df oc dr ps
+
 changeObjCh :: ObChar -> Object -> Object
 changeObjCh ch (Ob _ nm tp df oc dr ps) = Ob ch nm tp df oc dr ps 
 
 blankObj :: Object
 blankObj = Ob ' ' T.empty TBlock T.empty CBlock NoDir (V2 0 0)
---
+
+putablePos :: Pos -> MapSize -> ObMap -> Pos
+putablePos pos@(V2 px py) msz omp = 
+  let imp = isInMap pos msz
+      iob = imp && isObjOnPos pos omp  
+      nps 
+        | iob = V2 (px+1) py
+        | imp = pos
+        | otherwise = V2 (px-2) py
+   in if iob || not imp then putablePos nps msz omp else nps
 

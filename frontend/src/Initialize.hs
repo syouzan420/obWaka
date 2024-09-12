@@ -2,6 +2,7 @@ module Initialize where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
+import System.Random (mkStdGen)
 import Define
 
 newGame :: Game
@@ -16,4 +17,5 @@ newGame = Game{_imd=Txt
               ,_chn=0
               ,_hav=Nothing
               ,_cho=[]
+              ,_stg=mkStdGen 100
               }
