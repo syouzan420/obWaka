@@ -1,4 +1,4 @@
-module Action (movePlayer,hitAction,putAction,triggerFunc,moveObject) where
+module Action (movePlayer,hitAction,putAction,attackAction,moveObject) where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
@@ -51,9 +51,9 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
       nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
       nomp3 = if isGet && isNothing hv then deleteObjByPos nomp2 nops else nomp2  
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
-                          <>[PEnter pps obj | isEnter]<>[POn oname | isOn] 
-                          <>[PLeave | isLeave]
-                          <>[PPushTo oname aoName | isPushTo]
+            <>[PPushTo oname aoName | isPushTo]<>[POn oname | isOn] 
+            <>[PLeave | isLeave]
+            <>case obj of Just ob -> [PEnter pps ob | isEnter]; Nothing -> []
       nphv = if isGet && isNothing hv then obj else hv
    in (npevs, nomp3, V2 nmx nmy, nphv)
 
@@ -136,9 +136,9 @@ putAction tob pDir msz om =
    in if canPut then ([PPut oName tps],putObjOnPos tob tps om,Nothing)
                 else ([],om,Just tob)    
 
-triggerFunc :: [TextSection] -> Dir -> MapName 
+attackAction :: [TextSection] -> Dir -> MapName 
                       -> ObMap -> ([PEvent],ObMap,Maybe Object)
-triggerFunc txSec pDir mnm om =
+attackAction txSec pDir mnm om =
   let pPos = getPosByName "player" om
       tps = pPos + dirToDelta pDir   
       tob = getObjByPos tps om
@@ -152,7 +152,7 @@ triggerFunc txSec pDir mnm om =
                                                       getArgs pDir tps om argTps  
                       in if resCh==' ' then ([],nom,Nothing)
                                        else ([PFunc oName resCh],nom,Nothing)
-                else ([],om,Nothing)
+                else (case oName of "" -> []; onm -> [PAttack onm],om,Nothing)
 
 getArgs :: Dir -> Pos -> ObMap -> [ObType] -> [ObChar]  
 getArgs _ _ _ [] = [] 

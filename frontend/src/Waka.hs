@@ -20,7 +20,7 @@ import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir
                  ,setMapStartPos,dirToText)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName
               ,getObjDef)
-import Action (movePlayer,hitAction,putAction,triggerFunc,moveObject)
+import Action (movePlayer,hitAction,putAction,attackAction,moveObject)
 import Code (exeCode,setMap,moveDialog)
 
 wakaMain ::
@@ -113,7 +113,7 @@ wakaUpdate gs wev =
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
                    (npevs,nomp,nphv) = case pHave of
-                          Nothing -> triggerFunc txSec pDir mnm obMap 
+                          Nothing -> attackAction txSec pDir mnm obMap 
                           Just tob -> putAction tob pDir mapSize obMap  
                    ngs = exeEvActs gs npevs evActs
                 in ngs{_tmp=ntmp, _omp=nomp, _hav=nphv}
@@ -140,7 +140,7 @@ enterNewMap gs [] = gs
 enterNewMap gs (PEnter pps obj:_) = 
   let mnm = _mnm gs
       omp = _omp gs
-      tdf = maybe T.empty getObjDef obj
+      tdf = getObjDef obj
    in setMap gs{_pmp = (mnm,pps,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 enterNewMap gs (PLeave:_) =
   let (tmnm,tps,omp) = _pmp gs 

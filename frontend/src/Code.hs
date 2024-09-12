@@ -67,6 +67,7 @@ setEventAction gs ead pcd =
       [act,dt,num] -> 
         let ea = case act of
               "block" -> EA (PBlock dt) pcd ((read . T.unpack) num) 0
+              "attack" -> EA (PAttack dt) pcd ((read . T.unpack) num) 0
               _ -> EA PNon pcd 0 0
          in gs{_evas = ea:_evas gs} 
       _ -> gs

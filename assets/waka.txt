@@ -77,9 +77,14 @@ textYg:
 textYG:
 ;ch_1
 スーパーメガネ？。
-あっ！ メガネが消えた。
-;cs p_virus1.9.9_virus2.14.12_virus3.4.3_virus2.10.5_virus1.5.5
+メガネの何が スーパーになるっていふんだらう？
+あっ！ メガネが消えた！。
+;cs p_virus1.9.9_virus2.14.12_virus3.4.3 a_attack.virus1.1_mvdi_textV1
 なんだ あれは？。
+
+textV1:
+いたた！。
+ちょっと 話を聞いてくれよ！。
 
 textA0:
 ;ch_2
