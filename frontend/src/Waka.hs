@@ -23,8 +23,6 @@ import Object (getDirByName,updateDirByName,updatePosByName,getObjName
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject)
 import Code (exeCode,setMap,moveDialog)
 
-import Debug.Trace (trace)
-
 wakaMain ::
   ( DomBuilder t m
   , MonadFix m
@@ -59,8 +57,8 @@ wakaMain gs = do
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
-    let dyEvas = _evas <$> dyGs
-    dynText (T.pack . show <$> dyEvas)
+--    let dyEvas = _evas <$> dyGs
+--    dynText (T.pack . show <$> dyEvas)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -117,8 +115,8 @@ wakaUpdate gs wev =
                    (npevs,nomp,nphv) = case pHave of
                           Nothing -> attackAction txSec pDir mnm obMap 
                           Just tob -> putAction tob pDir mapSize obMap  
-                   ngs = exeEvActs gs npevs evActs
-                in trace (show nomp) $ ngs{_tmp=ntmp, _omp=nomp, _hav=nphv}
+                   ngs = gs{_tmp=ntmp, _omp=nomp, _hav=nphv}
+                in exeEvActs ngs npevs evActs
              dirEv -> 
                let mapPos = _mps gs
                    keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv

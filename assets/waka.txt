@@ -43,6 +43,10 @@ map1:
 
 obj1:
 T,Tana,live,,block,north
+g,Glasses,tool,,block,nodir
+s,Super,tool,,block,nodir
+G,SuperG,tool,,block,nodir
+C,Conbiner,tool,,block,nodir
 
 scene0:
 君が今までゐた世界とは ずいぶん違って見えるかな。
@@ -50,7 +54,19 @@ scene0:
 どうしてなのか 何をすればいいのか 正直どう話せばいいか 分からない。
 それより 少し この世界を見てまはってくれないか。
 たぶん それが一番いいと思ふんだ。
-;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_if_?pHave.SuperG_mvdi.textYG_el_mvdi.textY0 a_pushto.Box-Yoko.0_mvdi_textYB a_attack.Box.3_c_Box-Mask
+;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_if_?pHave.SuperG_mvdi.textYG_el_mvdi.textY0 a_pushto.Box-Yoko.0_mvdi_textYB a_attack.Box.3_c_Box-Mask a_block.Super.0_mvdi_texts0 a_block.Glasses.0_mvdi_textg0 a_block.SuperG.0_mvdi_textG0 a_block.Conbiner.0_mvdi_textC0
+
+texts0:
+スーパー
+
+textg0:
+メガネ
+
+textG0:
+スーパーメガネ
+
+textC0:
+結合器
 
 textY0:
 ;ch_1
