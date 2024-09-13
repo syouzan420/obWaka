@@ -6,7 +6,8 @@ import Data.List (uncons)
 import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
                  ,lookupFromSections,makeObjectByName)
-import Object (getPosByName,getObjName,putObjOnPos,putablePos)
+import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
+              ,deleteObjByPos)
 import Define
 
 
@@ -25,13 +26,35 @@ exeOneCode gs evt = do
     _ -> gs 
                     else case en of
     "a" -> setEventAction gs (head ags) (T.intercalate "_" (tail ags)) 
+    "d" -> delEventActions gs ags
     "if" -> exeCondition gs ags
     "mvdi" -> moveDialog gs (head ags)
     "stmp" -> setMap gs (head ags)
     "ch" -> changeChara gs (head ags)
     "cho" -> choiceDialog gs ags
+    "cd" -> changeDir gs (head ags)
     "p" -> putObject gs ags
+    "c" -> changeObject gs (head ags)
     _ -> gs 
+
+changeObject :: Game -> T.Text -> Game
+changeObject gs tx =
+  let omp = _omp gs
+      names = T.splitOn "-" tx
+   in case names of 
+        [nm,tnm] -> 
+          let ps@(V2 px py) = getPosByName nm omp
+              nomp = deleteObjByPos omp ps
+              namePos = tnm<>"."<>(T.pack . show) px <>"."<>(T.pack . show) py
+           in putObject gs{_omp=nomp} [namePos]
+        _ -> gs
+
+changeDir :: Game -> T.Text -> Game
+changeDir gs tx =
+  let dir = case tx of "x" -> NoDir; "e" -> East; "n" -> North
+                       "w" -> West; "s" -> South; _ -> NoDir
+      nomp = updateDirByName "player" dir (_omp gs)
+   in gs{_omp = nomp}
 
 putObject :: Game -> [T.Text] -> Game
 putObject gs [] = gs
@@ -63,14 +86,41 @@ setPlayer gs = gs{_itx=False,_imd = Ply}
 setEventAction :: Game -> T.Text -> Code -> Game 
 setEventAction gs ead pcd = 
   let eaData = T.splitOn "." ead
-  in case eaData of
-      [act,dt,num] -> 
-        let ea = case act of
-              "block" -> EA (PBlock dt) pcd ((read . T.unpack) num) 0
-              "attack" -> EA (PAttack dt) pcd ((read . T.unpack) num) 0
-              _ -> EA PNon pcd 0 0
-         in gs{_evas = ea:_evas gs} 
-      _ -> gs
+   in case eaData of
+        [act,dt,num] -> 
+          let pev 
+               | elem act txsByName = 
+                    fromMaybe PNon $ lookup act (txPevByName dt)
+               | act=="pushto" = 
+                    let (nm,aonm) = T.breakOn "-" dt
+                     in PPushTo nm (T.tail aonm)
+               | otherwise = PNon
+              ea = if pev==PNon then EA PNon T.empty 0 0
+                                else EA pev pcd ((read . T.unpack) num) 0
+          in gs{_evas = ea:_evas gs} 
+        _ -> gs
+
+txsByName :: [T.Text]
+txsByName = ["block","push","get","on","consume","attack"]
+
+txPevByName :: ObName -> [(T.Text,PEvent)]
+txPevByName nm = [("block",PBlock nm),("push",PPush nm),("get",PGet nm)
+        ,("on",POn nm),("consume",PConsume nm),("attack",PAttack nm)]
+
+delEventActions :: Game -> [T.Text] -> Game
+delEventActions gs [] = gs
+delEventActions gs (ead:xs) =
+  let evas = _evas gs
+      eaData = T.splitOn "." ead
+   in case eaData of 
+        [act,dt] ->
+          let pev 
+               | elem act txsByName = 
+                    fromMaybe PNon $ lookup act (txPevByName dt)
+               | otherwise = PNon
+              nevas = filter (\(EA pe _ _ _) -> pe/=pev) evas 
+           in delEventActions gs{_evas=nevas} xs 
+        _ -> gs
 
 exeCondition :: Game -> [T.Text] -> Game
 exeCondition gs [] = gs

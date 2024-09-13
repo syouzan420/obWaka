@@ -35,10 +35,10 @@ data Object = Ob ObChar ObName ObType ObDef ObCon Dir Pos
 
 type ObMap = [Object]
 
-data PEvent = PMove Pos | PBlock ObName | PPush ObName | PPushTo ObName ObName |
-              PPut ObName Pos | PFunc ObName ObChar | PEnter Pos Object |
-              PLeave | POn ObName | PConsume ObName | PAttack ObName |
-              PNon
+data PEvent = PMove Pos | PBlock ObName | PPush ObName | PGet ObName | POn ObName |
+              PPushTo ObName ObName | PPut ObName Pos |
+              PFunc ObName ObChar | PEnter Pos Object | PLeave |
+              PConsume ObName | PAttack ObName | PNon
                                                  deriving stock (Eq,Show)
 
 type Code = T.Text

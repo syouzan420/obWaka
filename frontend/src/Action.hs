@@ -52,7 +52,7 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
       nomp3 = if isGet && isNothing hv then deleteObjByPos nomp2 nops else nomp2  
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
             <>[PPushTo oname aoName | isPushTo]<>[POn oname | isOn] 
-            <>[PLeave | isLeave]
+            <>[PGet oname | isGet]<>[PLeave | isLeave]
             <>case obj of Just ob -> [PEnter pps ob | isEnter]; Nothing -> []
       nphv = if isGet && isNothing hv then obj else hv
    in (npevs, nomp3, V2 nmx nmy, nphv)

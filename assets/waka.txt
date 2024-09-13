@@ -2,7 +2,7 @@ init:
 ようこそ。
 君が來るのをを 待ってゐたよ。
 さあ この世界を 見て。
-;a_block.Anna.2_mvdi_textA0 a_block.Tana.1_mvdi_textT0 stmp_0 ch_1 mvdi_scene0
+;a_block.Anna.2_mvdi_textA0 a_block.Tana.1_mvdi_textT0 stmp_0 cd_w ch_1 mvdi_scene0
 
 map0:
 *******************
@@ -28,18 +28,18 @@ Y,Yoko,live,,block,north
 g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
 G,SuperG,tool,,get,nodir
+M,Mask,tool,,get,nodir
 V,virus1,move 5,,block,north
-V,virus2,attack 4,,block,north
-V,virus3,move 4,,block,north
+V,virus2,move 4,,block,north
+V,virus3,attack 4,,block,north
 
 map1:
-************@
-*************
-**Cgs*=*G****
-**********T**
-**Chs*=*H****
-*************
-************%
+**********@
+***********
+*Cgs*=*G***
+***********
+******T****
+**********%
 
 obj1:
 T,Tana,live,,block,north
@@ -50,7 +50,7 @@ scene0:
 どうしてなのか 何をすればいいのか 正直どう話せばいいか 分からない。
 それより 少し この世界を見てまはってくれないか。
 たぶん それが一番いいと思ふんだ。
-;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_if_?pHave.SuperG_mvdi.textYG_el_mvdi.textY0
+;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_if_?pHave.SuperG_mvdi.textYG_el_mvdi.textY0 a_pushto.Box-Yoko.0_mvdi_textYB a_attack.Box.3_c_Box-Mask
 
 textY0:
 ;ch_1
@@ -74,13 +74,19 @@ textYg:
 メガネだね。
 そんなものが どうしてあるんだらう。
 
+textYB:
+;ch_1
+なんの箱だらう これは？。
+たたいたら こはせるのかな？。
+
 textYG:
 ;ch_1
 スーパーメガネ？。
-メガネの何が スーパーになるっていふんだらう？
+メガネの何が スーパーになるっていふんだらう？。
 あっ！ メガネが消えた！。
-;cs p_virus1.9.9_virus2.14.12_virus3.4.3 a_attack.virus1.1_mvdi_textV1
+;cs p_virus1.7.4_virus2.14.9_virus3.4.8 a_attack.virus1.1_mvdi_textV1
 なんだ あれは？。
+;d_block.Yoko
 
 textV1:
 いたた！。

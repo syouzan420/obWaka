@@ -20,6 +20,11 @@ getObjByPos _ [] = Nothing
 getObjByPos pos (ob@(Ob _ _ _ _ _ _ ps):xs) = 
   if pos==ps then Just ob else getObjByPos pos xs 
 
+getObjByName :: ObName -> ObMap -> Maybe Object
+getObjByName _ [] = Nothing 
+getObjByName name (ob@(Ob _ nm _ _ _ _ _):xs) = 
+  if name==nm then Just ob else getObjByName name xs 
+
 getNameByPos :: Pos -> ObMap -> ObName 
 getNameByPos _ [] = T.empty 
 getNameByPos pos ((Ob _ nm _ _ _ _ ps):xs) =
