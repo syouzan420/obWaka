@@ -28,7 +28,7 @@ Y,Yoko,live,,block,north
 g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
 G,SuperG,tool,,get,nodir
-M,Mask,tool,,get,nodir
+m,Mask,tool,,get,nodir
 V,virus1,move 5,,block,north
 V,virus2,move 4,,block,north
 V,virus3,attack 4,,block,north
