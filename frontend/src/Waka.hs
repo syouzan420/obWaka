@@ -44,7 +44,7 @@ wakaMain gs = do
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
     let dyIMode = _imd <$> dyGs
-    let dyTxtOn = zipDynWith (\a b -> a && b==Txt) dyIsText dyIMode
+    let dyTxtOn = zipDynWith (\a b -> a && (b==Txt || b==Cho)) dyIsText dyIMode
     let dyImg = dyGs >>= (\n -> constDyn (imgsrc!!n)) . _chn
     let dyDir = (dirToText <$> getDirByName "player") . _omp <$> dyGs
     let dyHave = _hav <$> dyGs
