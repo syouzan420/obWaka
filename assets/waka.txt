@@ -48,6 +48,18 @@ s,Super,tool,,block,nodir
 G,SuperG,tool,,block,nodir
 C,Conbiner,tool,,block,nodir
 
+map2:
+**********@
+***********
+*C*m*=*D***
+***********
+***********
+**********%
+
+obj2:
+C,Conbiner,tool,,block,nodir
+m,Mask,tool,,block,nodir
+
 scene0:
 君が今までゐた世界とは ずいぶん違って見えるかな。
 ・・・ともかく 今 君の力が必要なんだ。
@@ -108,7 +120,7 @@ textYG:
 あっ！ メガネが消えた！。
 ;cn p_virus1.7.4_virus2.14.9_virus3.4.8 a_attack.virus1.0_md_textV10 a_block.virus1.1_md_textV11 a_attack.virus2.0_md_textV20 a_block.virus2.1_md_textV21 a_attack.virus3.1_md_textV30 a_block.virus3.0_md_textV31
 なんだ あれは？。
-;d_block.Yoko a_block.Yoko.0_if_?pHave.Mask_md.textYM1_if_?counter.v1,1,v2,1,v3,1_md.textY3_el_md.textYM1 a_block.Yoko.1_md_textY2
+;d_block.Yoko a_block.Yoko.0_if_?pHave.Mask_md.textYM1_if_?counter.v1,1,v2,1,v3,1_md.textY3_el_md.textY2 ac_yoko
 
 textY2:
 ;sc_1
@@ -121,9 +133,16 @@ textY2:
 textY3:
 ;sc_1
 ・・・さうか・・・ ウイルスたちが そんなことを・・・。
-假に 僕たちが コントロールされてゐるとしたら たぶん どんな理論で人を説得したって 世の中の流れを變へるのは難しいんだらうな・・・。
+たしか 1976年に流行ったってされてゐる 新型豚インフルエンザ も たくさんの嘘の宣傳が流されて 打つ必要のなかった有害なワクチンが アメリカ国民に大量投与されたんだよね。
+今では 色んな事實が 明らかになってゐるけど その當事の人たちは 一部を除いて テレビが流す情報をすっかり 鵜呑みにしてしまった・・・。
+でも假に 僕たちが コントロールされてゐるとしたって たぶん 科學的に どんなに正しい理論で人を説得しても 世の中の流れを變へるのは難しいんだらうな・・・。
 力を持つ人は より強力な言葉で 他の人に影響を及ぼしていくから。
 假に マスクや ワクチンが 「感染」に對して 何ら効果がなく むしろ害のあるものだ といふことを自分自身で理解したとしても・・・。
+;d_block.Yoko a_block.Yoko.0_md.textY4 ud_Conbiner.map2 ac_yoko2
+
+textY4:
+;sc_1
+長老なら 何か良い方法を知ってゐるかも・・・。
 
 textYM1:
 ;sc_1
@@ -194,6 +213,63 @@ textA1:
 でも ここでは なんだか 何も あまり變はらない・・・みたい。
 だから あなたが 何かを變へてくれるやうな氣がして。
 かうやって 話しかけてくれて ありがたう・・・。
+;a_block.Anna.0_if_?counter.yoko,1_md.textA3_el_md.textA2
+
+textA2:
+;sc_2
+なにか おもしろいことがあったら 教へてね。
+ここには あまり おもしろいことが ない・・・いいえ。
+わたしが おもしろいことを 探さうとしてかった。
+あなたが來るまでは・・・。
+
+textA3:
+;sc_2
+キャー！ なに この ゲジゲジした虫は！。
+氣持ち惡いよ〜！。
+でも なんだらう・・・。
+今 氣持ち惡い って感じてゐる自分が 少し心地いいの・・・。
+おかしいよね 私・・・。
+;d_block.Anna a_block.Anna.0_if_?counter.yoko2,1_md.textA5_el_md.textA4
+
+textA4:
+;sc_2
+ずっと 變はらなかった この世界・・・。
+まるで 滅びを待つかのやうに。
+いいえ たぶん ずっと變はらない といふことが 消滅する っていふことなのかも。
+けれど 今は違ふ。
+あなたのおかげ。
+すべてが めまぐるしく 變はっていくの・・・。
+
+textA5:
+;sc_2
+長老様は 氣まぐれに見へるけれど。
+なにか とても 深いところを ご覧になってゐるやうな氣がするの。
+ただ 今までは それが 變はらない世界の ありさまの一つだった・・・。
+あなたが 長老様と會って 何かを知れば きっと 何かが變はると思ふ・・・。
+それから わたし あなたと話してゐて 思ひ出したことがあるの。
+見て！。
+これは フルーツ味の あめちゃん。
+かわいいでしょ？。
+わたし こんなものを 持ってゐたこと すっかり忘れてゐたの。
+ただ たぶん この世界では 食べても 味はしないし もともと お腹も減らないから 私が持ってゐても あまり役にたたないと思ふ。
+でも あなたが 何かに使ってくれるなら とても嬉しいし ワクワクする！。
+もらってくれるかな？。
+;cho_はい_textA8_いいえ_textA6
+
+textA6:
+;sc_2
+さう・・・。
+でも もし必要になったら 声をかけてね。
+d_block.Anna a_block.Anna.0_md_textA7
+
+textA7:
+;sc_2
+あめちゃん いる？。
+;cho_はい_textA8_いいえ_textA6
+
+textA8:
+;sc_2
+はい どうぞ。
 
 textT0:
 ;sc_4
@@ -205,7 +281,7 @@ textT1:
 ここは おぬしが入ってきた 結合器の中ぢゃ。
 なにかと なにかを くっつけて なにかをつくる・・・。
 その 決まりを この部屋で決めておるのぢゃ。
-;a_block.Tana.0_mvdi_textT3 a_block.Yoko.1_mvdi_textY1
+;a_block.Tana.0_md_textT3 a_block.Yoko.1_md_textY1
 
 textT2:
 ;sc_4

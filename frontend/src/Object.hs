@@ -42,6 +42,12 @@ updateDirByName tnm dir (ob@(Ob ch nm tp df oc _ ps):xs) =
   if tnm==nm then Ob ch nm tp df oc dir ps :xs
              else ob:updateDirByName tnm dir xs
 
+updateDefByName :: ObName -> ObDef -> ObMap -> ObMap 
+updateDefByName _ _ [] = []
+updateDefByName tnm def (ob@(Ob ch nm tp _ oc dr ps):xs) =
+  if tnm==nm then Ob ch nm tp def oc dr ps :xs
+             else ob:updateDefByName tnm def xs
+
 deleteObjByPos :: ObMap -> Pos -> ObMap
 deleteObjByPos [] _ = []
 deleteObjByPos (ob@(Ob _ nm _ _ _ _ ps):xs) pos =  

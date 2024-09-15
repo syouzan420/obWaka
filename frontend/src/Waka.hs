@@ -58,8 +58,8 @@ wakaMain gs = do
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
-    let dyCnts = _cnts <$> dyGs
-    dynText (T.pack . show <$> dyCnts)
+--    let dyTxs = _txs <$> dyGs
+--    dynText (T.pack . show <$> dyTxs)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  

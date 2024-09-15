@@ -4,7 +4,8 @@ module Converter where
 import Linear.V2 (V2(..))
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
-import Data.List (find)
+import Data.List (find,deleteBy)
+import Data.Tuple (swap)
 import Define
 
 type Width = Int
@@ -183,3 +184,24 @@ lookupFromSections textSections tx =
 isInMap :: Pos -> MapSize -> Bool
 isInMap (V2 px py) (V2 mw mh) = px>=0 && px<mw && py>=0 && py<mh
 
+updateTextSection :: TextSection -> [TextSection] -> [TextSection]
+updateTextSection _ [] = [] 
+updateTextSection ts@(TS ti ntx) (TS title ptx:xs) = 
+  if ti==title then TS title ntx:xs 
+               else TS title ptx:updateTextSection ts xs
+
+updateObjectData :: T.Text -> Object -> T.Text
+updateObjectData tx (Ob ch nm tp df cn dr _) = 
+  let txList = T.lines tx
+      traceText = T.singleton ch <> "," <> nm 
+      traceLng = T.length traceText
+      newList = deleteBy (\t1 t2-> t1==T.take traceLng t2) traceText txList 
+      tpTx = tpToText tp 
+      cnTx = fromMaybe T.empty $ lookup cn $ map swap txCon 
+      drTx = fromMaybe "nodir" $ lookup dr $ map swap txDir
+   in T.unlines $ traceText<>","<>tpTx<>","<>df<>","<>cnTx<>","<>drTx:newList
+   
+tpToText :: ObType -> T.Text
+tpToText (TFunc []) = "func"
+tpToText (TFunc tps) = "func "<>T.intercalate " " (map tpToText tps) 
+tpToText tp = fromMaybe T.empty $ lookup tp $ map swap txType

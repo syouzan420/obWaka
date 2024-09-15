@@ -5,9 +5,10 @@ import Data.Maybe (fromMaybe)
 import Data.List (uncons,deleteBy)
 import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
-                 ,lookupFromSections,makeObjectByName)
+                 ,lookupFromSections,makeObjectByName,updateTextSection
+                 ,updateObjectData)
 import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
-              ,deleteObjByPos)
+              ,deleteObjByPos,updateDefByName,getObjByName)
 import Define
 
 
@@ -36,7 +37,27 @@ exeOneCode gs evt = do
     "p" -> putObject gs ags
     "co" -> changeObject gs (head ags)
     "ac" -> addCounter gs (head ags)
+    "ud" -> updateDef gs (head ags)
     _ -> gs 
+
+updateDef :: Game -> T.Text -> Game
+updateDef gs tx =
+  let omp = _omp gs
+      mnm = _mnm gs
+      txs = _txs gs
+      title = "obj"<>mnm
+      objTxt = lookupFromSections txs title 
+      nmDef = T.splitOn "." tx
+      (nomp,nob) = case nmDef of 
+          [nm,df] -> (updateDefByName nm df omp, getObjByName nm omp)
+          _ -> (omp,Nothing)
+      nObjTxt = case nob of
+        Just ob -> updateObjectData objTxt ob
+        Nothing -> objTxt
+      ntxs = case nob of
+        Just _ -> updateTextSection (TS title nObjTxt) txs 
+        Nothing -> txs
+   in gs{_txs=ntxs, _omp=nomp} 
 
 addCounter :: Game -> T.Text -> Game
 addCounter gs tx = 
