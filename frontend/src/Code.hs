@@ -2,7 +2,7 @@ module Code(exeCode,setMap,moveDialog) where
 
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
-import Data.List (uncons)
+import Data.List (uncons,deleteBy)
 import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
                  ,lookupFromSections,makeObjectByName)
@@ -21,21 +21,31 @@ exeOneCode gs evt = do
   let en_ags = T.split (=='_') evt
       (en,ags) = fromMaybe ("null",[]) (uncons en_ags)
    in if null ags then case en of
-    "stpl" -> setPlayer gs
-    "cs" -> consumeItem gs
+    "sp" -> setPlayer gs
+    "cn" -> consumeItem gs
     _ -> gs 
                     else case en of
     "a" -> setEventAction gs (head ags) (T.intercalate "_" (tail ags)) 
     "d" -> delEventActions gs ags
     "if" -> exeCondition gs ags
-    "mvdi" -> moveDialog gs (head ags)
-    "stmp" -> setMap gs (head ags)
-    "ch" -> changeChara gs (head ags)
+    "md" -> moveDialog gs (head ags)
+    "sm" -> setMap gs (head ags)
+    "sc" -> showChara gs (head ags)
     "cho" -> choiceDialog gs ags
     "cd" -> changeDir gs (head ags)
     "p" -> putObject gs ags
-    "c" -> changeObject gs (head ags)
+    "co" -> changeObject gs (head ags)
+    "ac" -> addCounter gs (head ags)
     _ -> gs 
+
+addCounter :: Game -> T.Text -> Game
+addCounter gs tx = 
+  let cnts = _cnts gs
+      c = fromMaybe 0 $ lookup tx cnts
+      ncnts  = if c==0 then (tx,1):cnts 
+                       else (tx,c+1):
+                         deleteBy (\(snm,_) (sn,_) -> snm==sn) (tx,0) cnts
+   in gs{_cnts = ncnts}
 
 changeObject :: Game -> T.Text -> Game
 changeObject gs tx =
@@ -143,7 +153,23 @@ conditions "pHave" tgt gs =
   let ob = _hav gs
       obnm = maybe T.empty getObjName ob
    in obnm == tgt
+conditions "counter" tgt gs =
+  let scs = T.splitOn "," tgt
+      cnts = _cnts gs
+      scps = makeScPair scs
+   in isMatchCount cnts scps
 conditions _ _ _ = False
+
+isMatchCount :: [Counter] -> [Counter] -> Bool
+isMatchCount _ [] = True
+isMatchCount cnts ((s,c):xs) =
+  let co = fromMaybe 0 $ lookup s cnts 
+   in (co >= c) && isMatchCount cnts xs
+
+makeScPair :: [T.Text] -> [(T.Text,Int)]
+makeScPair [] = []
+makeScPair [_] = []
+makeScPair (s:c:xs) = (s,(read . T.unpack) c):makeScPair xs
 
 
 setMap :: Game -> T.Text -> Game 
@@ -180,5 +206,5 @@ moveDialog gs title =
    in if newText==T.empty then gs else 
     gs{_imd=Txt, _itx=True, _tct=0, _txw=newText, _txv=T.empty}
 
-changeChara :: Game -> T.Text -> Game
-changeChara gs chn = gs{_chn = (read . T.unpack) chn}
+showChara :: Game -> T.Text -> Game
+showChara gs chn = gs{_chn = (read . T.unpack) chn}

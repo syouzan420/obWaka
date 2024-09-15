@@ -58,7 +58,8 @@ wakaMain gs = do
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
---    dynText (T.pack . show <$> dyEvas)
+    let dyCnts = _cnts <$> dyGs
+    dynText (T.pack . show <$> dyCnts)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -217,5 +218,5 @@ textUpdate gs =
             ngs1 = if isCode then exeCode ngs0 codeText else ngs0
          in ngs1
                                 else 
-         if isTextShowing then gs else exeCode gs "ch_0 stpl"
+         if isTextShowing then gs else exeCode gs "sc_0 sp"
 

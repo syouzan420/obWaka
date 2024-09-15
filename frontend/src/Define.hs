@@ -7,6 +7,7 @@ import System.Random (StdGen)
 type Pos = V2 Int
 type Size = V2 Int
 type Title = T.Text
+type Counter = (T.Text,Int)
 
 data TextSection = TS Title T.Text deriving stock (Eq,Show)
 
@@ -38,7 +39,8 @@ type ObMap = [Object]
 data PEvent = PMove Pos | PBlock ObName | PPush ObName | PGet ObName | POn ObName |
               PPushTo ObName ObName | PPut ObName Pos |
               PFunc ObName ObChar | PEnter Pos Object | PLeave |
-              PConsume ObName | PAttack ObName | PNon
+              PConsume ObName | PAttack ObName |
+              PNon
                                                  deriving stock (Eq,Show)
 
 type Code = T.Text
@@ -74,6 +76,7 @@ data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --hav: something having (not having: Nothing)
 --cho: choice destination (titles of texts)
 --stg: standard random generator
+--cnts: counters
 data Game = Game {_imd :: !IMode
                  ,_txs :: ![TextSection]
                  ,_txw :: !T.Text
@@ -93,6 +96,7 @@ data Game = Game {_imd :: !IMode
                  ,_hav :: !(Maybe Object)
                  ,_cho :: ![T.Text]
                  ,_stg :: !StdGen
+                 ,_cnts :: ![Counter]
                  } deriving stock (Eq,Show)
 
 mapWinSize :: Size 

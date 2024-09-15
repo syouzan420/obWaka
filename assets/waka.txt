@@ -2,7 +2,7 @@ init:
 ようこそ。
 君が來るのをを 待ってゐたよ。
 さあ この世界を 見て。
-;a_block.Anna.2_mvdi_textA0 a_block.Tana.1_mvdi_textT0 stmp_0 cd_w ch_1 mvdi_scene0
+;a_block.Anna.2_md_textA0 a_block.Tana.1_md_textT0 sm_0 cd_w sc_1 md_scene0
 
 map0:
 *******************
@@ -54,7 +54,7 @@ scene0:
 どうしてなのか 何をすればいいのか 正直どう話せばいいか 分からない。
 それより 少し この世界を見てまはってくれないか。
 たぶん それが一番いいと思ふんだ。
-;a_block.Yoko.0_if_?pHave.Super_mvdi.textYs_if_?pHave.Glasses_mvdi.textYg_if_?pHave.SuperG_mvdi.textYG_el_mvdi.textY0 a_pushto.Box-Yoko.0_mvdi_textYB a_attack.Box.3_c_Box-Mask a_block.Super.0_mvdi_texts0 a_block.Glasses.0_mvdi_textg0 a_block.SuperG.0_mvdi_textG0 a_block.Conbiner.0_mvdi_textC0
+;a_block.Yoko.0_if_?pHave.Super_md.textYs_if_?pHave.Glasses_md.textYg_if_?pHave.SuperG_md.textYG_if_?pHave.Mask_md.textYM0_el_md.textY0 a_pushto.Box-Yoko.0_md_textYB a_attack.Box.3_co_Box-Mask a_block.Super.0_md_texts0 a_block.Glasses.0_md_textg0 a_block.SuperG.0_md_textG0 a_block.Conbiner.0_md_textC0
 
 texts0:
 スーパー
@@ -69,44 +69,66 @@ textC0:
 結合器
 
 textY0:
-;ch_1
+;sc_1
 どうか このあたりを 見てまはってくれないか。
 何か氣になるものがあったら 教へてほしい。
 
 textY1:
-;ch_1
+;sc_1
 結合器？。
 ・・・さうか・・・。
 その結合器に 材料を並べて 反對側から たたいたら どうなるかな・・・。
 
 textYs:
-;ch_1
+;sc_1
 これは 何だらうね？。
 スーパー？。
 よく分からないけど 何かといっしょに使ふのかな。
 
 textYg:
-;ch_1
+;sc_1
 メガネだね。
 そんなものが どうしてあるんだらう。
 
 textYB:
-;ch_1
+;sc_1
 なんの箱だらう これは？。
 たたいたら こはせるのかな？。
 
+textYM0:
+;sc_1
+マスク？。
+結構きめが細かいっていふ 不織布のマスクだね。
+でも この世界で必要なのかな？。
+
 textYG:
-;ch_1
+;sc_1
 スーパーメガネ？。
 メガネの何が スーパーになるっていふんだらう？。
 あっ！ メガネが消えた！。
-;cs p_virus1.7.4_virus2.14.9_virus3.4.8 a_attack.virus1.0_mvdi_textV10 a_block.virus1.1_mvdi_textV11 a_attack.virus2.0_mvdi_textV20 a_block.virus2.1_mvdi_textV21 a_attack.virus3.1_mvdi_textV30 a_block.virus3.0_mvdi_textV31
+;cn p_virus1.7.4_virus2.14.9_virus3.4.8 a_attack.virus1.0_md_textV10 a_block.virus1.1_md_textV11 a_attack.virus2.0_md_textV20 a_block.virus2.1_md_textV21 a_attack.virus3.1_md_textV30 a_block.virus3.0_md_textV31
 なんだ あれは？。
-;d_block.Yoko a_block.Yoko.1_mvdi_textY2
+;d_block.Yoko a_block.Yoko.0_if_?pHave.Mask_md.textYM1_if_?counter.v1,1,v2,1,v3,1_md.textY3_el_md.textYM1 a_block.Yoko.1_md_textY2
 
 textY2:
-;ch_1
-いったい ぜんたい どうしたっていふんだ！。
+;sc_1
+これなんだ。
+きっと これが 君の力なんだよ！。
+今 確實に この世界に變化が來てゐる。
+あいつらが 何なのか 僕には分からないんだけれど。
+どうか この世界を守る手掛かりを つかんで欲しいんだ。
+
+textY3:
+;sc_1
+・・・さうか・・・ ウイルスたちが そんなことを・・・。
+假に 僕たちが コントロールされてゐるとしたら たぶん どんな理論で人を説得したって 世の中の流れを變へるのは難しいんだらうな・・・。
+力を持つ人は より強力な言葉で 他の人に影響を及ぼしていくから。
+假に マスクや ワクチンが 「感染」に對して 何ら効果がなく むしろ害のあるものだ といふことを自分自身で理解したとしても・・・。
+
+textYM1:
+;sc_1
+マスクだ。
+これを装着すれば ウイルス感染のリスクが減るって言はれてゐるけど・・・。
 
 textV10:
 いたた！。
@@ -124,6 +146,7 @@ textV11:
 昔から いつもあるものを 君たちは 自然 って言ってるよね。
 さういふ意味では ぼくらだって 自然の一部なんだ。
 世界を歪めてるのは ぼくら ではなくて ある種の 「情報」を廣めてゐる 一部の人間なんだよ。
+;ac_v1
 
 textV21:
 君たちの 歴史をふり返って ちょっと考えてほしいんだ。
@@ -131,6 +154,7 @@ textV21:
 それは 少數の人たちが 多くの人たちを コントロールするために 必要だと考へられたんだ。
 今君が「正しい」と思ってることは どんな實驗をして どんなふうに証明されたのか ちゃんと分かってゐるかい？。
 もし さうでないのなら もしかしたら君だって ただ「支配」されるために その知識を「正しい」と思わされてゐるのかもしれないよ。
+;ac_v2
 
 textV30:
 ある言葉が どんな意味として 定義されてゐるのか。
@@ -140,7 +164,7 @@ textV30:
 それを証明するには 何が分かればよいのか。
 「専門家」に任せるんぢゃなくて まず 自分自身で言葉の意味を 確認して欲しい。
 歴史上 「専門家」が 間違ったことを言ふのは あまりにも ありふれてゐるのに 今現在その可能性を考へない といふのは ちょっと おかしいと思ふんだ。
-;d_block.virus3
+;ac_v3 d_block.virus3
 
 textV31:
 ふわ〜。
@@ -148,7 +172,7 @@ textV31:
 ちょっと 喝を入れてくれたら 思ひだすかも〜。
 
 textA0:
-;ch_2
+;sc_2
 あなたは どこからきたの？。
 私は道に迷ってしまったの。
 ここは どこなんだらうね。
@@ -156,10 +180,10 @@ textA0:
 でも わたし ここだから迷ってゐる といふわけでもないかもしれない。
 あっちの世界に居たときから 迷ってゐたんだと思ふ。
 自分が どこに居るのか・・・。
-;a_block.Anna.2_mvdi_textA1
+;a_block.Anna.2_md_textA1
 
 textA1:
-;ch_2
+;sc_2
 ここでは お腹も減らないし 喉も渇かない。
 でもそれが 私には怖い。
 みんな お腹が空くから 食事をするし。
@@ -172,23 +196,23 @@ textA1:
 かうやって 話しかけてくれて ありがたう・・・。
 
 textT0:
-;ch_4
+;sc_4
 ここがどこか 知りたいか？。
 ;cho_はい_textT1_いいえ_textT2
 
 textT1:
-;ch_4
+;sc_4
 ここは おぬしが入ってきた 結合器の中ぢゃ。
 なにかと なにかを くっつけて なにかをつくる・・・。
 その 決まりを この部屋で決めておるのぢゃ。
 ;a_block.Tana.0_mvdi_textT3 a_block.Yoko.1_mvdi_textY1
 
 textT2:
-;ch_4
+;sc_4
 さうか ならば 何も言ふまい・・・。
 
 textT3:
-;ch_4
+;sc_4
 わしに 言へることは それだけぢゃ・・・。
 
 
