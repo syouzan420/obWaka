@@ -32,6 +32,8 @@ m,Mask,tool,,get,nodir
 V,virus1,move 5,,block,north
 V,virus2,move 4,,block,north
 V,virus3,attack 4,,block,north
+a,ame,tool,,get,nodir
+P,PCR,func tool tool,map3,enter,nodir
 
 map1:
 **********@
@@ -51,7 +53,7 @@ C,Conbiner,tool,,block,nodir
 map2:
 **********@
 ***********
-*C*m*=*D***
+*C*m*=*P***
 ***********
 ***********
 **********%
@@ -59,6 +61,19 @@ map2:
 obj2:
 C,Conbiner,tool,,block,nodir
 m,Mask,tool,,block,nodir
+P,PCR,tool,,block,nodir
+
+map3:
+**********@
+***********
+*P***=*X***
+***********
+*****T*****
+**********%
+
+obj3:
+T,Tana,live,,block,north
+P,PCR,tool,,block,nodir
 
 scene0:
 君が今までゐた世界とは ずいぶん違って見えるかな。
@@ -267,8 +282,40 @@ textA7:
 ;cho_はい_textA8_いいえ_textA6
 
 textA8:
+;sc_2 if_?pHave.any_md.textA10_el_md.textA9
+
+textA9:
 ;sc_2
 はい どうぞ。
+;gt_ame d_block.Anna a_block.Anna.0_md_textA11
+
+textA10:
+;sc_2
+いちど 持ってゐるものを どこかに置いてから また來てくれる？。
+
+textA11:
+;sc_2
+あめちゃん まうひとつ 私持ってるの。
+それもいる？。
+;cho_はい_textA13_いいえ_textA12
+
+textA12:
+;sc_2
+もし必要になったら 声をかけてね。
+;d_block.Anna a_block.Anna.0_md_textA11
+
+textA13:
+;sc_2 if_?pHave.any_md.textA10_el_md.textA14
+
+textA14:
+;sc_2
+はい どうぞ。
+;gt_ame d_block.Anna a_block.Anna.0_md_textA15
+
+textA15:
+;sc_2
+つぎは どんなことが起こるのかしら。
+とても樂しみ！。
 
 textT0:
 ;sc_4

@@ -17,9 +17,10 @@ import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
 
 import Define
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir
-                 ,setMapStartPos,dirToText)
+                 ,setMapStartPos,dirToText,lookupFromSections,updateTextSection
+                 ,updateMapData,makeObjectDatas)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName
-              ,getObjDef)
+              ,getObjDef,deleteObjByName)
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject)
 import Code (exeCode,setMap,moveDialog)
 
@@ -59,7 +60,7 @@ wakaMain gs = do
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
 --    let dyTxs = _txs <$> dyGs
---    dynText (T.pack . show <$> dyTxs)
+--    dynText (T.pack . show <$> dyObjectMap)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -144,12 +145,22 @@ enterNewMap gs (PEnter pps obj:_) =
       tdf = getObjDef obj
    in setMap gs{_pmp = (mnm,pps,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 enterNewMap gs (PLeave:_) =
-  let (tmnm,tps,omp) = _pmp gs 
+  let txs = _txs gs
+      mnm = _mnm gs
+      lomp = deleteObjByName "player" (_omp gs)
+      titleM = "map"<>mnm
+      titleO = "obj"<>mnm
+      mapData = lookupFromSections txs titleM 
+      newMapData = updateMapData mapData lomp
+      newObjData = T.unlines $ makeObjectDatas lomp
+      ntxs = updateTextSection (TS titleO newObjData) $ 
+                          updateTextSection (TS titleM newMapData) txs
+      (tmnm,tps,omp) = _pmp gs 
       ngs = setMap gs tmnm
       msz = _msz ngs
       nomp = updatePosByName "player" tps omp
       mpos = setMapStartPos tps mapWinSize msz
-   in ngs{_mps=mpos, _omp=nomp}
+   in ngs{_txs=ntxs, _mps=mpos, _omp=nomp}
 enterNewMap gs (_:xs) = enterNewMap gs xs
 
 

@@ -4,9 +4,10 @@ module Converter where
 import Linear.V2 (V2(..))
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
-import Data.List (find,deleteBy)
+import Data.List (find,deleteBy,sort)
 import Data.Tuple (swap)
 import Define
+
 
 type Width = Int
 type Height = Int
@@ -75,10 +76,16 @@ setObjectData :: [T.Text] -> ObMap -> ObMap
 setObjectData _ [] = [] 
 setObjectData obdts (ob@(Ob ch _ _ _ _ _ ps):obs) =
   let tgtDt = fromMaybe T.empty $
-                 find (\obdt -> fmap fst (T.uncons obdt) == Just ch) obdts
+        find (\obdt -> 
+          let dtl = T.splitOn "," obdt
+           in case dtl of
+                [_,_,_,_,_,_,tpx,tpy] ->
+                   V2 ((read . T.unpack) tpx) ((read . T.unpack) tpy) == ps
+                [tch,_,_,_,_,_] -> tch==T.singleton ch
+                _ -> False ) obdts
       dtList = T.splitOn "," tgtDt
       newObj = case dtList of
-        [_,tnm,ttp,tdf,tcn,tdr] ->
+        (_:tnm:ttp:tdf:tcn:tdr:_) ->
                Ob ch tnm (txToType ttp) tdf (txToCon tcn) (txToDir tdr) ps 
         _ -> ob
    in newObj:setObjectData obdts obs
@@ -190,8 +197,41 @@ updateTextSection ts@(TS ti ntx) (TS title ptx:xs) =
   if ti==title then TS title ntx:xs 
                else TS title ptx:updateTextSection ts xs
 
+updateMapData :: T.Text -> ObMap -> T.Text
+updateMapData tx omp = 
+  let mpLines = T.lines tx
+      newMpLines = makeMpLines 0 omp mpLines
+   in T.unlines newMpLines
+
+makeMpLines :: Int -> ObMap -> [T.Text] -> [T.Text]
+makeMpLines _ _ [] = []
+makeMpLines i omp (ml:xs) =
+  let listXCh = makeListXCh i omp
+      plInd = T.findIndex (=='@') ml
+   in T.pack (makeMpLine plInd (T.length ml - 1) (reverse $ sort listXCh))
+          :makeMpLines (i+1) omp xs
+      
+makeListXCh :: Int -> ObMap -> [(Int,ObChar)]
+makeListXCh _ [] = []
+makeListXCh i (Ob ch _ _ _ _ _ (V2 px py):xs) 
+  = if i==py then (px,ch):makeListXCh i xs else makeListXCh i xs 
+
+makeMpLine :: Maybe Int -> Int -> [(Int,ObChar)] -> String
+makeMpLine Nothing 0 [] = "*"  
+makeMpLine (Just n) 0 [] = if n==0 then "@" else "*"  
+makeMpLine _ 0 [(0,ch)] = [ch]
+makeMpLine Nothing x [] = makeMpLine Nothing (x-1) []<>"*"
+makeMpLine (Just n) x [] = makeMpLine (Just n) (x-1) []<>if n==x then "@" else "*"
+makeMpLine Nothing x xch@((i,ch):xs) = 
+  if x==i then makeMpLine Nothing (x-1) xs <> [ch]
+          else makeMpLine Nothing (x-1) xch <> "*"
+makeMpLine (Just n) x xch@((i,ch):xs) = 
+  if x==i then makeMpLine (Just n) (x-1) xs <> [ch]
+          else makeMpLine (Just n) (x-1) xch <> if x==n then "@" else "*"
+
+
 updateObjectData :: T.Text -> Object -> T.Text
-updateObjectData tx (Ob ch nm tp df cn dr _) = 
+updateObjectData tx (Ob ch nm tp df cn dr (V2 px py)) = 
   let txList = T.lines tx
       traceText = T.singleton ch <> "," <> nm 
       traceLng = T.length traceText
@@ -199,7 +239,17 @@ updateObjectData tx (Ob ch nm tp df cn dr _) =
       tpTx = tpToText tp 
       cnTx = fromMaybe T.empty $ lookup cn $ map swap txCon 
       drTx = fromMaybe "nodir" $ lookup dr $ map swap txDir
-   in T.unlines $ traceText<>","<>tpTx<>","<>df<>","<>cnTx<>","<>drTx:newList
+   in T.unlines $ traceText<>","<>tpTx<>","<>df<>","<>cnTx<>","<>drTx<>","
+                           <>(T.pack . show) px<>","<>(T.pack . show) py:newList
+
+makeObjectDatas :: ObMap -> [T.Text]
+makeObjectDatas [] = []
+makeObjectDatas (Ob ch nm tp df cn dr (V2 px py):xs) =  
+  let tpTx = tpToText tp
+      cnTx = fromMaybe T.empty $ lookup cn $ map swap txCon 
+      drTx = fromMaybe "nodir" $ lookup dr $ map swap txDir
+   in T.singleton ch<>","<>nm<>","<>tpTx<>","<>df<>","<>cnTx<>","
+         <>drTx<>","<>(T.pack . show) px<>","<>(T.pack . show) py:makeObjectDatas xs
    
 tpToText :: ObType -> T.Text
 tpToText (TFunc []) = "func"

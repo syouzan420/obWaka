@@ -54,6 +54,11 @@ deleteObjByPos (ob@(Ob _ nm _ _ _ _ ps):xs) pos =
   if pos==ps && nm/="player" then deleteObjByPos xs pos 
                         else ob:deleteObjByPos xs pos
 
+deleteObjByName :: ObName -> ObMap -> ObMap
+deleteObjByName _ [] = []
+deleteObjByName oname (ob@(Ob _ nm _ _ _ _ _):xs) =
+  if oname==nm then xs else ob:deleteObjByName oname xs 
+
 isObjOnPos :: Pos -> ObMap -> Bool
 isObjOnPos _ [] = False
 isObjOnPos pos ((Ob _ _ _ _ _ _ ps):xs) = pos==ps || isObjOnPos pos xs 

@@ -1,7 +1,7 @@
 module Code(exeCode,setMap,moveDialog) where
 
 import qualified Data.Text as T
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe,isJust)
 import Data.List (uncons,deleteBy)
 import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
@@ -38,7 +38,17 @@ exeOneCode gs evt = do
     "co" -> changeObject gs (head ags)
     "ac" -> addCounter gs (head ags)
     "ud" -> updateDef gs (head ags)
+    "gt" -> getItem gs (head ags)
     _ -> gs 
+
+getItem :: Game -> T.Text -> Game
+getItem gs nm =
+  if isJust (_hav gs) then gs else
+        let mnm = _mnm gs
+            txs = _txs gs
+            obDatas = T.lines $ lookupFromSections txs ("obj"<>mnm)
+            obj = makeObjectByName nm obDatas
+         in gs{_hav=obj} 
 
 updateDef :: Game -> T.Text -> Game
 updateDef gs tx =
@@ -173,7 +183,7 @@ conditions :: T.Text -> T.Text -> Game -> Bool
 conditions "pHave" tgt gs =
   let ob = _hav gs
       obnm = maybe T.empty getObjName ob
-   in obnm == tgt
+   in obnm == tgt || (tgt=="any" && isJust ob)
 conditions "counter" tgt gs =
   let scs = T.splitOn "," tgt
       cnts = _cnts gs
