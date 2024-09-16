@@ -1,11 +1,15 @@
 module CWidget (dyChara, imgsrc, elSpace, evElButton, evElButtonH, mkHidden
                , evElNumberPad, dyElTimer, dyElCharaAnime, elTextScroll,elRandom
-               ) where
+               ,saveState, loadState, clear) where
 
 import JSDOM
 --import qualified JSDOM.Generated.Document as DOM
 import qualified JSDOM.Generated.NonElementParentNode as DOM
 import qualified JSDOM.Generated.Element as DOM
+import JSDOM.Generated.Storage (getItem, removeItem, setItem)
+import JSDOM.Types (FromJSString, Storage, ToJSString, JSM, liftJSM)
+import JSDOM.Generated.Window (getLocalStorage)
+
 import Control.Monad.IO.Class (liftIO,MonadIO)
 import Control.Monad.Fix (MonadFix)
 import qualified Data.Text as T
@@ -100,14 +104,6 @@ elRandom = do
   sample (current dyRand)
 
 
-elTextScroll :: (DomBuilder t m, Prerender t m) => m ()
-elTextScroll = prerender_ blank $ do
-  doc <- currentDocumentUnchecked
-  scrollText <- DOM.getElementById doc ("wkText" :: String)
-  case scrollText of
-    Just scrT -> DOM.scrollBy scrT (-20) 0 
-    Nothing -> return ()
-  
 --elChara :: DomBuilder t m => m ()
 --elChara = elAttr "img" ("src" =: $(static "chara0_mid.png")) blank
 
@@ -128,3 +124,30 @@ imgsrc = ["src" =: $(static "chara0.png")
          ,"src" =: $(static "chara4.png")
          ,"src" =: $(static "chara5.png")
          ]
+
+elTextScroll :: (DomBuilder t m, Prerender t m) => m ()
+elTextScroll = prerender_ blank $ do
+  doc <- currentDocumentUnchecked
+  scrollText <- DOM.getElementById doc ("wkText" :: String)
+  case scrollText of
+    Just scrT -> DOM.scrollBy scrT (-20) 0 
+    Nothing -> return ()
+  
+getLocalStorageUnchecked :: JSM Storage
+getLocalStorageUnchecked = currentWindowUnchecked >>= getLocalStorage
+
+save :: ToJSString a => T.Text -> a -> JSM ()
+save key val = getLocalStorageUnchecked >>= \ls -> setItem ls key val
+
+load :: FromJSString a => T.Text -> JSM (Maybe a)
+load key = getLocalStorageUnchecked >>= flip getItem key
+
+clear :: T.Text -> JSM ()
+clear key = getLocalStorageUnchecked >>= flip removeItem key
+
+saveState :: (DomBuilder t m, Prerender t m) => String -> m ()
+saveState sd = prerender_ blank $ liftJSM $ save "gameState" sd 
+
+loadState :: (DomBuilder t m, Prerender t m) =>  m (Dynamic t (Maybe String)) 
+loadState  = prerender (return Nothing) $ liftJSM $ load "gameState" 
+  
