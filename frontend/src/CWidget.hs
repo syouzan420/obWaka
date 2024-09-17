@@ -145,9 +145,9 @@ load key = getLocalStorageUnchecked >>= flip getItem key
 clear :: T.Text -> JSM ()
 clear key = getLocalStorageUnchecked >>= flip removeItem key
 
-saveState :: (DomBuilder t m, Prerender t m) => String -> m ()
+saveState :: (DomBuilder t m, Prerender t m) => T.Text -> m ()
 saveState sd = prerender_ blank $ liftJSM $ save "gameState" sd 
 
-loadState :: (DomBuilder t m, Prerender t m) =>  m (Dynamic t (Maybe String)) 
+loadState :: (DomBuilder t m, Prerender t m) =>  m (Dynamic t (Maybe T.Text)) 
 loadState  = prerender (return Nothing) $ liftJSM $ load "gameState" 
   

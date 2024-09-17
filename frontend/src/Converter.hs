@@ -255,3 +255,31 @@ tpToText :: ObType -> T.Text
 tpToText (TFunc []) = "func"
 tpToText (TFunc tps) = "func "<>T.intercalate " " (map tpToText tps) 
 tpToText tp = fromMaybe T.empty $ lookup tp $ map swap txType
+
+makeGameStateText :: Game -> T.Text
+makeGameStateText gs =
+  let (imd,txs,omp,mnm,V2 mpx mpy,(pmn,V2 pmpx pmpy,pomp),evas,hav,cnts) =
+        (_imd gs,_txs gs,_omp gs,_mnm gs,_mps gs,_pmp gs,_evas gs,_hav gs,_cnts gs)
+      imdText = (T.pack . show) imd
+      txsText = txsToText txs
+      ompText = T.intercalate ":" $ makeObjectDatas omp
+      mpsText = (T.pack . show) mpx<>":"<>(T.pack . show) mpy
+      pmpsText = (T.pack . show) pmpx<>":"<>(T.pack . show) pmpy
+      pompText = T.intercalate ":" $ makeObjectDatas pomp
+      evasText = evasToText evas
+      havText = (T.pack . show) hav
+      cntsText = cntsToText cnts
+   in T.intercalate "~" [imdText,txsText,ompText,mnm,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText]
+
+txsToText :: [TextSection] -> T.Text
+txsToText txs = T.intercalate ":" $ foldr (\(TS ti tx) acc -> ti:tx:acc) [] txs
+
+cntsToText :: [Counter] -> T.Text
+cntsToText cnts = T.intercalate ":" $ 
+    foldr (\(tx,n) acc -> tx:(T.pack . show) n:acc) [] cnts
+
+evasToText :: [EvAct] -> T.Text
+evasToText evas = T.intercalate ":" $
+    foldr (\(EA pe cd i n) acc -> 
+          (T.pack . show) pe:cd:(T.pack . show) i:(T.pack . show) n:acc) [] evas
+
