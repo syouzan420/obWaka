@@ -93,10 +93,10 @@ wakaUpdate gs wev =
               tln = length titles
               title = case wev of
                 WOk -> if tln>0 then head titles else T.empty 
-                WLeft -> if tln>1 then titles!!1 else T.empty
+                WRight -> if tln>1 then titles!!1 else T.empty
                 WUp -> if tln>2 then titles!!2 else T.empty
-                WDown -> if tln>3 then titles!!3 else T.empty
-                WRight -> if tln>4 then titles!!4 else T.empty
+                WLeft -> if tln>3 then titles!!3 else T.empty
+                WDown -> if tln>4 then titles!!4 else T.empty
                 _ -> T.empty 
            in if title==T.empty then gs else moveDialog gs{_imd=Txt} title
         Ply -> 

@@ -13,6 +13,8 @@ import Data.Bifunctor (first)
 import System.Random (StdGen,uniformR)
 import Define 
 
+import Debug.Trace (trace)
+
 type MapPos = Pos
 type MapWinPos = Pos
 
@@ -148,8 +150,10 @@ attackAction txSec pDir mnm om =
       odf = maybe T.empty getObjDef tob
       isFunc = case otp of TFunc _ -> True; _ -> False
       argTps = case otp of TFunc args -> args; _ -> []
-   in if isFunc then let (resCh,nom) = exeFunc txSec pDir mnm och tps odf om $
-                                                      getArgs pDir tps om argTps  
+      argLng = length argTps
+   in if isFunc then let (resCh,nom) = 
+                            exeFunc txSec pDir mnm och tps odf om argLng $
+                                                    getArgs pDir tps om argTps  
                       in if resCh==' ' then ([],nom,Nothing)
                                        else ([PFunc oName resCh],nom,Nothing)
                 else (case oName of "" -> []; onm -> [PAttack onm],om,Nothing)
@@ -164,20 +168,20 @@ getArgs pDir tps om (atp:xs) =
    in if atp==agTp then agCh:getArgs pDir agPos om xs else [] 
 
 exeFunc :: [TextSection] -> Dir -> MapName -> ObChar -> Pos 
-                        -> ObDef -> ObMap -> [ObChar] -> (ObChar,ObMap)
-exeFunc txSec pDir mnm och tps df om chs = 
+                        -> ObDef -> ObMap -> Int -> [ObChar] -> (ObChar,ObMap)
+exeFunc txSec pDir mnm och tps df om argLng chs = 
   let defList = makeDef txSec och df
       objList = makeObj txSec mnm 
       resExp = patternMatch chs defList
-      isRes = resExp /= T.empty
+      isRes = resExp /= T.empty && argLng == length chs + 1 
    in if isRes then let agPosList = zipWith (\ i _y -> 
                           tps + V2 i i*dirToDelta pDir) [1..] chs  
                         nomp = foldl deleteObjByPos om agPosList 
                         resCh = getResult resExp
                         resObj = fromMaybe blankObj $ lookup resCh objList
                         resPos = tps + dirToDelta pDir
-                     in (resCh,putObjOnPos resObj resPos nomp) 
-               else (' ',om) 
+                     in trace (show chs) $ (resCh,putObjOnPos resObj resPos nomp) 
+               else trace (show chs) (' ',om) 
 
 makeDef :: [TextSection] -> ObChar -> ObDef -> [[T.Text]]
 makeDef txSec ch df =
