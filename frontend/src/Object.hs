@@ -2,8 +2,10 @@ module Object where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
-import Converter (isInMap)
 import Define 
+
+isInMap :: Pos -> MapSize -> Bool
+isInMap (V2 px py) (V2 mw mh) = px>=0 && px<mw && py>=0 && py<mh
 
 getPosByName :: ObName -> ObMap -> Pos
 getPosByName _ [] = V2 (-1) (-1)
@@ -47,6 +49,13 @@ updateDefByName _ _ [] = []
 updateDefByName tnm def (ob@(Ob ch nm tp _ oc dr ps):xs) =
   if tnm==nm then Ob ch nm tp def oc dr ps :xs
              else ob:updateDefByName tnm def xs
+
+updateObjByName :: ObName -> Object -> ObMap -> ObMap
+updateObjByName _ _ [] = []
+updateObjByName tnm tob@(Ob _ _ tp df cn dr tps) (ob@(Ob ch nm _ _ _ _ ps):xs) = 
+  if tnm==nm then Ob ch nm tp df cn dr (if tps==V2 0 0 then ps else tps) :xs  
+             else ob:updateObjByName tnm tob xs 
+
 
 deleteObjByPos :: ObMap -> Pos -> ObMap
 deleteObjByPos [] _ = []

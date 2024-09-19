@@ -19,4 +19,5 @@ newGame = Game{_imd=Txt
               ,_cho=[]
               ,_stg=mkStdGen 100
               ,_cnts=[]
+              ,_etr=NoEvent
               }

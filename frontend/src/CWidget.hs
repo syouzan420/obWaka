@@ -123,6 +123,8 @@ imgsrc = ["src" =: $(static "chara0.png")
          ,"src" =: $(static "chara3.png")
          ,"src" =: $(static "chara4.png")
          ,"src" =: $(static "chara5.png")
+         ,"src" =: $(static "chara6.png")
+         ,"src" =: $(static "chara7.png")
          ]
 
 elTextScroll :: (DomBuilder t m, Prerender t m) => m ()

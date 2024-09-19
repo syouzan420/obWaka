@@ -9,6 +9,8 @@ type Size = V2 Int
 type Title = T.Text
 type Counter = (T.Text,Int)
 
+data ETR = NoEvent | Save | Load deriving stock (Eq,Show) 
+
 data TextSection = TS Title T.Text deriving stock (Eq,Show)
 
 type MapName = T.Text
@@ -38,10 +40,10 @@ type ObMap = [Object]
 
 data PEvent = PMove Pos | PBlock ObName | PPush ObName | PGet ObName | POn ObName |
               PPushTo ObName ObName | PPut ObName Pos |
-              PFunc ObName ObChar | PEnter Pos Object | PLeave |
+              PFunc ObName ObChar | PEnter Pos ObName | PLeave |
               PConsume ObName | PAttack ObName |
               PNon
-                                                 deriving stock (Eq,Show)
+                                                 deriving stock (Eq,Show,Read)
 
 type Code = T.Text
 
@@ -52,7 +54,7 @@ data EvAct = EA PEvent Code Int Int deriving stock (Eq,Show)
 
 data Ast = NAct | TAct | EAct deriving stock (Eq,Show)
 
-data IMode = Txt | Cho | Ply deriving stock (Eq,Show)
+data IMode = Txt | Cho | Ply deriving stock (Eq,Show,Read)
 
 data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 
@@ -77,6 +79,7 @@ data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 --cho: choice destination (titles of texts)
 --stg: standard random generator
 --cnts: counters
+--etr: event trigger
 data Game = Game {_imd :: !IMode
                  ,_txs :: ![TextSection]
                  ,_txw :: !T.Text
@@ -97,6 +100,7 @@ data Game = Game {_imd :: !IMode
                  ,_cho :: ![T.Text]
                  ,_stg :: !StdGen
                  ,_cnts :: ![Counter]
+                 ,_etr :: !ETR
                  } deriving stock (Eq,Show)
 
 mapWinSize :: Size 

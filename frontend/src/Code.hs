@@ -2,15 +2,16 @@ module Code(exeCode,setMap,moveDialog) where
 
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe,isJust)
-import Data.List (uncons,deleteBy)
+import Data.List (uncons,deleteBy,find)
 import Linear.V2 (V2(..))
 import Converter (makeObjectMap,setObjectData,setMapStartPos
                  ,lookupFromSections,makeObjectByName,updateTextSection
-                 ,updateObjectData)
+                 ,updateObjectData,txToObject)
 import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
-              ,deleteObjByPos,updateDefByName,getObjByName)
+              ,deleteObjByPos,updateDefByName,updateObjByName,getObjByName)
 import Define
 
+import Debug.Trace (trace)
 
 exeCode :: Game -> T.Text -> Game 
 exeCode gs evt = do 
@@ -24,6 +25,8 @@ exeOneCode gs evt = do
    in if null ags then case en of
     "sp" -> setPlayer gs
     "cn" -> consumeItem gs
+    "save" -> gs{_etr=Save}
+    "load" -> gs{_etr=Load}
     _ -> gs 
                     else case en of
     "a" -> setEventAction gs (head ags) (T.intercalate "_" (tail ags)) 
@@ -38,6 +41,7 @@ exeOneCode gs evt = do
     "co" -> changeObject gs (head ags)
     "ac" -> addCounter gs (head ags)
     "ud" -> updateDef gs (head ags)
+    "uo" -> updateObject gs (head ags)
     "gt" -> getItem gs (head ags)
     _ -> gs 
 
@@ -49,6 +53,32 @@ getItem gs nm =
             obDatas = T.lines $ lookupFromSections txs ("obj"<>mnm)
             obj = makeObjectByName nm obDatas
          in gs{_hav=obj} 
+
+updateObject :: Game -> T.Text -> Game
+updateObject gs tx =
+  let mnObData = T.splitOn "." tx 
+   in case mnObData of
+        [mnm,oname,odt] ->
+          let mnmNow = _mnm gs 
+              omp = _omp gs
+              pmp@(pmnm,pmps,pomp) = _pmp gs
+              txs = _txs gs
+              title = "obj"<>mnm
+              obList = T.lines $ lookupFromSections txs title 
+              getName name od = T.take (T.length name) $ T.drop 2 od 
+              tgCh = maybe ' ' T.head (find (\dt -> oname==getName oname dt) obList)
+              newObList = deleteBy (\nm1 nm2 -> nm1==getName oname nm2) 
+                                                                  oname obList
+              newObData = T.singleton tgCh<>","<>oname<>","<>T.replace "-" " " odt
+              newOb = txToObject newObData 
+              nomp = if mnmNow==mnm then updateObjByName oname newOb omp else omp
+              npmp = if pmnm==mnm 
+                      then (pmnm,pmps,updateObjByName oname newOb pomp) else pmp  
+              newObText = T.unlines $ newObData :newObList 
+              newTxs = updateTextSection (TS title newObText) txs
+           in trace (show newObData) $ gs{_txs=newTxs,_omp=nomp,_pmp=npmp}
+        _ -> gs
+
 
 updateDef :: Game -> T.Text -> Game
 updateDef gs tx =

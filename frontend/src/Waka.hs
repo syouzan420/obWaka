@@ -3,26 +3,29 @@ module Waka (wakaMain) where
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Functor ((<&>))
-import Data.Maybe (isNothing)
+import Data.Maybe (isNothing,fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, constDyn, el, text 
-  , accumDyn, divClass, leftmost, (=:), zipDynWith 
+  , accumDyn, divClass, leftmost, (=:), zipDynWith , sample
   , tickLossyFromPostBuildTime, widgetHold_
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
+  , Dynamic
   )
 
-import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll)
+import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll,saveState,loadState)
 
 import Define
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir
                  ,setMapStartPos,dirToText,lookupFromSections,updateTextSection
-                 ,updateMapData,makeObjectDatas)
+                 ,updateMapData,makeObjectDatas,makeGameStateText,toGameState)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName
-              ,getObjDef,deleteObjByName)
+              ,getObjDef,deleteObjByName,getObjByName)
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject)
 import Code (exeCode,setMap,moveDialog)
+
+import Debug.Trace (trace)
 
 wakaMain ::
   ( DomBuilder t m
@@ -38,13 +41,19 @@ wakaMain gs = do
   elAttr "div" ("id" =: "map") $ mdo
     evTime <- tickLossyFromPostBuildTime 0.1
     let beTxtOn = current dyTxtOn
+    let beETR = current dyETR
+    let beIsSave = fmap (==Save) beETR
+    let beIsLoad = fmap (==Load) beETR
     let evTxTime = gate beTxtOn evTime
     let evWTick = WTick <$ evTime
     let evWk = leftmost (evWDir1<>evWDir2<>[evWTick])
+    let evSave = gate beIsSave evWk
+    let evLoad = gate beIsLoad evWk
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
     let dyIMode = _imd <$> dyGs
+    let dyETR = _etr <$> dyGs 
     let dyTxtOn = zipDynWith (\a b -> a && (b==Txt || b==Cho)) dyIsText dyIMode
     let dyImg = dyGs >>= (\n -> constDyn (imgsrc!!n)) . _chn
     let dyDir = (dirToText <$> getDirByName "player") . _omp <$> dyGs
@@ -70,6 +79,23 @@ wakaMain gs = do
     evWDir2 <- mapM (evElButton "pad") ["□","←","↓"] <&>
                                      zipWith (<$) [WSub,WLeft,WDown]
     widgetHold_ blank (elTextScroll <$ evTxTime)
+    widgetHold_ blank (saveGame dyGs <$ evSave)
+
+saveGame :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
+saveGame dyGs = do 
+  gs <- sample (current dyGs)
+  (saveState . makeGameStateText) gs
+
+loadGame ::
+  ( DomBuilder t m
+  , Prerender t m
+  ) => m (Dynamic t Game) 
+loadGame = do
+  dyStateMb <- loadState
+  let dyState = fmap (fromMaybe T.empty) dyStateMb
+  let dyGs = fmap toGameState dyState 
+  return dyGs
+  
 
 showMapRect :: Game -> T.Text
 showMapRect gs =
@@ -108,6 +134,9 @@ wakaUpdate gs wev =
               mnm = _mnm gs
            in case wev of
              WTick -> objectUpdate $ effectUpdate gs
+             WSub -> 
+               let txw = ";cho_セーブ_textSave_ロード_textLoad"
+                in gs{_imd=Txt, _itx=True, _txw=txw, _txv=T.empty, _tct=0}
              WOk -> 
                let tmpMap = _tmp gs
                    txSec = _txs gs
@@ -139,10 +168,11 @@ objectUpdate gs = let omp = _omp gs
 
 enterNewMap :: Game -> [PEvent] -> Game 
 enterNewMap gs [] = gs 
-enterNewMap gs (PEnter pps obj:_) = 
+enterNewMap gs (PEnter pps oname:_) = 
   let mnm = _mnm gs
       omp = _omp gs
-      tdf = getObjDef obj
+      obj = getObjByName oname omp
+      tdf = maybe T.empty getObjDef obj
    in setMap gs{_pmp = (mnm,pps,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 enterNewMap gs (PLeave:_) =
   let txs = _txs gs
@@ -192,7 +222,7 @@ okButton gs =
       itx = _itx gs
       iths = _iths gs
       niths = itx && not iths
-   in gs{_itx=imd==Txt,_tcs=0,_iths=niths} 
+   in gs{_itx=imd==Txt,_tcs=0,_iths=niths,_etr=NoEvent} 
 
 
 scanEffect :: ObMap -> ObMap

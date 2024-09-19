@@ -5,8 +5,8 @@ import Linear.V2 (V2(..))
 import Object (getPosByName,getDirByName,getObjByPos,blankObj,changeObjCh
               ,getObjType,getObjName,getObjCon,getObjCh,getObjDef
               ,updatePosByName,deleteObjByPos,isObjOnPos,putObjOnPos
-              ,getObjPos,setObjPos,setObjType)
-import Converter (inpToDir,dirToDelta,lookupFromSections,setObjectData,isInMap)
+              ,getObjPos,setObjPos,setObjType,isInMap)
+import Converter (inpToDir,dirToDelta,lookupFromSections,setObjectData)
 import Data.Maybe (isNothing,fromMaybe)
 import Data.Functor ((<&>))
 import Data.Bifunctor (first)
@@ -55,7 +55,7 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
             <>[PPushTo oname aoName | isPushTo]<>[POn oname | isOn] 
             <>[PGet oname | isGet]<>[PLeave | isLeave]
-            <>case obj of Just ob -> [PEnter pps ob | isEnter]; Nothing -> []
+            <>[PEnter pps oname | isEnter]
       nphv = if isGet && isNothing hv then obj else hv
    in (npevs, nomp3, V2 nmx nmy, nphv)
 

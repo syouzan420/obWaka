@@ -6,7 +6,10 @@ import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
 import Data.List (find,deleteBy,sort)
 import Data.Tuple (swap)
+import System.Random (mkStdGen)
 import Define
+import Initialize (newGame)
+import Object (blankObj)
 
 
 type Width = Int
@@ -107,8 +110,10 @@ txToType "" = TBlock
 txToType txt = let txts = T.words txt
                 in case txts of
                     ("func":tps) -> TFunc (map findType tps)
-                    ["move",ct] -> TLive (LMove ((read . T.unpack) ct) 0)
-                    ["attack",ct] -> TLive (LAttack ((read . T.unpack) ct) 0)
+                    ("move":ct:c) -> TLive (LMove ((read . T.unpack) ct) 
+                                (if null c then 0 else (read . T.unpack) (head c)))
+                    ("attack":ct:c) -> TLive (LAttack ((read . T.unpack) ct)
+                                (if null c then 0 else (read . T.unpack) (head c)))
                     [tp] -> findType tp
                     _ -> TBlock
 
@@ -188,9 +193,6 @@ lookupFromSections textSections tx =
   let tsKeyValues = map (\(TS ti t) -> (ti,t)) textSections
    in fromMaybe T.empty (lookup tx tsKeyValues)  
 
-isInMap :: Pos -> MapSize -> Bool
-isInMap (V2 px py) (V2 mw mh) = px>=0 && px<mw && py>=0 && py<mh
-
 updateTextSection :: TextSection -> [TextSection] -> [TextSection]
 updateTextSection _ [] = [] 
 updateTextSection ts@(TS ti ntx) (TS title ptx:xs) = 
@@ -237,39 +239,54 @@ updateObjectData tx (Ob ch nm tp df cn dr (V2 px py)) =
       traceLng = T.length traceText
       newList = deleteBy (\t1 t2-> t1==T.take traceLng t2) traceText txList 
       tpTx = tpToText tp 
-      cnTx = fromMaybe T.empty $ lookup cn $ map swap txCon 
-      drTx = fromMaybe "nodir" $ lookup dr $ map swap txDir
+      cnTx = cnToText cn
+      drTx = drToText dr 
    in T.unlines $ traceText<>","<>tpTx<>","<>df<>","<>cnTx<>","<>drTx<>","
                            <>(T.pack . show) px<>","<>(T.pack . show) py:newList
 
 makeObjectDatas :: ObMap -> [T.Text]
-makeObjectDatas [] = []
-makeObjectDatas (Ob ch nm tp df cn dr (V2 px py):xs) =  
+makeObjectDatas  = map objToText 
+
+objToText :: Object -> T.Text
+objToText (Ob ch nm tp df cn dr (V2 px py)) =
   let tpTx = tpToText tp
-      cnTx = fromMaybe T.empty $ lookup cn $ map swap txCon 
-      drTx = fromMaybe "nodir" $ lookup dr $ map swap txDir
+      cnTx = cnToText cn
+      drTx = drToText dr 
    in T.singleton ch<>","<>nm<>","<>tpTx<>","<>df<>","<>cnTx<>","
-         <>drTx<>","<>(T.pack . show) px<>","<>(T.pack . show) py:makeObjectDatas xs
+         <>drTx<>","<>(T.pack . show) px<>","<>(T.pack . show) py
+
+drToText :: Dir -> T.Text
+drToText dr = fromMaybe "nodir" $ lookup dr $ map swap txDir
+
+cnToText :: ObCon -> T.Text
+cnToText cn = fromMaybe T.empty $ lookup cn $ map swap txCon 
    
 tpToText :: ObType -> T.Text
 tpToText (TFunc []) = "func"
 tpToText (TFunc tps) = "func "<>T.intercalate " " (map tpToText tps) 
+tpToText (TLive (LMove ct c)) = "move "<>(T.pack . show) ct<>" "<>(T.pack . show) c
+tpToText (TLive (LAttack ct c)) = 
+                    "attack "<>(T.pack . show) ct<>" "<>(T.pack . show) c
 tpToText tp = fromMaybe T.empty $ lookup tp $ map swap txType
 
 makeGameStateText :: Game -> T.Text
 makeGameStateText gs =
-  let (imd,txs,omp,mnm,V2 mpx mpy,(pmn,V2 pmpx pmpy,pomp),evas,hav,cnts) =
-        (_imd gs,_txs gs,_omp gs,_mnm gs,_mps gs,_pmp gs,_evas gs,_hav gs,_cnts gs)
+  let (imd,txs,omp,mnm,msz,mps,(pmn,pmps,pomp),evas,hav,cnts) =
+        (_imd gs,_txs gs,_omp gs,_mnm gs,_msz gs,_mps gs,_pmp gs,_evas gs,_hav gs,_cnts gs)
       imdText = (T.pack . show) imd
       txsText = txsToText txs
       ompText = T.intercalate ":" $ makeObjectDatas omp
-      mpsText = (T.pack . show) mpx<>":"<>(T.pack . show) mpy
-      pmpsText = (T.pack . show) pmpx<>":"<>(T.pack . show) pmpy
+      mszText = posToText msz
+      mpsText = posToText mps 
+      pmpsText = posToText pmps 
       pompText = T.intercalate ":" $ makeObjectDatas pomp
       evasText = evasToText evas
-      havText = (T.pack . show) hav
+      havText = maybe T.empty objToText hav 
       cntsText = cntsToText cnts
-   in T.intercalate "~" [imdText,txsText,ompText,mnm,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText]
+   in T.intercalate "~" [imdText,txsText,ompText,mnm,mszText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText]
+
+posToText :: Pos -> T.Text
+posToText (V2 x y) = (T.pack . show) x <> ":" <> (T.pack . show) y 
 
 txsToText :: [TextSection] -> T.Text
 txsToText txs = T.intercalate ":" $ foldr (\(TS ti tx) acc -> ti:tx:acc) [] txs
@@ -283,3 +300,74 @@ evasToText evas = T.intercalate ":" $
     foldr (\(EA pe cd i n) acc -> 
           (T.pack . show) pe:cd:(T.pack . show) i:(T.pack . show) n:acc) [] evas
 
+toGameState :: T.Text -> Game
+toGameState tx = case T.splitOn "~" tx of 
+    [imdText,txsText,ompText,mnm,mszText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText] -> 
+        let imd = read (T.unpack imdText) :: IMode
+            txs = txToTxs txsText
+            omp = txToOmp ompText
+            msz = txToPos mszText
+            mps = txToPos mpsText
+            pmp = (pmn,txToPos pmpsText,txToOmp pompText)
+            evas = txToEvas evasText
+            hav = if havText==T.empty then Nothing else Just (txToObject havText) 
+            cnts = txToCnts cntsText
+          in Game{_imd=imd,_txs=txs,_txw=T.empty,_txv=T.empty,_tct=0,_tcs=0
+                 ,_itx=False,_iths=False,_omp=omp,_tmp=[],_mnm=mnm,_msz=msz
+                 ,_mps=mps,_pmp=pmp,_evas=evas,_chn=0,_hav=hav,_cho=[]
+                 ,_stg=mkStdGen 100,_cnts=cnts,_etr=NoEvent}
+    _ -> newGame 
+
+txToCnts :: T.Text -> [Counter]
+txToCnts tx = txToCnts' (T.splitOn ":" tx)
+
+txToCnts' :: [T.Text] -> [Counter]
+txToCnts' [] = []
+txToCnts' [_] = []
+txToCnts' (tx:txN:xs) = (tx,(read . T.unpack) txN):txToCnts' xs
+
+txToEvas :: T.Text -> [EvAct]
+txToEvas tx = txToEvas' (T.splitOn ":" tx)
+
+txToEvas' :: [T.Text] -> [EvAct]
+txToEvas' [] = []
+txToEvas' [_] = []
+txToEvas' [_,_] = []
+txToEvas' [_,_,_] = []
+txToEvas' (txPe:cd:txI:txN:xs) = 
+            EA ((read . T.unpack) txPe :: PEvent) cd 
+                      ((read . T.unpack) txI) ((read . T.unpack) txN) :txToEvas' xs
+
+txToPos :: T.Text -> Pos
+txToPos tx = case T.splitOn ":" tx of
+                [px,py] -> V2 ((read . T.unpack) px) ((read . T.unpack) py)
+                _ -> V2 0 0
+
+txToTxs :: T.Text -> [TextSection]
+txToTxs tx = txToTxs' (T.splitOn ":" tx)
+
+txToTxs' :: [T.Text] -> [TextSection]
+txToTxs' [] = []
+txToTxs' [_] = []
+txToTxs' (ti:tx:xs) = TS ti tx:txToTxs' xs
+
+txToOmp :: T.Text -> ObMap
+txToOmp tx = txToOmp' (T.splitOn ":" tx)
+
+txToOmp' :: [T.Text] -> ObMap
+txToOmp'  = map txToObject 
+
+txToObject :: T.Text -> Object
+txToObject obtx =
+  case T.splitOn "," obtx of
+    (txCh:nm:txTp:df:txCn:txDr:xs) ->
+        let ch = maybe ' ' fst $ T.uncons txCh 
+            tp = txToType txTp
+            cn = txToCon txCn
+            dr = txToDir txDr
+            ps = case xs of 
+                  [txPx,txPy] -> 
+                        V2 ((read . T.unpack) txPx) ((read . T.unpack) txPy)
+                  _ -> V2 0 0
+         in Ob ch nm tp df cn dr ps
+    _ -> blankObj 
