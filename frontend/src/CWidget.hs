@@ -1,6 +1,6 @@
 module CWidget (dyChara, imgsrc, elSpace, evElButton, evElButtonH, mkHidden
                , evElNumberPad, dyElTimer, dyElCharaAnime, elTextScroll,elRandom
-               ,saveState, loadState, clear) where
+               ,saveState, loadState, clear, elImage0) where
 
 import JSDOM
 --import qualified JSDOM.Generated.Document as DOM
@@ -115,6 +115,9 @@ elChara0 = elAttr "img" ("src" =: $(static "chara0.png")) blank
 
 elChara1 :: DomBuilder t m => m ()
 elChara1 = elAttr "img" ("src" =: $(static "chara1.png")) blank
+
+elImage0 :: DomBuilder t m => m ()
+elImage0 = elAttr "img" ("src" =: $(static "title.png")) blank
 
 imgsrc :: [Map.Map T.Text T.Text]
 imgsrc = ["src" =: $(static "chara0.png")

@@ -7,7 +7,7 @@ import Data.Maybe (isNothing,fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, constDyn, el, text 
-  , accumDyn, divClass, leftmost, (=:), zipDynWith , sample
+  , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
   , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
@@ -15,7 +15,7 @@ import Reflex.Dom.Core
   )
 
 import CWidget (dyChara,imgsrc,elSpace,evElButton,evElButtonH,elTextScroll
-               ,saveState,loadState)
+               ,saveState,loadState,mkHidden,elImage0)
 
 import Define
 import Initialize (newGame)
@@ -28,7 +28,6 @@ import Object (getDirByName,updateDirByName,updatePosByName,getObjName
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject)
 import Code (exeCode,setMap,moveDialog)
 
-import Debug.Trace (trace)
 
 wakaMain ::
   ( DomBuilder t m
@@ -100,11 +99,15 @@ loadGame ::
 loadGame = mdo
   dyStateMb <- loadState
   let dyState = fmap (fromMaybe T.empty) dyStateMb
+  elDynAttr "div" dyHide $ do 
+        elImage0
+        divClass "kai" $ text "變〜へん〜現實の向かう側"
   evs <- mapM (evElButtonH dyBool "pad") ["はじめから","つづき"] 
                                             <&> zipWith (<$) [1,2]
   let evStart = leftmost evs
   dyNum <- holdDyn 0 evStart
   dyBool <- toggle True evStart
+  let dyHide = mkHidden <$> dyBool
   widgetHold_ blank (gameStart dyState dyNum <$ evStart)
 
 gameStart ::

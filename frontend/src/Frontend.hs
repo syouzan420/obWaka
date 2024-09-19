@@ -3,7 +3,6 @@ module Frontend where
 import Common.Route (FrontendRoute (..))
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
-import qualified Data.Text as T
 import Obelisk.Frontend (Frontend (..))
 import Obelisk.Route (R)
 import Obelisk.Generated.Static (static)
