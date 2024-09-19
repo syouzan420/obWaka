@@ -26,7 +26,6 @@ exeOneCode gs evt = do
     "sp" -> setPlayer gs
     "cn" -> consumeItem gs
     "save" -> gs{_etr=Save}
-    "load" -> gs{_etr=Load}
     _ -> gs 
                     else case en of
     "a" -> setEventAction gs (head ags) (T.intercalate "_" (tail ags)) 

@@ -85,11 +85,10 @@ scene0:
 
 textSave:
 ;save
-セーブしました。
+セーブしました
 
-textLoad:
-;load
-ロードしました。
+textBack:
+セーブをやめました
 
 texts0:
 スーパー

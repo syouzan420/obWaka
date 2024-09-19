@@ -1,4 +1,4 @@
-module Waka (wakaMain) where
+module Waka (loadGame) where
 
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
@@ -8,16 +8,19 @@ import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, constDyn, el, text 
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample
-  , tickLossyFromPostBuildTime, widgetHold_
+  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
   , Dynamic
   )
 
-import CWidget (dyChara,imgsrc,elSpace,evElButton,elTextScroll,saveState,loadState)
+import CWidget (dyChara,imgsrc,elSpace,evElButton,evElButtonH,elTextScroll
+               ,saveState,loadState)
 
 import Define
-import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir
+import Initialize (newGame)
+import TextData (textData)
+import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir,getSections
                  ,setMapStartPos,dirToText,lookupFromSections,updateTextSection
                  ,updateMapData,makeObjectDatas,makeGameStateText,toGameState)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName
@@ -43,12 +46,10 @@ wakaMain gs = do
     let beTxtOn = current dyTxtOn
     let beETR = current dyETR
     let beIsSave = fmap (==Save) beETR
-    let beIsLoad = fmap (==Load) beETR
     let evTxTime = gate beTxtOn evTime
     let evWTick = WTick <$ evTime
     let evWk = leftmost (evWDir1<>evWDir2<>[evWTick])
-    let evSave = gate beIsSave evWk
-    let evLoad = gate beIsLoad evWk
+    let evSave = gate beIsSave evWTick 
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
@@ -88,14 +89,41 @@ saveGame dyGs = do
 
 loadGame ::
   ( DomBuilder t m
+  , MonadFix m
+  , MonadHold t m
+  , PostBuild t m
+  , MonadIO (Performable m)
+  , PerformEvent t m
+  , TriggerEvent t m
   , Prerender t m
-  ) => m (Dynamic t Game) 
-loadGame = do
+  ) => m () 
+loadGame = mdo
   dyStateMb <- loadState
   let dyState = fmap (fromMaybe T.empty) dyStateMb
-  let dyGs = fmap toGameState dyState 
-  return dyGs
-  
+  evs <- mapM (evElButtonH dyBool "pad") ["はじめから","つづき"] 
+                                            <&> zipWith (<$) [1,2]
+  let evStart = leftmost evs
+  dyNum <- holdDyn 0 evStart
+  dyBool <- toggle True evStart
+  widgetHold_ blank (gameStart dyState dyNum <$ evStart)
+
+gameStart ::
+  ( DomBuilder t m
+  , MonadFix m
+  , MonadHold t m
+  , PostBuild t m
+  , MonadIO (Performable m)
+  , PerformEvent t m
+  , TriggerEvent t m
+  , Prerender t m
+  ) => Dynamic t T.Text -> Dynamic t Int -> m () 
+gameStart dst di = do
+  st <- (sample . current) dst
+  i <- (sample . current) di 
+  if st==T.empty || i==1 then let txs = getSections $ T.lines textData
+                                  (TS _ tx) = head txs
+                               in wakaMain newGame{_txs=txs, _txw=tx}
+                         else wakaMain (toGameState st) 
 
 showMapRect :: Game -> T.Text
 showMapRect gs =
@@ -135,7 +163,7 @@ wakaUpdate gs wev =
            in case wev of
              WTick -> objectUpdate $ effectUpdate gs
              WSub -> 
-               let txw = ";cho_セーブ_textSave_ロード_textLoad"
+               let txw = ";cho_セーブ_textSave_もどる_textBack"
                 in gs{_imd=Txt, _itx=True, _txw=txw, _txv=T.empty, _tct=0}
              WOk -> 
                let tmpMap = _tmp gs
@@ -243,21 +271,23 @@ repeatTexUpdate gs =
 textUpdate :: Game -> Game
 textUpdate gs =
   let isText = _itx gs
+      eventTrigger = _etr gs
       wholeText = _txw gs
       textCount = _tct gs
       textLength = T.length wholeText 
       isTextShowing = textCount < textLength
+      pgs = if eventTrigger==NoEvent then gs else gs{_etr=NoEvent}
    in if isText && isTextShowing then 
-        let textView = _txv gs
+        let textView = _txv pgs
             (isStop,isTyping,isCode,targetChar,codeText,scanLength)
               = getInfoFromChar wholeText textCount
             nitx = not isStop && isText && isTextShowing
             ntxv = if isTyping then textView <> T.singleton targetChar
                                else textView
             ntct = textCount + scanLength 
-            ngs0 = gs{_itx=nitx, _txv=ntxv, _tct=ntct, _tcs=_tcs gs + 1}
+            ngs0 = pgs{_itx=nitx, _txv=ntxv, _tct=ntct, _tcs=_tcs pgs + 1}
             ngs1 = if isCode then exeCode ngs0 codeText else ngs0
          in ngs1
                                 else 
-         if isTextShowing then gs else exeCode gs "sc_0 sp"
+         if isTextShowing then pgs else exeCode pgs "sc_0 sp"
 

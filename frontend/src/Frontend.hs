@@ -16,11 +16,7 @@ import Reflex.Dom.Core
   )
 
 import CWidget (elSpace)
-import Define
-import Initialize (newGame)
-import Converter (getSections)
-import TextData (textData)
-import Waka (wakaMain)
+import Waka (loadGame)
 
 frontend :: Frontend (R FrontendRoute)
 frontend = Frontend
@@ -57,10 +53,5 @@ frontendBody ::
   ) => m ()
 frontendBody = do 
   elSpace
+  loadGame 
 
-  let sections = getSections $ T.lines textData 
-  let (TS _ tx) = head sections
-  wakaMain newGame{_txs=sections,_txw=tx}
-
-testText :: T.Text
-testText = "情報空間にも 重さみたいなものがある\nと思ふんだよね\n重い情報は 次元の低い\n抽象度の低い方へ向かひ\n軽い情報は 次元の高い\n抽象度の高い方へ向かふ\n重い情報が 長時間意識されると\n物理空間において 何かが「つく」ことになるし\n軽い情報の意識が續くと\n物理空間の「滞り」が取れたりするのだと思ふ"
