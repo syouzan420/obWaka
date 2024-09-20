@@ -13,8 +13,6 @@ import Data.Bifunctor (first)
 import System.Random (StdGen,uniformR)
 import Define 
 
-import Debug.Trace (trace)
-
 type MapPos = Pos
 type MapWinPos = Pos
 
@@ -69,7 +67,7 @@ moveObject g hs msz omp (obj:xs) =
       (mvType,mct,ct) = case obType of
         TLive (LMove maxCount count) -> (MV,maxCount,count) 
         TLive (LAttack maxCount count) -> (AT,maxCount,count)
-        TLive (LShoot maxCount count) -> (AT,maxCount,count)
+        TLive (LShoot maxCount count) -> (SH,maxCount,count)
         TLive (LBullet maxCount count) -> (BL,maxCount,count)
         _ -> (NN,0,0)
    in if mvType==NN then let mvo = moveObject g hs msz omp xs 
@@ -93,18 +91,23 @@ moveObject g hs msz omp (obj:xs) =
                       BL -> TLive (LBullet mct newCount)
                       _ -> obType
               nobj = setObjPos npos $ setObjType ntp obj
-              (shootNum,nng) = uniformR (0::Int,10) ng
-              isShoot = shootNum > 6 && mvType==SH
+              (shootNum,nng) = uniformR (0::Int,100) ng
+              isShoot = shootNum > 90 && mvType==SH
               isRemove = iob && mvType==BL
               isHitBullet = isRemove && npos==pps
               nhs = if isHitBullet then HBullet:hs else hs
               mvo = moveObject nng nhs msz omp xs
            in if isRemove then mvo else 
-                    if isShoot then let (blObj,_) = makeBullet nng pps npos  
-                                     in first ([blObj,nobj] <>) mvo
+                    if isShoot then let (blObj,blPos,_) = makeBullet nng pps npos  
+                                        isMap = isInMap blPos msz
+                                        isObj = isObjOnPos blPos omp
+                                     in if isMap && not isObj then
+                                                first ([blObj,nobj] <>) mvo
+                                                              else
+                                                first (nobj :) mvo
                                else first (nobj :) mvo
 
-makeBullet :: StdGen -> Pos -> Pos -> (Object,StdGen)
+makeBullet :: StdGen -> Pos -> Pos -> (Object,Pos,StdGen)
 makeBullet g pps pos = 
   let dff@(V2 dx dy) = pps - pos  
       isRange = dx*dx + dy*dy < 36 
@@ -112,7 +115,7 @@ makeBullet g pps pos =
       dir = toEnum dirNum :: Dir
       npos = pos + dirToDelta dir 
       blObj = Ob '*' "bullet" (TLive (LBullet 3 0)) T.empty CBlock dir npos 
-   in (blObj,ng)
+   in (blObj,npos,ng)
 
 
 confirmPos :: Pos -> MapSize -> ObMap -> (Pos,StdGen) -> (Bool,Pos,StdGen)
@@ -211,8 +214,8 @@ exeFunc txSec pDir mnm och tps df om argLng chs =
                         resCh = getResult resExp
                         resObj = fromMaybe blankObj $ lookup resCh objList
                         resPos = tps + dirToDelta pDir
-                     in trace (show chs) $ (resCh,putObjOnPos resObj resPos nomp) 
-               else trace (show chs) (' ',om) 
+                     in (resCh,putObjOnPos resObj resPos nomp) 
+               else (' ',om) 
 
 makeDef :: [TextSection] -> ObChar -> ObDef -> [[T.Text]]
 makeDef txSec ch df =

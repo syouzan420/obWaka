@@ -67,9 +67,9 @@ wakaMain gs = do
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
 --    let dyObjectMap = _omp <$> dyGs
---    let dyEvas = _evas <$> dyGs
+    let dyEvas = _evas <$> dyGs
 --    let dyTxs = _txs <$> dyGs
---    dynText (T.pack . show <$> dyObjectMap)
+    dynText (T.pack . show <$> dyEvas)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
