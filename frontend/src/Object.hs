@@ -90,6 +90,9 @@ getObjCh (Ob ch _ _ _ _ _ _) = ch
 getObjDef :: Object -> ObDef
 getObjDef (Ob _ _ _ df _ _ _) = df 
 
+getObjDir :: Object -> Dir 
+getObjDir (Ob _ _ _ _ _ dr _) = dr 
+
 getObjPos :: Object -> Pos
 getObjPos (Ob _ _ _ _ _ _ ps) = ps
 

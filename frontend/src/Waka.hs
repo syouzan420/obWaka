@@ -194,7 +194,8 @@ objectUpdate :: Game -> Game
 objectUpdate gs = let omp = _omp gs
                       msz = _msz gs
                       stg = _stg gs
-                      (nomp,nstg) = moveObject stg msz omp omp 
+                      (nomp,(nhs,nstg)) = moveObject stg [] msz omp omp 
+                      -- ヒットしたときの処理をかく
                    in gs{_omp=nomp,_stg=nstg}
 
 enterNewMap :: Game -> [PEvent] -> Game 

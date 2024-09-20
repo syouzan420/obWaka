@@ -114,6 +114,10 @@ txToType txt = let txts = T.words txt
                                 (if null c then 0 else (read . T.unpack) (head c)))
                     ("attack":ct:c) -> TLive (LAttack ((read . T.unpack) ct)
                                 (if null c then 0 else (read . T.unpack) (head c)))
+                    ("shoot":ct:c) -> TLive (LShoot ((read . T.unpack) ct)
+                                (if null c then 0 else (read . T.unpack) (head c)))
+                    ("bullet":ct:c) -> TLive (LBullet ((read . T.unpack) ct)
+                                (if null c then 0 else (read . T.unpack) (head c)))
                     [tp] -> findType tp
                     _ -> TBlock
 
@@ -134,6 +138,9 @@ txCon = [("block",CBlock),("move",CMove),("get",CGet),("on",COn),("enter",CEnter
 
 txDir :: [(T.Text,Dir)]
 txDir = [("east",East),("north",North),("west",West),("south",South),("nodir",NoDir)]
+
+--txLive :: Int -> Int -> [(T.Text,ObLive)]
+--txLive ct c = [("move",LMove ct c),("attack",LAttack ct c),("shoot",LShoot ct c),("bullet",LBullet ct c)]
 
 searchObject :: Int -> String -> [(Int,Char)]
 searchObject _ [] = []
@@ -267,6 +274,10 @@ tpToText (TFunc tps) = "func "<>T.intercalate " " (map tpToText tps)
 tpToText (TLive (LMove ct c)) = "move "<>(T.pack . show) ct<>" "<>(T.pack . show) c
 tpToText (TLive (LAttack ct c)) = 
                     "attack "<>(T.pack . show) ct<>" "<>(T.pack . show) c
+tpToText (TLive (LShoot ct c)) = 
+                    "shoot "<>(T.pack . show) ct<>" "<>(T.pack . show) c
+tpToText (TLive (LBullet ct c)) = 
+                    "bullet "<>(T.pack . show) ct<>" "<>(T.pack . show) c
 tpToText tp = fromMaybe T.empty $ lookup tp $ map swap txType
 
 makeGameStateText :: Game -> T.Text

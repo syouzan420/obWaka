@@ -27,7 +27,8 @@ data ObType = TKazu | TMozi | TFood | TTool | TTile | TBlock |
                       TFunc [ObType] | TLive ObLive
                                               deriving stock (Eq,Show) 
 
-data ObLive = LStand | LMove Int Int | LAttack Int Int 
+data ObLive = LStand | LMove Int Int | LAttack Int Int | LShoot Int Int |
+              LBullet Int Int
                                                deriving stock (Eq,Show)
 
 
@@ -57,6 +58,8 @@ data Ast = NAct | TAct | EAct deriving stock (Eq,Show)
 data IMode = Txt | Cho | Ply deriving stock (Eq,Show,Read)
 
 data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
+
+data HitSt = HNon | HBullet deriving stock (Eq,Show)
 
 
 --imd: input mode (Txt or Cho or Ply)

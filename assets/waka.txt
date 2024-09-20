@@ -179,6 +179,10 @@ textYM1:
 マスクだ。
 これを装着すれば ウイルス感染のリスクが減るって言はれてゐるけど・・・。
 
+textY5:
+;sc_5
+うぁたっ・す・・けおぁ・・てsa)Fjsjfd9@&)(&@^!!(・・ぐあっ・・！。
+
 textV10:
 ;sc_7
 いたた！。
@@ -338,6 +342,10 @@ textA15:
 つぎは どんなことが起こるのかしら。
 とても樂しみ！。
 
+textA16
+;sc_6
+ギギャ・・グイキュ・・アエゥッキョ！！9@4$%<<(A<((?/ボェ・！。
+
 textT0:
 ;sc_4
 ここがどこか 知りたいか？。
@@ -414,4 +422,4 @@ textT6:
 そこが彼らの 唯一の弱みであり 本當の意味で彼らが 決っして望みを達成できない理由なのぢゃ。
 今こそ おぬしら ひとりひとりの持つ 心の力と その意味を とり戻さねばならぬ・・・。
 ・・・むむ・・・何か 外が騒がしいぞ・・・？。
-;uo_0.Yoko.move-2,,block,north uo_0.Anna.move-4,,block,north
+;uo_0.Yoko.move-5,,block,north uo_0.Anna.move-6,,block,north uo_0.virus1.shoot-4,,block,north uo_0.virus2.shoot-5,,block,north a_block.Yoko.0_md_textY5 a_block.Anna.0_md_textA16
