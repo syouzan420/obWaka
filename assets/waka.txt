@@ -422,4 +422,4 @@ textT6:
 そこが彼らの 唯一の弱みであり 本當の意味で彼らが 決っして望みを達成できない理由なのぢゃ。
 今こそ おぬしら ひとりひとりの持つ 心の力と その意味を とり戻さねばならぬ・・・。
 ・・・むむ・・・何か 外が騒がしいぞ・・・？。
-;d_block.Yoko d_block.Anna uo_0.Yoko.move-5,,block,north uo_0.Anna.move-6,,block,north uo_0.virus1.shoot-4,,block,north uo_0.virus2.shoot-5,,block,north a_block.Yoko.0_md_textY5 a_block.Anna.0_md_textA16 a_leave_sl
+;d_block.Yoko d_block.Anna uo_0.Yoko.move-5,,block,north uo_0.Anna.move-6,,block,north uo_0.virus1.shoot-4,,block,north uo_0.virus2.shoot-5,,block,north uo_0.virus3.shoot-6,,block,north a_block.Yoko.0_md_textY5 a_block.Anna.0_md_textA16 a_leave_sl
