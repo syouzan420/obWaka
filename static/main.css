@@ -21,6 +21,9 @@ button:active {
 #map {
   touch-action: none;
 }
+.cen {
+  text-align: center;
+}
 
 .kai {
   white-space: pre;

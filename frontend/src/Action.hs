@@ -94,7 +94,7 @@ moveObject g hs msz omp (obj:xs) =
               (shootNum,nng) = uniformR (0::Int,100) ng
               isShoot = shootNum > 90 && mvType==SH
               isRemove = iob && mvType==BL
-              isHitBullet = isRemove && npos==pps
+              isHitBullet = isRemove && nextBLPos dir pos==pps
               nhs = if isHitBullet then HBullet:hs else hs
               mvo = moveObject nng nhs msz omp xs
            in if isRemove then mvo else 

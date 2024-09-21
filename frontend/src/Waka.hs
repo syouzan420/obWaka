@@ -3,7 +3,7 @@ module Waka (loadGame) where
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Functor ((<&>))
-import Data.Maybe (isNothing,fromMaybe)
+import Data.Maybe (isNothing,isJust,fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, constDyn, el, text 
@@ -54,13 +54,19 @@ wakaMain gs = do
     let dyIsText = _itx <$> dyGs
     let dyIMode = _imd <$> dyGs
     let dyETR = _etr <$> dyGs 
+    let dyLife = _lif <$> dyGs
+    let dyIsShowLife = isJust <$> dyLife
+    let dyHide = mkHidden <$> dyIsShowLife
     let dyTxtOn = zipDynWith (\a b -> a && (b==Txt || b==Cho)) dyIsText dyIMode
     let dyImg = dyGs >>= (\n -> constDyn (imgsrc!!n)) . _chn
     let dyDir = (dirToText <$> getDirByName "player") . _omp <$> dyGs
     let dyHave = _hav <$> dyGs
     divClass "flexbox" $ do
       el "div" $ dyChara dyImg
-      divClass "kai" $ dynText (showMapRect <$> dyGs)
+      divClass "kai" $ do
+         elDynAttr "div" dyHide $ divClass "cen" $ 
+                  dynText (fmap (fromMaybe T.empty) dyLife) 
+         dynText (showMapRect <$> dyGs)
       divClass "kai" $ do
          dynText $ fmap (<>"\n") dyDir 
          dynText $ dyHave <&> 
@@ -194,9 +200,14 @@ objectUpdate :: Game -> Game
 objectUpdate gs = let omp = _omp gs
                       msz = _msz gs
                       stg = _stg gs
+                      lif = _lif gs
                       (nomp,(nhs,nstg)) = moveObject stg [] msz omp omp 
                       -- ヒットしたときの処理をかく
-                   in gs{_omp=nomp,_stg=nstg}
+                      nlif = if elem HBullet nhs then 
+                        (\lf -> if T.length lf == 1 then "nolife" else T.drop 1 lf) 
+                        <$> lif
+                                             else lif
+                   in gs{_omp=nomp,_stg=nstg,_lif=nlif}
 
 enterNewMap :: Game -> [PEvent] -> Game 
 enterNewMap gs [] = gs 

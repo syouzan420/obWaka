@@ -8,6 +8,7 @@ type Pos = V2 Int
 type Size = V2 Int
 type Title = T.Text
 type Counter = (T.Text,Int)
+type Life = Maybe T.Text
 
 data ETR = NoEvent | Save | Load deriving stock (Eq,Show) 
 
@@ -42,7 +43,7 @@ type ObMap = [Object]
 data PEvent = PMove Pos | PBlock ObName | PPush ObName | PGet ObName | POn ObName |
               PPushTo ObName ObName | PPut ObName Pos |
               PFunc ObName ObChar | PEnter Pos ObName | PLeave |
-              PConsume ObName | PAttack ObName |
+              PConsume ObName | PAttack ObName | 
               PNon
                                                  deriving stock (Eq,Show,Read)
 
@@ -104,6 +105,7 @@ data Game = Game {_imd :: !IMode
                  ,_stg :: !StdGen
                  ,_cnts :: ![Counter]
                  ,_etr :: !ETR
+                 ,_lif :: !Life
                  } deriving stock (Eq,Show)
 
 mapWinSize :: Size 

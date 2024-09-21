@@ -25,6 +25,7 @@ exeOneCode gs evt = do
    in if null ags then case en of
     "sp" -> setPlayer gs
     "cn" -> consumeItem gs
+    "sl" -> showLife gs
     "save" -> gs{_etr=Save}
     _ -> gs 
                     else case en of
@@ -153,10 +154,14 @@ consumeItem gs = gs{_hav = Nothing}
 setPlayer :: Game -> Game 
 setPlayer gs = gs{_itx=False,_imd = Ply} 
 
+showLife :: Game -> Game
+showLife gs = gs{_lif = Just "❤❤❤"}
+
 setEventAction :: Game -> T.Text -> Code -> Game 
 setEventAction gs ead pcd = 
   let eaData = T.splitOn "." ead
    in case eaData of
+        ["leave"] -> gs{_evas = EA PLeave pcd 1 0:_evas gs} 
         [act,dt,num] -> 
           let pev 
                | elem act txsByName = 
