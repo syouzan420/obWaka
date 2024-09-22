@@ -155,7 +155,7 @@ setPlayer :: Game -> Game
 setPlayer gs = gs{_itx=False,_imd = Ply} 
 
 showLife :: Game -> Game
-showLife gs = gs{_lif = Just "❤❤❤"}
+showLife gs = gs{_lif = Just "★★★★★"}
 
 setEventAction :: Game -> T.Text -> Code -> Game 
 setEventAction gs ead pcd = 

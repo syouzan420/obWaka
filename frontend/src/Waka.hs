@@ -147,8 +147,9 @@ wakaUpdate gs wev =
   let imode = _imd gs
    in case imode of
         Txt -> case wev of
-          WTick -> let iths = _iths gs
-                    in if iths then repeatTexUpdate gs else textUpdate gs
+          WTick -> let ngs = effectUpdate gs 
+                       iths = _iths ngs
+                    in if iths then repeatTexUpdate ngs else textUpdate ngs
           WOk -> okButton gs
           _ -> gs
         Cho -> 
@@ -203,7 +204,7 @@ objectUpdate gs = let omp = _omp gs
                       lif = _lif gs
                       (nomp,(nhs,nstg)) = moveObject stg [] msz omp omp 
                       -- ヒットしたときの処理をかく
-                      nlif = if elem HBullet nhs then 
+                      nlif = if HBullet `elem` nhs then 
                         (\lf -> if T.length lf == 1 then "nolife" else T.drop 1 lf) 
                         <$> lif
                                              else lif
