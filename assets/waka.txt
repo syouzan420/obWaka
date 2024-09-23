@@ -231,7 +231,7 @@ textV12:
 textV13:
 ;sc_8
 グオーーー！。
-a_attack.virus1.1_md_textV14
+;a_attack.virus1.1_md_textV14
 
 textV14:
 ;sc_8

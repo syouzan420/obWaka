@@ -60,6 +60,79 @@ evElNumberPad i = do
     evElNumberButton = evElButton "pad" 
     toText = T.pack . show
 
+data Style = Plane | Color StColor | Link deriving stock (Eq, Show)
+
+data StColor = Black | Red | Blue | Yellow deriving stock (Eq, Show)
+
+{--
+elSText :: (PostBuild t m, DomBuilder t m) => Dynamic t T.Text -> m () 
+elSText dyTx = undefined 
+
+elStyleText :: DomBuilder t m => (Style, T.Text) -> m ()
+elStyleText (st,tx) = do
+  let attr = case st of
+              Plane -> "class" =: ""
+              Color cl -> "color" =: case cl of Red -> "red"
+                                                Blue -> "blue"
+                                                Yellow -> "yellow"
+                                                _ -> "black"
+              Link -> let ws = T.words tx
+                       in case ws of
+                            [lnk,_] -> "href" =: lnk
+                            _ -> "href" =: ""
+      t = case st of
+            Plane -> tx
+            Color _ -> tx
+            Link -> let ws = T.words tx 
+                     in case ws of
+                         [_,txt] -> txt
+                         _ -> tx
+  elAttr "div" attr $ text t 
+
+elStyleText :: DomBuilder t m => Dynamic t (Style, T.Text) -> m ()
+elStyleText dst = do
+  let attr = fmap (\(st,tx) -> case st of
+              Plane -> "class" =: ""
+              Color cl -> "color" =: case cl of Red -> "red"
+                                                Blue -> "blue"
+                                                Yellow -> "yellow"
+                                                _ -> "black"
+              Link -> let ws = T.words tx
+                       in case ws of
+                            [lnk,_] -> "href" =: lnk
+                            _ -> "href" =: ""
+                  ) dst
+      t = fmap (\(st,tx) -> case st of
+            Plane -> tx
+            Color _ -> tx
+            Link -> let ws = T.words tx 
+                     in case ws of
+                         [_,txt] -> txt
+                         _ -> tx
+               ) dst
+  elDynAttr "div" attr $ dynText t 
+
+makeStyleList :: T.Text -> [(Style, T.Text)]
+makeStyleList tx =
+  let txList = T.splitOn "$$" tx 
+      stList = map makeStyle txList
+   in zip stList txList 
+
+makeStyle :: T.Text -> Style
+makeStyle tx = 
+  if T.length tx < 2 then Plane else
+        case T.take 2 tx of 
+          "@c" -> if T.length tx < 4 then Plane else  
+                      case T.take 2 (T.drop 2 tx) of
+                        "RD" -> Color Red
+                        "BL" -> Color Blue
+                        "YL" -> Color Yellow
+                        _    -> Color Black
+          "@l" -> Link
+          _ -> Plane
+                  
+--}
+
 dyElTimer :: 
   ( DomBuilder t m
   , MonadFix m
