@@ -202,13 +202,14 @@ objectUpdate gs = let omp = _omp gs
                       msz = _msz gs
                       stg = _stg gs
                       lif = _lif gs
+                      evas = _evas gs
                       (nomp,(nhs,nstg)) = moveObject stg [] msz omp omp 
-                      -- ヒットしたときの処理をかく
                       nlif = if HBullet `elem` nhs then 
-                        (\lf -> if T.length lf == 1 then "nolife" else T.drop 1 lf) 
-                        <$> lif
-                                             else lif
-                   in gs{_omp=nomp,_stg=nstg,_lif=nlif}
+                        (\lf -> if lf==T.empty then lf else T.drop 1 lf) <$> lif
+                                                   else lif
+                      pev = [PNoLife | nlif==Just T.empty]
+                      ngs = exeEvActs gs{_omp=nomp,_stg=nstg,_lif=nlif} pev evas 
+                   in ngs
 
 enterNewMap :: Game -> [PEvent] -> Game 
 enterNewMap gs [] = gs 

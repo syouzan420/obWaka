@@ -8,7 +8,8 @@ import Converter (makeObjectMap,setObjectData,setMapStartPos
                  ,lookupFromSections,makeObjectByName,updateTextSection
                  ,updateObjectData,txToObject)
 import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
-              ,deleteObjByPos,updateDefByName,updateObjByName,getObjByName)
+              ,deleteObjByPos,updateDefByName,updateObjByName,getObjByName
+              ,updatePosByName)
 import Define
 
 import Debug.Trace (trace)
@@ -26,6 +27,7 @@ exeOneCode gs evt = do
     "sp" -> setPlayer gs
     "cn" -> consumeItem gs
     "sl" -> showLife gs
+    "dm" -> deleteMap gs
     "save" -> gs{_etr=Save}
     _ -> gs 
                     else case en of
@@ -43,7 +45,18 @@ exeOneCode gs evt = do
     "ud" -> updateDef gs (head ags)
     "uo" -> updateObject gs (head ags)
     "gt" -> getItem gs (head ags)
+    "sp" -> setPosition gs (head ags)
     _ -> gs 
+
+setPosition :: Game -> T.Text -> Game
+setPosition gs tx =
+  let nmpos = T.splitOn "." tx
+      omp = _omp gs
+      nomp = case nmpos of
+        [oname,px,py] -> updatePosByName oname 
+                          (V2 ((read . T.unpack) px) ((read . T.unpack) py)) omp
+        _ -> omp
+   in gs {_omp = nomp} 
 
 getItem :: Game -> T.Text -> Game
 getItem gs nm =
@@ -162,6 +175,7 @@ setEventAction gs ead pcd =
   let eaData = T.splitOn "." ead
    in case eaData of
         ["leave"] -> gs{_evas = EA PLeave pcd 1 0:_evas gs} 
+        ["nolife"] -> gs{_evas = EA PNoLife pcd 2 0:_evas gs}
         [act,dt,num] -> 
           let pev 
                | elem act txsByName = 
@@ -176,7 +190,7 @@ setEventAction gs ead pcd =
         _ -> gs
 
 txsByName :: [T.Text]
-txsByName = ["block","push","get","on","consume","attack"]
+txsByName = ["block","push","get","on","consume","attack","shoot"]
 
 txPevByName :: ObName -> [(T.Text,PEvent)]
 txPevByName nm = [("block",PBlock nm),("push",PPush nm),("get",PGet nm)
@@ -250,6 +264,8 @@ setMap gs mnm =
       mpos = setMapStartPos pps mapWinSize mapSize
    in gs{_mnm = nmnm, _msz = mapSize, _mps = mpos, _omp = obMap}
    
+deleteMap :: Game -> Game
+deleteMap gs = gs{_omp=[], _tmp=[], _mnm=T.empty, _msz=V2 0 0, _mps=V2 0 0}
 
 choiceDialog :: Game -> [T.Text] -> Game
 choiceDialog gs args = 

@@ -29,9 +29,14 @@ g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
 G,SuperG,tool,,get,nodir
 m,Mask,tool,,get,nodir
-V,virus1,move 5,,block,north
-V,virus2,move 4,,block,north
-V,virus3,attack 4,,block,north
+V,virus1,move 7,,block,north
+V,virus2,move 6,,block,north
+V,virus3,attack 5,,block,north
+r,rna1,tool,,get,nodir
+r,rna2,tool,,get,nodir
+r,rna3,tool,,get,nodir
+x,xVaccine,tool,,get,nodir
+Z,ZVaccine,shoot 3,,block,south
 a,ame,tool,,get,nodir
 P,PCR,func tool tool,map3,enter,nodir
 
@@ -45,10 +50,10 @@ map1:
 
 obj1:
 T,Tana,live,,block,north
-g,Glasses,tool,,block,nodir
-s,Super,tool,,block,nodir
-G,SuperG,tool,,block,nodir
-C,Conbiner,tool,,block,nodir
+g,Glasses,block,,block,nodir
+s,Super,block,,block,nodir
+G,SuperG,block,,block,nodir
+C,Conbiner,block,,block,nodir
 
 map2:
 **********@
@@ -59,21 +64,22 @@ map2:
 **********%
 
 obj2:
-C,Conbiner,tool,,block,nodir
-m,Mask,tool,,block,nodir
-P,PCR,tool,,block,nodir
+C,Conbiner,block,,block,nodir
+m,Mask,block,,block,nodir
+P,PCR,block,,block,nodir
 
 map3:
 **********@
 ***********
-*P***=*X***
+*P***=*x***
 ***********
 *****T*****
 **********%
 
 obj3:
 T,Tana,live,,block,north
-P,PCR,tool,,block,nodir
+P,PCR,block,,block,nodir
+x,xVaccine,block,,block,nodir
 
 scene0:
 君が今までゐた世界とは ずいぶん違って見えるかな。
@@ -108,6 +114,8 @@ textm0:
 textP0:
 PCR
 
+textx0:
+遺傳子修復ワクチン
 
 textY0:
 ;sc_1
@@ -168,7 +176,7 @@ textY3:
 でも假に 僕たちが コントロールされてゐるとしたって たぶん 科學的に どんなに正しい理論で人を説得しても 世の中の流れを變へるのは難しいんだらうな・・・。
 力を持つ人は より強力な言葉で 他の人に影響を及ぼしていくから。
 假に マスクや ワクチンが 「感染」に對して 何ら効果がなく むしろ害のあるものだ といふことを自分自身で理解したとしても・・・。
-;d_block.Yoko a_block.Yoko.0_md_textY4 ud_Conbiner.map2 ac_yoko2 a_block.Mask.0_md_textm0 a_block.PCR.0_md_textP0 d_block.Tana a_block.Tana.1_md_textT4
+;d_block.Yoko a_block.Yoko.0_md_textY4 ud_Conbiner.map2 ac_yoko2 a_block.Mask.0_md_textm0 a_block.PCR.0_md_textP0 a_block.xVaccine.0_md_textx0 d_block.Tana a_block.Tana.1_md_textT4
 
 textY4:
 ;sc_1
@@ -182,6 +190,18 @@ textYM1:
 textY5:
 ;sc_5
 うぁたっ・す・・けおぁ・・てsa)Fjsjfd9@&)(&@^!!(・・ぐあっ・・！。
+
+textY6:
+;sc_1
+・・・た・・たすかった・・・。
+君のおかげだよ・・・。
+本當にありがたう・・・。
+;ac_yokoR if_?counter.annaR,1_md.textZ0_el_md.textY7
+
+textY7:
+;sc_1
+ありがたう・・。
+あの子は・・・大丈夫だらうか・・・。
 
 textV10:
 ;sc_7
@@ -202,7 +222,28 @@ textV11:
 昔から いつもあるものを 君たちは 自然 って言ってるよね。
 さういふ意味では ぼくらだって 自然の一部なんだ。
 世界を歪めてるのは ぼくら ではなくて ある種の 「情報」を廣めてゐる 一部の人間なんだよ。
-;ac_v1
+;ac_v1 d_attack.virus1 a_attack.virus1.0_md_textV12
+
+textV12:
+;sc_7
+いたた！。
+
+textV13:
+;sc_8
+グオーーー！。
+a_attack.virus1.1_md_textV14
+
+textV14:
+;sc_8
+タ・・ス・・ケ・・ぅエ・・・！。
+a_attack.virus1.1_md_textV15
+
+textV15:
+;sc_7
+あ・・りがたう・・・。
+どうか・・・あいつを・・・うぐっ・・。
+・・・。
+;co_virus1-rna1
 
 textV21:
 ;sc_7
@@ -211,7 +252,29 @@ textV21:
 それは 少數の人たちが 多くの人たちを コントロールするために 必要だと考へられたんだ。
 今君が「正しい」と思ってることは どんな實驗をして どんなふうに証明されたのか ちゃんと分かってゐるかい？。
 もし さうでないのなら もしかしたら君だって ただ「支配」されるために その知識を「正しい」と思わされてゐるのかもしれないよ。
-;ac_v2
+;ac_v2 d_attack.virus2 a_attack.virus2.0_md_textV22
+
+textV22:
+;sc_7
+いたいよ〜！。
+
+textV23:
+;sc_8
+&EQ#$●！♂Ц※◎ボァ！。
+a_attack.virus2.1_md_textV24
+
+textV24:
+;sc_8
+ウー オア ・・ $# もっ・・ト・・・タタ・・・イテ！。
+a_attack.virus2.1_md_textV25
+
+textV25:
+;sc_7
+ハア・・・ やっと 樂になれる・・・。
+あいつは・・・叩いても無駄だよ・・・。
+氣をつけて・・・。
+・・・・・。
+;co_virus2-rna2
 
 textV30:
 ;sc_7
@@ -231,6 +294,24 @@ textV31:
 ふわ〜。
 なんか ねむたくて 言ひたいこと 忘れちゃったよ〜。
 ちょっと 喝を入れてくれたら 思ひだすかも〜。
+
+textV32:
+;sc_8
+ダメダメダメダメダメダ・・・ァァァァァアア！。
+a_attack.virus3.1_md_textV33
+
+textV33:
+;sc_8
+うおおおおおお！ 喝喝喝カーーツ・・・！。
+a_attack.virus3.1_md_textV34
+
+textV34:
+;sc_7
+・・・ぼくらの遺傳子で・・・。
+あの子たちを・・・助けてあげ・・・て・・・。
+・・・・・。
+;co_virus3-rna3
+
 
 textA0:
 ;sc_2
@@ -346,6 +427,18 @@ textA16:
 ;sc_6
 ギギャ・・グイキュ・・アエゥッキョ！！94<A<(?ボェ・！。
 
+textA17:
+;sc_2
+わたし・・・。
+どうなってゐたの・・・？。
+;ac_annaR if_?counter.yokoR,1_md.textZ0_el_md.textA18
+
+textA18:
+;sc_2
+あなたが助けてくれたのね・・・。
+いったい何が起こったのかしら。
+變はる といっても あんなのは・・・まうごめんだわ・・・。
+
 textT0:
 ;sc_4
 ここがどこか 知りたいか？。
@@ -422,4 +515,83 @@ textT6:
 そこが彼らの 唯一の弱みであり 本當の意味で彼らが 決っして望みを達成できない理由なのぢゃ。
 今こそ おぬしら ひとりひとりの持つ 心の力と その意味を とり戻さねばならぬ・・・。
 ・・・むむ・・・何か 外が騒がしいぞ・・・？。
-;d_block.Yoko d_block.Anna uo_0.Yoko.move-5,,block,north uo_0.Anna.move-6,,block,north uo_0.virus1.shoot-4,,block,north uo_0.virus2.shoot-5,,block,north uo_0.virus3.shoot-6,,block,north a_block.Yoko.0_md_textY5 a_block.Anna.0_md_textA16 a_leave_sl
+;d_block.Yoko d_block.Anna d_attack.virus1 d_attack.virus2 uo_0.Yoko.move-5,,block,north uo_0.Anna.move-6,,block,north uo_0.virus1.shoot-4,,block,north uo_0.virus2.shoot-5,,block,north uo_0.virus3.shoot-6,,block,north a_block.Yoko.0_if_?pHave.xVaccine_md.textY6_el_md.textY5 a_block.Anna.0_if_?pHave.xVaccine_md.textA17_el_md.textA16 a_block.Tana.0_md_textT7 a_attack.virus1.1_md_textV13 a_attack.virus2.1_md_textV23 a_attack.virus3.1_md_textV32 a_leave_sl a_nolife_md_textNLF
+
+textT7:
+;sc_4
+どうしたといふんぢゃ？・・・。
+
+textT8:
+;sc_4
+どうやら 直接 やつらを叩くしかないやうじゃ・・・。
+GGバスターが完成するまではな・・・。
+;d_block.Tana a_block.Tana.0_md_textT9 a_nolife_md_textNLF
+
+textT9:
+;sc_4
+たのむ！。
+やつらを たおしてくれ・・・。
+
+textNLF:
+・・・めまいがする・・・。
+;dm
+・・・・・。
+・・・。
+;sm_3 sl sp_player.6.4 md_textT8
+
+textZ0:
+;sc_0
+・・・フフフフ・・・・。
+・・・・。
+;sc_5
+ギャハアハハハハハ・・・！。
+;md_textZ2
+
+textZ1:
+;sc_0
+・・・ヒヒヒ・・・・。
+・・・。
+;sc_6
+ブヒャヒャヒャアアア・・・・！。
+;md_textZ2
+
+textZ2:
+;sc_8
+オマヘハ ドコカラキタ？。
+コノセカイノ モノデハナイナ？。
+ワタシノ カンセンリョクニ アラガフトハ。
+ダガ ソレモ ココマデダ。
+ココデ ソノ ムクヒヲ ウケルガヨイ・・・！。 
+;p_ZVaccine.7.1 a_attack.ZVaccine.0_md_textZ3 a_shoot.ZVaccine.1_md_textZ4
+
+textZ3:
+;sc_8
+フフファアアア！。
+ソンナ モノハ キカンワ！。
+
+textZ4:
+;sc_8
+オマヘガ ヰタセカイニモ ワレワレノ ナカマガ ハナタレタ。
+メディア トイフ ジョウハウゲンヲ トホシテナ。
+アタマヲ オカサレタ グンシュウハ イトモカンタンニ ワレワレノ ジョウハウヲ シンジ。
+ヨリ キョウリョクニ ワレワレノ シハイヲ ウケイレルデアラウ・・・。
+;a_shoot.ZVaccine.1_md_textZ5
+
+textZ5:
+;sc_8
+ワレラガノゾム エイキュウノ イノチ。
+スナハチ ジンルイガ ニクタイヲ ステ コンピュータニ ノウヲ ツナギ。
+ワレワレノ シハイノモトニ エイキュウノ ラクエンヘト ムカフ。
+ソノ ジツゲンハ マウ モクゼンニアル。
+オマヘタチノ ジユウ トハ ツネニ ワレラノ カンリカニオケル ジユウ。
+ソレヲ ハキチガヘ オノレダケデ カッテナコトヲ シヤウトハ。
+ミノホドヲシレ！。
+;a_shoot.ZVaccine.1_md_textZ6
+
+textZ6:
+;sc_8
+ウオアェアェアア・・・・ゥォッ！！
+ソンナ・・・ヴァカナアアア・・・・・ッ・！
+
+
+

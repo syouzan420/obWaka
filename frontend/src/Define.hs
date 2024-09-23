@@ -43,7 +43,7 @@ type ObMap = [Object]
 data PEvent = PMove Pos | PBlock ObName | PPush ObName | PGet ObName | POn ObName |
               PPushTo ObName ObName | PPut ObName Pos |
               PFunc ObName ObChar | PEnter Pos ObName | PLeave |
-              PConsume ObName | PAttack ObName | 
+              PConsume ObName | PAttack ObName | PShoot ObName | PNoLife |
               PNon
                                                  deriving stock (Eq,Show,Read)
 
