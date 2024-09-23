@@ -92,7 +92,7 @@ moveObject g hs msz omp (obj:xs) =
                       _ -> obType
               nobj = setObjPos npos $ setObjType ntp obj
               (shootNum,nng) = uniformR (0::Int,100) ng
-              isShoot = shootNum > 90 && mvType==SH
+              isShoot = shootNum > 95 && mvType==SH
               isRemove = iob && mvType==BL
               isHitBullet = isRemove && nextBLPos dir pos==pps
               nhs = if isHitBullet then HBullet:hs else hs

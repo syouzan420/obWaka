@@ -194,7 +194,8 @@ txsByName = ["block","push","get","on","consume","attack","shoot"]
 
 txPevByName :: ObName -> [(T.Text,PEvent)]
 txPevByName nm = [("block",PBlock nm),("push",PPush nm),("get",PGet nm)
-        ,("on",POn nm),("consume",PConsume nm),("attack",PAttack nm)]
+        ,("on",POn nm),("consume",PConsume nm),("attack",PAttack nm)
+        ,("shoot",PShoot nm)]
 
 delEventActions :: Game -> [T.Text] -> Game
 delEventActions gs [] = gs
