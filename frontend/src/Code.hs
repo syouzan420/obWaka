@@ -65,7 +65,7 @@ getItem gs nm =
             txs = _txs gs
             obDatas = T.lines $ lookupFromSections txs ("obj"<>mnm)
             obj = makeObjectByName nm obDatas
-         in gs{_hav=obj} 
+         in trace (show obDatas) $ gs{_hav=obj} 
 
 updateObject :: Game -> T.Text -> Game
 updateObject gs tx =

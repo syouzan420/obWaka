@@ -2,6 +2,7 @@ module Waka (loadGame) where
 
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
+import Data.List (nub)
 import Data.Functor ((<&>))
 import Data.Maybe (isNothing,isJust,fromMaybe)
 import qualified Data.Text as T
@@ -25,7 +26,7 @@ import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir,getSections
                  ,updateMapData,makeObjectDatas,makeGameStateText,toGameState)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName
               ,getObjDef,deleteObjByName,getObjByName)
-import Action (movePlayer,hitAction,putAction,attackAction,moveObject)
+import Action (movePlayer,hitAction,putAction,attackAction,moveObject,shootBullet)
 import Code (exeCode,setMap,moveDialog)
 
 
@@ -183,7 +184,9 @@ wakaUpdate gs wev =
                              else tmpMap
                    (npevs,nomp,nphv) = case pHave of
                           Nothing -> attackAction txSec pDir mnm obMap 
-                          Just tob -> putAction tob pDir mapSize obMap  
+                          Just tob -> if getObjName tob=="ZBuster"
+                                 then shootBullet tob pDir mapSize obMap
+                                 else putAction tob pDir mapSize obMap  
                    ngs = gs{_tmp=ntmp, _omp=nomp, _hav=nphv}
                 in exeEvActs ngs npevs evActs
              dirEv -> 
@@ -207,7 +210,9 @@ objectUpdate gs = let omp = _omp gs
                       nlif = if HBullet `elem` nhs then 
                         (\lf -> if lf==T.empty then lf else T.drop 1 lf) <$> lif
                                                    else lif
-                      pev = [PNoLife | nlif==Just T.empty]
+                      isShootZ = HBulletTo "ZVaccine" `elem` nhs
+                      pev = [PNoLife | nlif==Just T.empty] <>
+                            [PShoot "ZVaccine" | isShootZ]
                       ngs = exeEvActs gs{_omp=nomp,_stg=nstg,_lif=nlif} pev evas 
                    in ngs
 
@@ -226,8 +231,9 @@ enterNewMap gs (PLeave:_) =
       titleM = "map"<>mnm
       titleO = "obj"<>mnm
       mapData = lookupFromSections txs titleM 
+      objData = lookupFromSections txs titleO
       newMapData = updateMapData mapData lomp
-      newObjData = T.unlines $ makeObjectDatas lomp
+      newObjData = T.unlines $ nub $ makeObjectDatas lomp <> T.lines objData
       ntxs = updateTextSection (TS titleO newObjData) $ 
                           updateTextSection (TS titleM newMapData) txs
       (tmnm,tps,omp) = _pmp gs 

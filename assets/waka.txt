@@ -39,6 +39,7 @@ x,xVaccine,tool,,get,nodir
 Z,ZVaccine,shoot 4,,block,south
 a,ame,tool,,get,nodir
 P,PCR,func tool tool,map3,enter,nodir
+b,ZBuster,tool,,get,nodir
 
 map1:
 **********@
@@ -80,6 +81,7 @@ obj3:
 T,Tana,live,,block,north
 P,PCR,block,,block,nodir
 x,xVaccine,block,,block,nodir
+b,ZBuster,tool,,get,nodir
 
 scene0:
 君が今までゐた世界とは ずいぶん違って見えるかな。
@@ -192,11 +194,15 @@ textY5:
 うぁたっ・す・・けおぁ・・てsa)Fjsjfd9@&)(&@^!!(・・ぐあっ・・！。
 
 textY6:
+;sc_5
+ウッツ・・・。
+ウ・・・・ぅ。
+・・・・・。
 ;sc_1
 ・・・た・・たすかった・・・。
 君のおかげだよ・・・。
 本當にありがたう・・・。
-;ac_yokoR if_?counter.annaR,1_md.textZ0_el_md.textY7
+;cn ac_yokoR if_?counter.annaR,1_md.textZ0_el_md.textY7 d_block.Yoko a_block.Yoko.0_md_textY7
 
 textY7:
 ;sc_1
@@ -311,7 +317,6 @@ textV34:
 あの子たちを・・・助けてあげ・・・て・・・。
 ・・・・・。
 ;co_virus3-rna3
-
 
 textA0:
 ;sc_2
@@ -428,10 +433,14 @@ textA16:
 ギギャ・・グイキュ・・アエゥッキョ！！94<A<(?ボェ・！。
 
 textA17:
+;sc_6
+アア・・・ゥ・・。
+ゥアアぁ・・・・・・。
+・・・・・。
 ;sc_2
 わたし・・・。
 どうなってゐたの・・・？。
-;ac_annaR if_?counter.yokoR,1_md.textZ0_el_md.textA18
+;cn ac_annaR if_?counter.yokoR,1_md.textZ1_el_md.textA18 d_block.Anna a_block.Anna.0_md_textA18
 
 textA18:
 ;sc_2
@@ -524,7 +533,7 @@ textT7:
 textT8:
 ;sc_4
 どうやら 直接 やつらを叩くしかないやうじゃ・・・。
-GGバスターが完成するまではな・・・。
+Ｚバスターが完成するまではな・・・。
 ;d_block.Tana a_block.Tana.0_md_textT9 a_nolife_md_textNLF
 
 textT9:
@@ -532,12 +541,22 @@ textT9:
 たのむ！。
 やつらを たおしてくれ・・・。
 
+textT10:
+;sc_4
+Ｚバスターが完成したぞ！。
+これを持って 戰ふのぢゃ！。
+;gt_ZBuster d_block.Tana a_block.Tana.0_md_textT11
+
+textT11:
+;sc_4
+Ｚバスターなら 奴を倒せる！。
+
 textNLF:
 ・・・めまいがする・・・。
 ;dm
 ・・・・・。
 ・・・。
-;sm_3 sl sp_player.6.4 md_textT8
+;sm_3 sl sp_player.6.4 if_?counter.tana,1_md.textT10_el_md.textT8
 
 textZ0:
 ;sc_0
@@ -562,7 +581,7 @@ textZ2:
 ワタシノ カンセンリョクニ アラガフトハ。
 ダガ ソレモ ココマデダ。
 ココデ ソノ ムクヒヲ ウケルガヨイ・・・！。 
-;p_ZVaccine.7.1 a_attack.ZVaccine.0_md_textZ3 a_shoot.ZVaccine.1_md_textZ4
+;p_ZVaccine.7.1 a_attack.ZVaccine.0_md_textZ3 a_shoot.ZVaccine.1_md_textZ4 d_block.Tana a_block.Tana.1_md_textT10 ac_tana
 
 textZ3:
 ;sc_8
@@ -590,8 +609,16 @@ textZ5:
 
 textZ6:
 ;sc_8
-ウオアェアェアア・・・・ゥォッ！！
-ソンナ・・・ヴァカナアアア・・・・・ッ・！
-
-
-
+ウオアェアェアア・・・・ゥォッ！！。
+ソンナ・・・ヴァカナアアア・・・・・ッ・！。
+・・・・・。
+・・・・。
+・・・。
+;sc_7
+・・・あれ・・・。
+・・・いったい・・ぼくは・・・？。
+さうか・・・ぼくも あの實驗で・・・。
+大變なことをしてしまった・・・。
+ぼくには 生きる資格がない・・・。
+;sc_2
+待って！

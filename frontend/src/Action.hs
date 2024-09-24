@@ -1,11 +1,12 @@
-module Action (movePlayer,hitAction,putAction,attackAction,moveObject) where
+module Action (movePlayer,hitAction,putAction,attackAction,moveObject
+              ,shootBullet) where
 
 import qualified Data.Text as T
 import Linear.V2 (V2(..))
 import Object (getPosByName,getDirByName,getObjByPos,blankObj,changeObjCh
               ,getObjType,getObjName,getObjCon,getObjCh,getObjDef
               ,updatePosByName,deleteObjByPos,isObjOnPos,putObjOnPos
-              ,getObjPos,setObjPos,setObjType,isInMap,getObjDir)
+              ,getObjPos,setObjPos,setObjType,isInMap,getObjDir,getNameByPos)
 import Converter (inpToDir,dirToDelta,lookupFromSections,setObjectData)
 import Data.Maybe (isNothing,fromMaybe)
 import Data.Functor ((<&>))
@@ -77,6 +78,7 @@ moveObject g hs msz omp (obj:xs) =
               pos = getObjPos obj
               dir = getObjDir obj
               pps = getPosByName "player" omp
+              isZB = mvType==BL && getNameByPos pos omp == "zbullet"
               (iob,npos,ng) = if isExec then case mvType of
                        BL -> confirmPos pos msz omp (nextBLPos dir pos,g)
                        MV -> confirmPos pos msz omp $ nextMVPos g pos
@@ -95,8 +97,14 @@ moveObject g hs msz omp (obj:xs) =
               isShoot = shootNum > 95 && mvType==SH
               isRemove = iob && mvType==BL
               isHitBullet = isRemove && nextBLPos dir pos==pps
+              hitObName = if isRemove && isZB then 
+                  let nxPos = nextBLPos dir pos
+                      imp = isInMap nxPos msz
+                   in if imp then getNameByPos nxPos omp else T.empty
+                                              else T.empty
               nhs = if isHitBullet then HBullet:hs else hs
-              mvo = moveObject nng nhs msz omp xs
+              nnhs = if hitObName/=T.empty then HBulletTo hitObName:nhs else nhs
+              mvo = moveObject nng nnhs msz omp xs
            in if isRemove then mvo else 
                     if isShoot then let (blObj,blPos,_) = makeBullet nng pps npos  
                                         isMap = isInMap blPos msz
@@ -106,6 +114,7 @@ moveObject g hs msz omp (obj:xs) =
                                                               else
                                                 first (nobj :) mvo
                                else first (nobj :) mvo
+
 
 makeBullet :: StdGen -> Pos -> Pos -> (Object,Pos,StdGen)
 makeBullet g pps pos = 
@@ -172,6 +181,20 @@ putAction tob pDir msz om =
    in if canPut then ([PPut oName tps],putObjOnPos tob tps om,Nothing)
                 else ([],om,Just tob)    
 
+shootBullet :: Object -> Dir -> MapSize -> ObMap -> ([PEvent],ObMap,Maybe Object) 
+shootBullet tob pDir msz om =
+  let pPos = getPosByName "player" om
+      (blObj,bps) = makeZBullet pDir pPos
+      canPut = isInMap bps msz && not (isObjOnPos bps om)
+   in if canPut then ([],putObjOnPos blObj bps om,Just tob) 
+                else ([],om,Just tob)
+
+makeZBullet :: Dir -> Pos -> (Object,Pos)
+makeZBullet dr pps =
+  let bps = pps + dirToDelta dr 
+      blObj = Ob '●' "zbullet" (TLive (LBullet 2 0)) T.empty CBlock dr bps 
+   in (blObj,bps)
+  
 attackAction :: [TextSection] -> Dir -> MapName 
                       -> ObMap -> ([PEvent],ObMap,Maybe Object)
 attackAction txSec pDir mnm om =

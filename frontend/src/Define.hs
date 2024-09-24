@@ -60,7 +60,7 @@ data IMode = Txt | Cho | Ply deriving stock (Eq,Show,Read)
 
 data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 
-data HitSt = HNon | HBullet deriving stock (Eq,Show)
+data HitSt = HNon | HBullet | HBulletTo ObName deriving stock (Eq,Show)
 
 
 --imd: input mode (Txt or Cho or Ply)
