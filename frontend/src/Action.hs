@@ -58,19 +58,19 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
       nphv = if isGet && isNothing hv then obj else hv
    in (npevs, nomp3, V2 nmx nmy, nphv)
 
-data MoveType = MV | AT | SH | BL | NN deriving stock Eq
+data MoveType = MV | AP | SH | BL | NN deriving stock Eq
 
 moveObject :: StdGen -> [HitSt] -> MapSize -> ObMap -> ObMap 
                                       -> (ObMap,([HitSt],StdGen))
 moveObject g hs _ _ [] = ([],(hs,g))
 moveObject g hs msz omp (obj:xs) =
   let obType = getObjType obj
-      (mvType,mct,ct) = case obType of
-        TLive (LMove maxCount count) -> (MV,maxCount,count) 
-        TLive (LAttack maxCount count) -> (AT,maxCount,count)
-        TLive (LShoot maxCount count) -> (SH,maxCount,count)
-        TLive (LBullet maxCount count) -> (BL,maxCount,count)
-        _ -> (NN,0,0)
+      (mvType,rg,mct,ct) = case obType of
+        TLive (LMove maxCount count) -> (MV,0,maxCount,count) 
+        TLive (LApproach range maxCount count) -> (AP,range,maxCount,count)
+        TLive (LShoot maxCount count) -> (SH,0,maxCount,count)
+        TLive (LBullet maxCount count) -> (BL,0,maxCount,count)
+        _ -> (NN,0,0,0)
    in if mvType==NN then let mvo = moveObject g hs msz omp xs 
                           in first (obj :) mvo else
           let isExec = mct==ct
@@ -80,15 +80,15 @@ moveObject g hs msz omp (obj:xs) =
               pps = getPosByName "player" omp
               isZB = mvType==BL && getNameByPos pos omp == "zbullet"
               (iob,npos,ng) = if isExec then case mvType of
-                       BL -> confirmPos pos msz omp (nextBLPos dir pos,g)
                        MV -> confirmPos pos msz omp $ nextMVPos g pos
+                       AP -> confirmPos pos msz omp $ nextAPPos g rg pps pos
                        SH -> confirmPos pos msz omp $ nextMVPos g pos
-                       AT -> confirmPos pos msz omp $ nextATPos g pps pos
+                       BL -> confirmPos pos msz omp (nextBLPos dir pos,g)
                        _  -> (False,pos,g)
                                     else (False,pos,g)
               ntp = case mvType of
                       MV -> TLive (LMove mct newCount)
-                      AT -> TLive (LAttack mct newCount)
+                      AP -> TLive (LApproach rg mct newCount)
                       SH -> TLive (LShoot mct newCount)
                       BL -> TLive (LBullet mct newCount)
                       _ -> obType
@@ -142,13 +142,13 @@ nextMVPos g pos = let (dirNum,ng) = uniformR (0,4) g
                       dir = toEnum dirNum :: Dir
                    in (pos + dirToDelta dir, ng)
 
-nextATPos :: StdGen -> Pos -> Pos -> (Pos,StdGen)
-nextATPos g pps pos = let dff@(V2 dx dy) = pps - pos  
-                          isRange = dx*dx + dy*dy < 25
-                          (dirNum,ng) = if isRange then approach g dff
-                                                   else uniformR (0,4) g
-                          dir = toEnum dirNum :: Dir
-                       in (pos + dirToDelta dir, ng)
+nextAPPos :: StdGen -> Int -> Pos -> Pos -> (Pos,StdGen)
+nextAPPos g rg pps pos = let dff@(V2 dx dy) = pps - pos  
+                             isRange = dx*dx + dy*dy < rg*rg 
+                             (dirNum,ng) = if isRange then approach g dff
+                                                      else uniformR (0,4) g
+                             dir = toEnum dirNum :: Dir
+                          in (pos + dirToDelta dir, ng)
 
 approach :: StdGen -> Pos -> (Int,StdGen) 
 approach g (V2 dx dy) = let ixp = dx >= 0

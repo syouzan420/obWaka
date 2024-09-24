@@ -112,7 +112,8 @@ txToType txt = let txts = T.words txt
                     ("func":tps) -> TFunc (map findType tps)
                     ("move":ct:c) -> TLive (LMove ((read . T.unpack) ct) 
                                 (if null c then 0 else (read . T.unpack) (head c)))
-                    ("attack":ct:c) -> TLive (LAttack ((read . T.unpack) ct)
+                    ("approach":rg:ct:c) -> 
+                      TLive (LApproach ((read . T.unpack) rg) ((read . T.unpack) ct)
                                 (if null c then 0 else (read . T.unpack) (head c)))
                     ("shoot":ct:c) -> TLive (LShoot ((read . T.unpack) ct)
                                 (if null c then 0 else (read . T.unpack) (head c)))
@@ -272,8 +273,8 @@ tpToText :: ObType -> T.Text
 tpToText (TFunc []) = "func"
 tpToText (TFunc tps) = "func "<>T.intercalate " " (map tpToText tps) 
 tpToText (TLive (LMove ct c)) = "move "<>(T.pack . show) ct<>" "<>(T.pack . show) c
-tpToText (TLive (LAttack ct c)) = 
-                    "attack "<>(T.pack . show) ct<>" "<>(T.pack . show) c
+tpToText (TLive (LApproach rg ct c)) = 
+    "approach "<>(T.pack . show) rg<>" "<>(T.pack . show) ct<>" "<>(T.pack . show) c
 tpToText (TLive (LShoot ct c)) = 
                     "shoot "<>(T.pack . show) ct<>" "<>(T.pack . show) c
 tpToText (TLive (LBullet ct c)) = 

@@ -9,7 +9,7 @@ import Converter (makeObjectMap,setObjectData,setMapStartPos
                  ,updateObjectData,txToObject)
 import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
               ,deleteObjByPos,updateDefByName,updateObjByName,getObjByName
-              ,updatePosByName)
+              ,updatePosByName,deleteObjByName)
 import Define
 
 import Debug.Trace (trace)
@@ -29,6 +29,7 @@ exeOneCode gs evt = do
     "sl" -> showLife gs
     "dm" -> deleteMap gs
     "save" -> gs{_etr=Save}
+    "end" -> endGame gs
     _ -> gs 
                     else case en of
     "a" -> setEventAction gs (head ags) (T.intercalate "_" (tail ags)) 
@@ -46,7 +47,29 @@ exeOneCode gs evt = do
     "uo" -> updateObject gs (head ags)
     "gt" -> getItem gs (head ags)
     "sp" -> setPosition gs (head ags)
+    "cm" -> changeMode gs (head ags)
     _ -> gs 
+
+endGame :: Game -> Game
+endGame gs =
+  let omp = _omp gs
+      mps = _mps gs
+      nomp = deleteObjByName "player" omp
+      V2 ex ey = mps + V2 5 2
+      showT = T.pack . show
+      putList = ["E"<>"."<>showT ex<>"."<>showT ey
+                ,"N"<>"."<>showT (ex+1)<>"."<>showT ey 
+                ,"D"<>"."<>showT (ex+2)<>"."<>showT ey]
+      ngs = putObject gs{_omp=nomp} putList
+   in moveDialog ngs "textEnd"
+
+textMode :: [(T.Text,IMode)]
+textMode = [("txt",Txt),("cho",Cho),("mov",Mov),("ply",Ply),("end",End)]
+
+changeMode :: Game -> T.Text -> Game
+changeMode gs tx =
+  let md = fromMaybe Txt $ lookup tx textMode
+   in gs {_imd = md}
 
 setPosition :: Game -> T.Text -> Game
 setPosition gs tx =

@@ -25,13 +25,14 @@ A,Anna,live,,block,north
 B,Box,block,,move,north
 C,Conbiner,func tool tool tool,map1,enter,north
 Y,Yoko,live,,block,north
+T,Tana,approach 20 3,,block,north
 g,Glasses,tool,,get,nodir
 s,Super,tool,,get,nodir
 G,SuperG,tool,,get,nodir
 m,Mask,tool,,get,nodir
 V,virus1,move 7,,block,north
 V,virus2,move 6,,block,north
-V,virus3,attack 5,,block,north
+V,virus3,approach 5 5,,block,north
 r,rna1,tool,,get,nodir
 r,rna2,tool,,get,nodir
 r,rna3,tool,,get,nodir
@@ -40,6 +41,10 @@ Z,ZVaccine,shoot 4,,block,south
 a,ame,tool,,get,nodir
 P,PCR,func tool tool,map3,enter,nodir
 b,ZBuster,tool,,get,nodir
+E,E,block,,block,nodir
+N,N,block,,block,nodir
+D,D,block,,block,nodir
+
 
 map1:
 **********@
@@ -556,7 +561,7 @@ textNLF:
 ;dm
 ・・・・・。
 ・・・。
-;sm_3 sl sp_player.6.4 if_?counter.tana,1_md.textT10_el_md.textT8
+;sm_3 sl sp_player.6.4 if_?pHave.ZBuster_md.textT11_if_?counter.tana,1_md.textT10_el_md.textT8
 
 textZ0:
 ;sc_0
@@ -619,6 +624,70 @@ textZ6:
 ・・・いったい・・ぼくは・・・？。
 さうか・・・ぼくも あの實驗で・・・。
 大變なことをしてしまった・・・。
-ぼくには 生きる資格がない・・・。
+ぼくには 生きてゐる資格がない・・・。
 ;sc_2
 待って！
+;uo_0.ZVaccine.stand,,block,north p_Tana.15.8 uo_0.Yoko.approach-20-1,,block,north uo_0.Anna.approach-20-1,,block,north cm_mov
+あなただって 被害者なのよ！。
+それに・・・まう 二度とこんなことにならないためにも。
+どうか 私たちと協力して この世界を 變へてほしいの・・・。
+;sc_7
+・・・う・・・っ・・・ありが・・たう・・。
+たくさんの遺傳子に このことを傳へて ひどい人體實驗が きっとなくなるやうに 働きかけてみるよ・・・。
+;sc_1
+君の心の強さが 僕らに希望をくれた。
+僕も 自分の心をよく観察して 本當に望む世界を 創ってみせる・・・。
+;sc_4
+世界は 己の心の中にある。
+それを 十分に理解すれば おぬしの望む世界が 必ず訪れる。
+どうか この世界での 短い經驗を 己の生き方に繋げてくれんか。
+;sc_2
+あなたは 私達にとって 光だった・・・。
+あなたの もと居た世界に歸っても あなたが あなたでありますやうに・・・。
+;sc_7
+ぼくからも ・・・ありがたう。
+君の居た世界にも ぼくらの思ひがきっと届く・・・。
+;sc_1
+そろそろお別れか・・・。
+寂しくなるな・・・。
+;sc_4
+次は おぬしが この世界を盛り上げる番ではないか。
+;sc_1
+さうでした・・・。
+それぢゃあ 氣をとりなおして。
+元氣に見送るとするか！。
+;sc_2
+さやうなら！。
+また きっと會へるでせう！。
+私達の心が また あなたに繋がりますやうに！。
+;sc_7
+さやうなら！。
+そして ありがたう！。
+;sc_4
+達者でな・・・。
+;end
+
+textEnd:
+プレイしていただき ありがたうございました。
+私にとって この操画(ゲーム)は 次のやうな意義があります。
+函數型言語 Haskell で すべてのコードを書き。
+つたないながらも FRP といふコーディングスタイルをかなり 練習できたといふこと。
+Android 端末をターゲットにすることで 携帯ゲームへの道を開いたこと。
+パズルやシステムの基本的な構造を構築できたこと。
+より樂しいパズルや アクション そして物語を考へる上での 一歩を踏み出せたこと。
+時事的な話題や 考へ方 価値観を傳へる難しさを あらためて實感できたこと。
+おそらく みなさんが 満足するやうな操画を創るレベルには 到底逹っしてゐませんが。
+今後 みなさんが 樂しんでいただける。
+かつ 何らかの 傳はるものがある。
+さういった操画を 創作していきたい所存です。
+最後に この操画を創る モチベーションを強めてくださった 藤屋さん。
+つねに面白い操作をして バグを炙り出してくれる たかぽん。
+暖かい目で 私の制作を見て 遊んでくれた 颯平に 感謝します。
+いつか 「わかひめ」を
+歴史的な作品にすべく 邁進してまひります。
+本當に ありがたうございました！。
+令和六年九月二十四日。
+横山 照久 拜。
+;cm_end
+
+

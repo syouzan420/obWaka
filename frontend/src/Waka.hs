@@ -2,6 +2,7 @@ module Waka (loadGame) where
 
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
+import Linear.V2 (V2(..))
 import Data.List (nub)
 import Data.Functor ((<&>))
 import Data.Maybe (isNothing,isJust,fromMaybe)
@@ -25,7 +26,7 @@ import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir,getSections
                  ,setMapStartPos,dirToText,lookupFromSections,updateTextSection
                  ,updateMapData,makeObjectDatas,makeGameStateText,toGameState)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName
-              ,getObjDef,deleteObjByName,getObjByName)
+              ,getObjDef,deleteObjByName,getObjByName,getPosByName)
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject,shootBullet)
 import Code (exeCode,setMap,moveDialog)
 
@@ -147,6 +148,7 @@ wakaUpdate :: Game -> WkEvent -> Game
 wakaUpdate gs wev =
   let imode = _imd gs
    in case imode of
+        End -> gs
         Txt -> case wev of
           WTick -> let ngs = effectUpdate gs 
                        iths = _iths ngs
@@ -164,6 +166,21 @@ wakaUpdate gs wev =
                 WDown -> if tln>4 then titles!!4 else T.empty
                 _ -> T.empty 
            in if title==T.empty then gs else moveDialog gs{_imd=Txt} title
+        Mov -> case wev of 
+          WTick -> 
+            let ngs = objectUpdate gs 
+                omp = _omp gs
+                pps = getPosByName "player" omp
+                apos = getPosByName "Anna" omp
+                ypos = getPosByName "Yoko" omp
+                tpos = getPosByName "Tana" omp
+                fIsCome (V2 x y) = x^(2::Int) + y^(2::Int) < 9
+                adf = apos - pps
+                ydf = ypos - pps
+                tdf = tpos - pps
+                isCome = fIsCome adf && fIsCome ydf && fIsCome tdf 
+             in if isCome then ngs{_imd=Txt} else ngs
+          _     -> gs
         Ply -> 
           let obMap = _omp gs
               mapSize = _msz gs
