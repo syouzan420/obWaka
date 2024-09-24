@@ -37,6 +37,14 @@ button:active {
   position: relative;
   top: 30px;
 }
+
+.lnk {
+  font: 400 30px system-ui;
+  position: absolute;
+  top: 550px;
+  left: 250px;
+}
+
 .pad2 {
   padding: 1px 17px 2px;
   font: 400 20px system-ui;

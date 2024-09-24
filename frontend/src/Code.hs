@@ -48,7 +48,16 @@ exeOneCode gs evt = do
     "gt" -> getItem gs (head ags)
     "sp" -> setPosition gs (head ags)
     "cm" -> changeMode gs (head ags)
+    "hl" -> hyperLink gs (head ags)
     _ -> gs 
+
+hyperLink :: Game -> T.Text -> Game
+hyperLink gs tx =
+  let lnTx = T.splitOn "-" tx
+      (lnu,lnt) = case lnTx of
+                    [ln,txt] -> (T.replace "|" "_" ln,txt)
+                    _ -> (T.empty,T.empty)
+   in gs{_lnu=lnu, _lnt=lnt}
 
 endGame :: Game -> Game
 endGame gs =
@@ -294,7 +303,7 @@ deleteMap gs = gs{_omp=[], _tmp=[], _mnm=T.empty, _msz=V2 0 0, _mps=V2 0 0}
 choiceDialog :: Game -> [T.Text] -> Game
 choiceDialog gs args = 
   choiceDialog' gs{_imd=Cho,_cho=[],_txv=_txv gs<>"\n",_tct=_tct gs + 1}
-                                          args ["●","↑","←","□","↓","→"] 
+                                          args ["●","←","□","↑","→","↓"] 
 
 choiceDialog' :: Game -> [T.Text] -> [T.Text] -> Game
 choiceDialog' gs [] _ = gs
@@ -309,7 +318,8 @@ moveDialog gs title =
   let textSections = _txs gs 
       newText = lookupFromSections textSections title
    in if newText==T.empty then gs else 
-    gs{_imd=Txt, _itx=True, _tct=0, _txw=newText, _txv=T.empty}
+    gs{_imd=Txt, _itx=True, _tct=0, _txw=newText, _txv=T.empty
+      ,_lnu=T.empty, _lnt=T.empty}
 
 showChara :: Game -> T.Text -> Game
 showChara gs chn = gs{_chn = (read . T.unpack) chn}

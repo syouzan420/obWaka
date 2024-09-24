@@ -84,6 +84,11 @@ data HitSt = HNon | HBullet | HBulletTo ObName deriving stock (Eq,Show)
 --stg: standard random generator
 --cnts: counters
 --etr: event trigger
+--lnt: link text
+--lnu: link url
+--cnn: count numbers
+--llc: life lost count
+--gmc: game clear numbers
 data Game = Game {_imd :: !IMode
                  ,_txs :: ![TextSection]
                  ,_txw :: !T.Text
@@ -106,6 +111,11 @@ data Game = Game {_imd :: !IMode
                  ,_cnts :: ![Counter]
                  ,_etr :: !ETR
                  ,_lif :: !Life
+                 ,_lnt :: !T.Text
+                 ,_lnu :: !T.Text
+                 ,_cnn :: !Int
+                 ,_llc :: !Int
+                 ,_gmc :: !Int
                  } deriving stock (Eq,Show)
 
 mapWinSize :: Size 

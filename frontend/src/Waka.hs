@@ -3,6 +3,7 @@ module Waka (loadGame) where
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
 import Linear.V2 (V2(..))
+import qualified Data.Map as M 
 import Data.List (nub)
 import Data.Functor ((<&>))
 import Data.Maybe (isNothing,isJust,fromMaybe)
@@ -57,6 +58,9 @@ wakaMain gs = do
     let dyIMode = _imd <$> dyGs
     let dyETR = _etr <$> dyGs 
     let dyLife = _lif <$> dyGs
+    let dyLnu = _lnu <$> dyGs
+    let dyAtr = fmap (\t -> ("href" =: t)::M.Map T.Text T.Text) dyLnu
+    let dyLnt = _lnt <$> dyGs
     let dyIsShowLife = isJust <$> dyLife
     let dyHide = mkHidden <$> dyIsShowLife
     let dyTxtOn = zipDynWith (\a b -> a && (b==Txt || b==Cho)) dyIsText dyIMode
@@ -81,11 +85,12 @@ wakaMain gs = do
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
-    evWDir1 <- mapM (evElButton "pad") ["●","→","↑"] <&>
-                                     zipWith (<$) [WOk,WRight,WUp]
-    _ <- el "div" $ text " " 
-    evWDir2 <- mapM (evElButton "pad") ["□","←","↓"] <&>
-                                     zipWith (<$) [WSub,WLeft,WDown]
+    evWDir1 <- mapM (evElButton "pad") ["●","↑","□"] <&>
+                                     zipWith (<$) [WOk,WUp,WSub]
+    _ <- el "div" $ text "" 
+    divClass "lnk" $ elDynAttr "a" dyAtr $ dynText dyLnt
+    evWDir2 <- mapM (evElButton "pad") ["←","↓","→"] <&>
+                                     zipWith (<$) [WLeft,WDown,WRight]
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
 
@@ -160,10 +165,11 @@ wakaUpdate gs wev =
               tln = length titles
               title = case wev of
                 WOk -> if tln>0 then head titles else T.empty 
-                WRight -> if tln>1 then titles!!1 else T.empty
-                WUp -> if tln>2 then titles!!2 else T.empty
+                WUp -> if tln>1 then titles!!1 else T.empty
+                WSub -> if tln>2 then titles!!2 else T.empty
                 WLeft -> if tln>3 then titles!!3 else T.empty
                 WDown -> if tln>4 then titles!!4 else T.empty
+                WRight -> if tln>5 then titles!!5 else T.empty
                 _ -> T.empty 
            in if title==T.empty then gs else moveDialog gs{_imd=Txt} title
         Mov -> case wev of 

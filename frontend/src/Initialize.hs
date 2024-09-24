@@ -21,4 +21,6 @@ newGame = Game{_imd=Txt
               ,_cnts=[]
               ,_etr=NoEvent
               ,_lif=Nothing
+              ,_lnt=T.empty, _lnu=T.empty
+              ,_cnn=0, _llc=0, _gmc=0
               }
