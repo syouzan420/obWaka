@@ -9,7 +9,7 @@ import Converter (makeObjectMap,setObjectData,setMapStartPos
                  ,updateObjectData,txToObject)
 import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
               ,deleteObjByPos,updateDefByName,updateObjByName,getObjByName
-              ,updatePosByName,deleteObjByName)
+              ,updatePosByName,deleteObjByName,isInMap,isObjOnPos,getObjDef)
 import Define
 
 import Debug.Trace (trace)
@@ -49,7 +49,23 @@ exeOneCode gs evt = do
     "sp" -> setPosition gs (head ags)
     "cm" -> changeMode gs (head ags)
     "hl" -> hyperLink gs (head ags)
+    "em" -> enterMap gs (head ags)
     _ -> gs 
+
+enterMap :: Game -> T.Text -> Game
+enterMap gs oname =
+  let omp = _omp gs
+      mnm = _mnm gs
+      msz = _msz gs
+      ops = getPosByName oname omp
+      ppsList d = [ops+V2 d 0,ops+V2 0 (-d),ops+V2 (-d) 0,ops+V2 0 d]
+      canPutPS d [] = canPutPS (d+1) (ppsList (d+1)) 
+      canPutPS d (p:xs) = if isInMap p msz && not (isObjOnPos p omp) then p else
+                              canPutPS d xs
+      resPos = canPutPS 1 (ppsList 1)
+      obj = getObjByName oname omp
+      tdf = maybe T.empty getObjDef obj
+   in setMap gs{_pmp = (mnm,resPos,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 
 hyperLink :: Game -> T.Text -> Game
 hyperLink gs tx =
