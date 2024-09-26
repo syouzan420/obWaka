@@ -166,6 +166,9 @@ wakaUpdate gs wev =
   let imode = _imd gs
    in case imode of
         End -> gs
+        Wai -> let cnn = _cnn gs
+                   ncnn = if ncnn>10 then 0 else cnn + 1
+                in gs{_imd=if ncnn>10 then Txt else Wai, _cnn=ncnn}
         Txt -> case wev of
           WTick -> let ngs = effectUpdate gs 
                        iths = _iths ngs
