@@ -10,7 +10,7 @@ type Title = T.Text
 type Counter = (T.Text,Int)
 type Life = Maybe T.Text
 
-data ETR = NoEvent | Save | Load deriving stock (Eq,Show) 
+data ETR = NoEvent | Save | LSave deriving stock (Eq,Show) 
 
 data TextSection = TS Title T.Text deriving stock (Eq,Show)
 

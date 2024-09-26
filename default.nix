@@ -24,17 +24,17 @@ project ./. ({ pkgs, ... }: {
   };
 
   android = {
-    applicationId = "org.yokop.waka";
-    displayName = "Waka";
+    applicationId = "org.yokop.hen";
+    displayName = "HEN";
     isRelease = androidIsRelease;
     resources = reflex-platform.android.buildIcons {
-      src = ./assets/chara.png;
+      src = ./assets/chara3.png;
     };
     version = {
       code = "1";
       name = "0.1";
     };
   };
-  ios.bundleIdentifier = "org.yokop.waka";
-  ios.bundleName = "Waka";
+  ios.bundleIdentifier = "org.yokop.hen";
+  ios.bundleName = "HEN";
 })

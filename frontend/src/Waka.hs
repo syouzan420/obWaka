@@ -48,10 +48,12 @@ wakaMain gs = do
     let beTxtOn = current dyTxtOn
     let beETR = current dyETR
     let beIsSave = fmap (==Save) beETR
+    let beIsLSave = fmap (==LSave) beETR
     let evTxTime = gate beTxtOn evTime
     let evWTick = WTick <$ evTime
     let evWk = leftmost ([evWUp]<>[evWSub]<>evWDir<>[evWDown]<>[evWTick])
     let evSave = gate beIsSave evWTick 
+    let evLSave = gate beIsLSave evWTick
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
     let dyIsText = _itx <$> dyGs
@@ -95,6 +97,15 @@ wakaMain gs = do
     divClass "lnk" $ elDynAttr "a" dyAtr $ dynText dyLnt
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
+    widgetHold_ blank (lastSave dyGs <$ evLSave)
+
+lastSave :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
+lastSave dyGs = do 
+  gs <- sample (current dyGs)
+  let gmc = _gmc gs
+  let txs = getSections $ T.lines textData
+  let (TS _ tx) = head txs
+  (saveState . makeGameStateText) newGame{_txs=txs, _txw=tx, _gmc=gmc+1}
 
 saveGame :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
 saveGame dyGs = do 

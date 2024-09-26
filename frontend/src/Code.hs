@@ -95,7 +95,7 @@ endGame gs =
                 ,"N"<>"."<>showT (ex+1)<>"."<>showT ey 
                 ,"D"<>"."<>showT (ex+2)<>"."<>showT ey]
       ngs = putObject gs{_omp=nomp} putList
-   in moveDialog ngs{_gmc=_gmc gs+1, _etr=Save} "textEnd"
+   in moveDialog ngs{_etr=LSave} "textEnd"
 
 textMode :: [(T.Text,IMode)]
 textMode = [("txt",Txt),("cho",Cho),("mov",Mov),("ply",Ply),("end",End)]
