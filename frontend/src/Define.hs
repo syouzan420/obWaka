@@ -56,7 +56,7 @@ data EvAct = EA PEvent Code Int Int deriving stock (Eq,Show)
 
 data Ast = NAct | TAct | EAct deriving stock (Eq,Show)
 
-data IMode = Txt | Cho | Mov | Ply | End deriving stock (Eq,Show,Read)
+data IMode = Txt | Cho | Mov | Ply | End | Ext deriving stock (Eq,Show,Read)
 
 data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 

@@ -112,18 +112,24 @@ loadGame ::
   , Prerender t m
   ) => m () 
 loadGame = mdo
-  dyStateMb <- loadState
-  let dyState = fmap (fromMaybe T.empty) dyStateMb
+  dyStTextMb <- loadState
+  let dyStText = fmap (fromMaybe T.empty) dyStTextMb
+  let dySt = toGameState <$> dyStText
+  let dyIsSaveData = (/=T.empty) <$> dyStText
+  let dyIsClearGame = fmap (\st -> _gmc st>0) dySt
   elDynAttr "div" dyHide $ do 
         elImage0
         divClass "kai" $ text "變〜へん〜現實の向かう側"
-  evs <- mapM (evElButtonH dyBool "pad") ["はじめから","つづき"] 
-                                            <&> zipWith (<$) [1,2]
-  let evStart = leftmost evs
+  evFromBegin <- evElButtonH dyBool "pad4" "はじめから" <&> (<$) 1
+  evContinue <- evElButtonH dyBool2 "pad4" "つづき" <&> (<$) 2
+  evExtra <- evElButtonH dyBool3 "pad4" "おまけ" <&> (<$) 3
+  let evStart = leftmost [evFromBegin,evContinue,evExtra] 
   dyNum <- holdDyn 0 evStart
   dyBool <- toggle True evStart
+  let dyBool2 = zipDynWith (&&) dyBool dyIsSaveData
+  let dyBool3 = zipDynWith (&&) dyBool dyIsClearGame 
   let dyHide = mkHidden <$> dyBool
-  widgetHold_ blank (gameStart dyState dyNum <$ evStart)
+  widgetHold_ blank (gameStart dySt dyNum <$ evStart)
 
 gameStart ::
   ( DomBuilder t m
@@ -134,14 +140,16 @@ gameStart ::
   , PerformEvent t m
   , TriggerEvent t m
   , Prerender t m
-  ) => Dynamic t T.Text -> Dynamic t Int -> m () 
+  ) => Dynamic t Game -> Dynamic t Int -> m () 
 gameStart dst di = do
   st <- (sample . current) dst
   i <- (sample . current) di 
-  if st==T.empty || i==1 then let txs = getSections $ T.lines textData
+  if st==newGame || i==1 then let txs = getSections $ T.lines textData
                                   (TS _ tx) = head txs
                                in wakaMain newGame{_txs=txs, _txw=tx}
-                         else wakaMain (toGameState st) 
+                         else if i==2 then wakaMain st 
+                                      else let nomp = _omp st 
+                                            in wakaMain st{_imd=Ext,_msz=V2 30 30,_omp=nomp}
 
 showMapRect :: Game -> T.Text
 showMapRect gs =
@@ -226,6 +234,28 @@ wakaUpdate gs wev =
                    ngs = exeEvActs gs{_omp=nomp,_mps=nmps,_hav=nphv} npevs evActs
                    ngs2 = enterNewMap ngs npevs
                 in ngs2 
+        Ext -> 
+          let obMap = _omp gs
+              mapSize = _msz gs
+              pDir = getDirByName "player" obMap
+              evActs = _evas gs
+           in case wev of
+             WTick -> objectUpdate gs
+             WSub -> gs
+             WOk -> 
+               let tob = Ob 'b' "ZBuster" TTool T.empty CBlock NoDir (V2 0 0) 
+                   (npevs,nomp,_) = shootBullet tob pDir mapSize obMap
+                   ngs = gs{ _omp=nomp}
+                in exeEvActs ngs npevs evActs
+             dirEv -> 
+               let mapPos = _mps gs
+                   keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
+                   isSameDir = pDir == keyDir
+                   (npevs,nomp,nmps,_) = if isSameDir 
+                      then movePlayer dirEv Nothing mapSize mapWinSize mapPos obMap
+                      else ([],updateDirByName "player" keyDir obMap,mapPos,Nothing)
+                   ngs = exeEvActs gs{_omp=nomp,_mps=nmps} npevs evActs
+                in ngs 
 
 objectUpdate :: Game -> Game
 objectUpdate gs = let omp = _omp gs
