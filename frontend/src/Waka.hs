@@ -50,7 +50,7 @@ wakaMain gs = do
     let beIsSave = fmap (==Save) beETR
     let evTxTime = gate beTxtOn evTime
     let evWTick = WTick <$ evTime
-    let evWk = leftmost (evWDir1<>evWDir2<>[evWTick])
+    let evWk = leftmost ([evWUp]<>[evWSub]<>evWDir<>[evWDown]<>[evWTick])
     let evSave = gate beIsSave evWTick 
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyVText = _txv <$> dyGs
@@ -85,12 +85,14 @@ wakaMain gs = do
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
-    evWDir1 <- mapM (evElButton "pad") ["●","↑","□"] <&>
-                                     zipWith (<$) [WOk,WUp,WSub]
+    evWUp <- evElButton "pad3" "↑" <&> (<$) WUp
     _ <- el "div" $ text "" 
+    evWDir <- mapM (evElButton "pad") ["←","●","→"] <&>
+                                     zipWith (<$) [WLeft,WOk,WRight]
+    _ <- el "div" $ text "" 
+    evWDown <- evElButton "pad3" "↓" <&> (<$) WDown
+    evWSub <- evElButton "pad2" "□" <&> (<$) WSub
     divClass "lnk" $ elDynAttr "a" dyAtr $ dynText dyLnt
-    evWDir2 <- mapM (evElButton "pad") ["←","↓","→"] <&>
-                                     zipWith (<$) [WLeft,WDown,WRight]
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
 
@@ -147,7 +149,9 @@ showMapRect gs =
       tMap = _tmp gs
       mapSize = _msz gs
       mapPos = _mps gs
-   in putMapInFrame mapWinSize mapPos $ showMap mapSize obMap tMap
+      isMapShow = _ims gs
+   in if isMapShow then putMapInFrame mapWinSize mapPos $ showMap mapSize obMap tMap
+                   else T.empty
 
 wakaUpdate :: Game -> WkEvent -> Game
 wakaUpdate gs wev =

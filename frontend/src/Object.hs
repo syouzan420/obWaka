@@ -117,4 +117,3 @@ putablePos pos@(V2 px py) msz omp =
         | imp = pos
         | otherwise = V2 (px-2) py
    in if iob || not imp then putablePos nps msz omp else nps
-

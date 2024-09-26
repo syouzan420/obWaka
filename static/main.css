@@ -8,6 +8,7 @@ p {
 }
 
 button {
+  user-select: none;
   background-color: #BAFFBD;
   margin: 3px 2px;
   border-radius: 5px;
@@ -32,23 +33,33 @@ button:active {
 }
 
 .pad {
-  padding: 1px 17px 2px;
+  padding: 1px 15px 2px;
+  margin: 5px;
   font: 400 30px system-ui;
   position: relative;
   top: 30px;
 }
-
-.lnk {
+.pad2 {
+  padding: 1px 15px 2px;
   font: 400 30px system-ui;
+  position: relative;
+  top: 30px;
+  left: 130px;
+}
+.pad3 {
+  padding: 1px 15px 2px;
+  font: 400 30px system-ui;
+  position: relative;
+  top: 30px;
+  left: 68px;
+}
+.lnk {
+  font: 400 25px system-ui;
   position: absolute;
-  top: 550px;
+  top: 600px;
   left: 250px;
 }
 
-.pad2 {
-  padding: 1px 17px 2px;
-  font: 400 20px system-ui;
-}
 .butn {
   grid-column-gap: 10px;
   grid-row-gap: 10px;

@@ -71,6 +71,7 @@ data HitSt = HNon | HBullet | HBulletTo ObName deriving stock (Eq,Show)
 --tcs: text count sub
 --itx: is text showing?
 --iths: is text high speed?
+--ims: is map show?
 --omp: object map
 --tmp: temporary object map (for animation effect)
 --mnm: map name
@@ -97,6 +98,7 @@ data Game = Game {_imd :: !IMode
                  ,_tcs :: !Int
                  ,_itx :: !Bool
                  ,_iths :: !Bool
+                 ,_ims :: !Bool
                  ,_omp :: !ObMap
                  ,_tmp :: !ObMap
                  ,_mnm :: !MapName

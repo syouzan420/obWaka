@@ -332,7 +332,7 @@ toGameState tx = case T.splitOn "~" tx of
             llc = (read . T.unpack) llcText
             gmc = (read . T.unpack) gmcText
           in Game{_imd=imd,_txs=txs,_txw=T.empty,_txv=T.empty,_tct=0,_tcs=0
-                 ,_itx=False,_iths=False,_omp=omp,_tmp=[],_mnm=mnm,_msz=msz
+                 ,_itx=False,_iths=False,_ims=True,_omp=omp,_tmp=[],_mnm=mnm,_msz=msz
                  ,_mps=mps,_pmp=pmp,_evas=evas,_chn=0,_hav=hav,_cho=[]
                  ,_stg=mkStdGen 100,_cnts=cnts,_etr=NoEvent,_lif=lif
                  ,_lnt=T.empty,_lnu=T.empty,_cnn=0,_llc=llc,_gmc=gmc}

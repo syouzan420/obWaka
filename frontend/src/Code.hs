@@ -28,6 +28,8 @@ exeOneCode gs evt = do
     "cn" -> consumeItem gs
     "sl" -> showLife gs
     "dm" -> deleteMap gs
+    "hm" -> hideMap gs
+    "rm" -> revealMap gs
     "save" -> gs{_etr=Save}
     "end" -> endGame gs
     _ -> gs 
@@ -52,6 +54,12 @@ exeOneCode gs evt = do
     "em" -> enterMap gs (head ags)
     _ -> gs 
 
+revealMap :: Game -> Game
+revealMap gs = gs{_ims=True}
+
+hideMap :: Game -> Game
+hideMap gs = gs{_ims=False}
+
 enterMap :: Game -> T.Text -> Game
 enterMap gs oname =
   let omp = _omp gs
@@ -59,13 +67,14 @@ enterMap gs oname =
       msz = _msz gs
       ops = getPosByName oname omp
       ppsList d = [ops+V2 d 0,ops+V2 0 (-d),ops+V2 (-d) 0,ops+V2 0 d]
+      canPutPS 3 [] = V2 0 0
       canPutPS d [] = canPutPS (d+1) (ppsList (d+1)) 
       canPutPS d (p:xs) = if isInMap p msz && not (isObjOnPos p omp) then p else
                               canPutPS d xs
       resPos = canPutPS 1 (ppsList 1)
       obj = getObjByName oname omp
       tdf = maybe T.empty getObjDef obj
-   in setMap gs{_pmp = (mnm,resPos,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
+   in trace (show omp) $ setMap gs{_pmp = (mnm,resPos,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 
 hyperLink :: Game -> T.Text -> Game
 hyperLink gs tx =
@@ -311,7 +320,7 @@ setMap gs mnm =
                                   else setObjectData (T.lines objData) obMapPre
       pps = getPosByName "player" obMap 
       mpos = setMapStartPos pps mapWinSize mapSize
-   in gs{_mnm = nmnm, _msz = mapSize, _mps = mpos, _omp = obMap}
+   in gs{_mnm = nmnm, _msz = mapSize, _mps = mpos, _omp = obMap, _ims=True}
    
 deleteMap :: Game -> Game
 deleteMap gs = gs{_omp=[], _tmp=[], _mnm=T.empty, _msz=V2 0 0, _mps=V2 0 0}
