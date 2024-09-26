@@ -37,20 +37,20 @@ button:active {
   margin: 5px;
   font: 400 30px system-ui;
   position: relative;
-  top: 30px;
+  top: 20px;
 }
 .pad2 {
   padding: 1px 15px 2px;
   font: 400 30px system-ui;
   position: relative;
-  top: 30px;
+  top: 20px;
   left: 135px;
 }
 .pad3 {
   padding: 1px 15px 2px;
   font: 400 30px system-ui;
   position: relative;
-  top: 30px;
+  top: 20px;
   left: 70px;
 }
 .pad4 {
