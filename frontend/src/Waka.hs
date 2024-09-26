@@ -148,8 +148,10 @@ gameStart dst di = do
                                   (TS _ tx) = head txs
                                in wakaMain newGame{_txs=txs, _txw=tx}
                          else if i==2 then wakaMain st 
-                                      else let nomp = _omp st 
-                                            in wakaMain st{_imd=Ext,_msz=V2 30 30,_omp=nomp}
+    else let nomp =  
+              [Ob '@' "player" (TLive LStand) T.empty CBlock North (V2 6 3)
+              ,Ob 'V' "vaccine1" (TLive (LShoot 4 0)) T.empty CBlock South (V2 1 0)]
+          in wakaMain st{_imd=Ext,_msz=V2 12 6,_omp=nomp,_cnn=1,_lif=Just "★★★★★"}
 
 showMapRect :: Game -> T.Text
 showMapRect gs =
@@ -243,7 +245,33 @@ wakaUpdate gs wev =
               pDir = getDirByName "player" obMap
               evActs = _evas gs
            in case wev of
-             WTick -> objectUpdate gs
+             WTick -> 
+              let omp = _omp gs
+                  msz@(V2 sx _) = _msz gs
+                  stg = _stg gs
+                  lif = _lif gs
+                  cnn = _cnn gs
+                  (nomp,(nhs,nstg)) = moveObject stg [] msz omp omp 
+                  nlif = if HBullet `elem` nhs then 
+                    (\lf -> if lf==T.empty then lf else T.drop 1 lf) <$> lif
+                                               else lif
+                  nnomp = foldl (\acc ev-> case ev of
+                                     HBulletTo nm -> deleteObjByName nm acc 
+                                     _ -> acc) nomp nhs
+                  isOver = nlif==Just T.empty
+                  nimd = if isOver then End else Ext
+                  txt = if isOver then "Game Over" else "Stage: "
+                                                        <>(T.pack . show) cnn
+                  isNoEnemy = length nnomp == 1
+                  ncnn = if isNoEnemy then cnn+1 else cnn
+                  nmsz = if isNoEnemy then msz+1 else msz
+                  nnnomp = if isNoEnemy then nnomp<>map (\i ->
+                    Ob 'V' ("vaccine"<>(T.pack . show) i) (TLive (LShoot 4 0))
+                            T.empty CBlock South (V2 (mod ncnn sx) (div ncnn sx)))
+                                                                      [1..ncnn]
+                                        else nnomp
+               in gs{_imd=nimd,_txv=txt,_msz=nmsz,_omp=nnnomp,_stg=nstg
+                    ,_lif=nlif,_cnn=ncnn}
              WSub -> gs
              WOk -> 
                let tob = Ob 'b' "ZBuster" TTool T.empty CBlock NoDir (V2 0 0) 
@@ -254,11 +282,10 @@ wakaUpdate gs wev =
                let mapPos = _mps gs
                    keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
                    isSameDir = pDir == keyDir
-                   (npevs,nomp,nmps,_) = if isSameDir 
+                   (_,nomp,nmps,_) = if isSameDir 
                       then movePlayer dirEv Nothing mapSize mapWinSize mapPos obMap
                       else ([],updateDirByName "player" keyDir obMap,mapPos,Nothing)
-                   ngs = exeEvActs gs{_omp=nomp,_mps=nmps} npevs evActs
-                in ngs 
+                in gs{_omp=nomp,_mps=nmps} 
 
 objectUpdate :: Game -> Game
 objectUpdate gs = let omp = _omp gs

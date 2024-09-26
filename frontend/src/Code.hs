@@ -185,7 +185,7 @@ changeObject gs tx =
    in case names of 
         [nm,tnm] -> 
           let ps@(V2 px py) = getPosByName nm omp
-              nomp = deleteObjByPos omp ps
+              nomp = deleteObjByPos ps omp
               namePos = tnm<>"."<>(T.pack . show) px <>"."<>(T.pack . show) py
            in putObject gs{_omp=nomp} [namePos]
         _ -> gs

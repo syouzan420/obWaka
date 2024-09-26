@@ -50,7 +50,7 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
         | otherwise = my
       nomp = if npps/=pps then updatePosByName "player" npps omp else omp
       nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
-      nomp3 = if isGet && isNothing hv then deleteObjByPos nomp2 nops else nomp2  
+      nomp3 = if isGet && isNothing hv then deleteObjByPos nops nomp2 else nomp2  
       npevs = [PMove npps]<>[PBlock oname | isBlock]<>[PPush oname | isPush]
             <>[PPushTo oname aoName | isPushTo]<>[POn oname | isOn] 
             <>[PGet oname | isGet]<>[PLeave | isLeave]
@@ -233,7 +233,7 @@ exeFunc txSec pDir mnm och tps df om argLng chs =
       isRes = resExp /= T.empty && argLng == length chs + 1 
    in if isRes then let agPosList = zipWith (\ i _y -> 
                           tps + V2 i i*dirToDelta pDir) [1..] chs  
-                        nomp = foldl deleteObjByPos om agPosList 
+                        nomp = foldl (flip deleteObjByPos) om agPosList 
                         resCh = getResult resExp
                         resObj = fromMaybe blankObj $ lookup resCh objList
                         resPos = tps + dirToDelta pDir

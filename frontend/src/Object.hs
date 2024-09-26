@@ -57,11 +57,11 @@ updateObjByName tnm tob@(Ob _ _ tp df cn dr tps) (ob@(Ob ch nm _ _ _ _ ps):xs) =
              else ob:updateObjByName tnm tob xs 
 
 
-deleteObjByPos :: ObMap -> Pos -> ObMap
-deleteObjByPos [] _ = []
-deleteObjByPos (ob@(Ob _ nm _ _ _ _ ps):xs) pos =  
-  if pos==ps && nm/="player" then deleteObjByPos xs pos 
-                        else ob:deleteObjByPos xs pos
+deleteObjByPos :: Pos -> ObMap -> ObMap
+deleteObjByPos _ [] = []
+deleteObjByPos pos (ob@(Ob _ nm _ _ _ _ ps):xs) =  
+  if pos==ps && nm/="player" then deleteObjByPos pos xs 
+                        else ob:deleteObjByPos pos xs
 
 deleteObjByName :: ObName -> ObMap -> ObMap
 deleteObjByName _ [] = []
