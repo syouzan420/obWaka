@@ -271,8 +271,8 @@ wakaUpdate gs wev =
                                      _ -> acc) nomp nhs
                   isOver = nlif==Just T.empty
                   nimd = if isOver then End else Ext
-                  txt = if isOver then "Game Over" else "Stage: "
-                                                        <>(T.pack . show) cnn
+                  txt = if isOver then "Game Over On Stage "<>(T.pack . show) cnn
+                                  else "Stage: "<>(T.pack . show) cnn
                   isNoEnemy = length nnomp == 1
                   ncnn = if isNoEnemy then cnn+1 else cnn
                   nmsz = if isNoEnemy then msz+1 else msz
