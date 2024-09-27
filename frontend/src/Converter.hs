@@ -11,7 +11,6 @@ import Define
 import Initialize (newGame)
 import Object (blankObj)
 
-
 type Width = Int
 type Height = Int
 type Scroll = Int

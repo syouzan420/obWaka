@@ -31,7 +31,6 @@ import Object (getDirByName,updateDirByName,updatePosByName,getObjName
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject,shootBullet)
 import Code (exeCode,setMap,moveDialog)
 
-
 wakaMain ::
   ( DomBuilder t m
   , MonadFix m
@@ -83,7 +82,7 @@ wakaMain gs = do
 --    let dyObjectMap = _omp <$> dyGs
 --    let dyEvas = _evas <$> dyGs
 --    let dyTxs = _txs <$> dyGs
---    dynText (T.pack . show <$> dyEvas)
+--    dynText (T.pack . show <$> dyObjectMap)
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
@@ -104,8 +103,7 @@ lastSave dyGs = do
   gs <- sample (current dyGs)
   let gmc = _gmc gs
   let txs = getSections $ T.lines textData
-  let (TS _ tx) = head txs
-  (saveState . makeGameStateText) newGame{_txs=txs, _txw=tx, _gmc=gmc+1}
+  (saveState . makeGameStateText) newGame{_txs=txs, _gmc=gmc+1}
 
 saveGame :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
 saveGame dyGs = do 
@@ -158,7 +156,12 @@ gameStart dst di = do
   if st==newGame || i==1 then let txs = getSections $ T.lines textData
                                   (TS _ tx) = head txs
                                in wakaMain newGame{_txs=txs, _txw=tx}
-                         else if i==2 then wakaMain st 
+                         else if i==2 then 
+                           let omp = _omp st
+                               txs = _txs st
+                               (TS _ tx) = head txs
+                               nst = if null omp then st{_txw=tx} else st
+                            in wakaMain nst 
     else let nomp =  
               [Ob '@' "player" (TLive LStand) T.empty CBlock North (V2 6 3)
               ,Ob 'V' "vaccine1" (TLive (LShoot 4 0)) T.empty CBlock South (V2 1 0)]
@@ -203,17 +206,18 @@ wakaUpdate gs wev =
         Mov -> case wev of 
           WTick -> 
             let ngs = objectUpdate gs 
+                cnn = _cnn gs
                 omp = _omp gs
                 pps = getPosByName "player" omp
                 apos = getPosByName "Anna" omp
                 ypos = getPosByName "Yoko" omp
                 tpos = getPosByName "Tana" omp
-                fIsCome (V2 x y) = x^(2::Int) + y^(2::Int) < 9
+                fIsCome (V2 x y) = x^(2::Int) + y^(2::Int) < 10 
                 adf = apos - pps
                 ydf = ypos - pps
                 tdf = tpos - pps
                 isCome = fIsCome adf && fIsCome ydf && fIsCome tdf 
-             in if isCome then ngs{_imd=Txt} else ngs
+             in if isCome || cnn>300 then ngs{_imd=Txt} else ngs{_cnn=cnn+1}
           _     -> gs
         Ply -> 
           let obMap = _omp gs

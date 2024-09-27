@@ -80,7 +80,7 @@ hyperLink :: Game -> T.Text -> Game
 hyperLink gs tx =
   let lnTx = T.splitOn "-" tx
       (lnu,lnt) = case lnTx of
-                    [ln,txt] -> (T.replace "|" "_" ln,txt)
+                    [ln,txt] -> (T.replace "+" ":" (T.replace "|" "_" ln),txt)
                     _ -> (T.empty,T.empty)
    in gs{_lnu=lnu, _lnt=lnt}
 
