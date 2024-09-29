@@ -28,11 +28,11 @@ project ./. ({ pkgs, ... }: {
     displayName = "HEN";
     isRelease = androidIsRelease;
     resources = reflex-platform.android.buildIcons {
-      src = ./assets/chara3.png;
+      src = ./assets/chara.png;
     };
     version = {
       code = "1";
-      name = "0.1";
+      name = "0.2";
     };
   };
   ios.bundleIdentifier = "org.yokop.hen";

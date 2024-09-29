@@ -12,8 +12,6 @@ import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
               ,updatePosByName,deleteObjByName,isInMap,isObjOnPos,getObjDef)
 import Define
 
-import Debug.Trace (trace)
-
 exeCode :: Game -> T.Text -> Game 
 exeCode gs evt = do 
   let etxs = T.split (==' ') evt
@@ -74,7 +72,7 @@ enterMap gs oname =
       resPos = canPutPS 1 (ppsList 1)
       obj = getObjByName oname omp
       tdf = maybe T.empty getObjDef obj
-   in trace (show omp) $ setMap gs{_pmp = (mnm,resPos,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
+   in setMap gs{_pmp = (mnm,resPos,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 
 hyperLink :: Game -> T.Text -> Game
 hyperLink gs tx =
@@ -122,7 +120,7 @@ getItem gs nm =
             txs = _txs gs
             obDatas = T.lines $ lookupFromSections txs ("obj"<>mnm)
             obj = makeObjectByName nm obDatas
-         in trace (show obDatas) $ gs{_hav=obj} 
+         in gs{_hav=obj} 
 
 updateObject :: Game -> T.Text -> Game
 updateObject gs tx =
@@ -146,7 +144,7 @@ updateObject gs tx =
                       then (pmnm,pmps,updateObjByName oname newOb pomp) else pmp  
               newObText = T.unlines $ newObData :newObList 
               newTxs = updateTextSection (TS title newObText) txs
-           in trace (show newObData) $ gs{_txs=newTxs,_omp=nomp,_pmp=npmp}
+           in gs{_txs=newTxs,_omp=nomp,_pmp=npmp}
         _ -> gs
 
 

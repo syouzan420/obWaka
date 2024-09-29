@@ -9,7 +9,7 @@ import Data.Functor ((<&>))
 import Data.Maybe (isNothing,isJust,fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
-  ( dynText, current, gate, blank, elAttr, constDyn, el, text 
+  ( dynText, current, gate, blank, elAttr, constDyn, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
   , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
   , DomBuilder, MonadHold, PostBuild, Prerender
@@ -160,7 +160,7 @@ gameStart dst di = do
                            let omp = _omp st
                                txs = _txs st
                                (TS _ tx) = head txs
-                               nst = if null omp then st{_txw=tx} else st
+                               nst = if null omp then st{_txw=tx,_itx=True} else st
                             in wakaMain nst 
     else let nomp =  
               [Ob '@' "player" (TLive LStand) T.empty CBlock North (V2 6 3)
@@ -217,7 +217,7 @@ wakaUpdate gs wev =
                 ydf = ypos - pps
                 tdf = tpos - pps
                 isCome = fIsCome adf && fIsCome ydf && fIsCome tdf 
-             in if isCome || cnn>300 then ngs{_imd=Txt} else ngs{_cnn=cnn+1}
+             in if isCome || cnn>100 then ngs{_imd=Txt} else ngs{_cnn=cnn+1}
           _     -> gs
         Ply -> 
           let obMap = _omp gs

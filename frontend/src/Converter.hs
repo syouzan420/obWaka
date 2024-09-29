@@ -371,7 +371,8 @@ txToTxs' [_] = []
 txToTxs' (ti:tx:xs) = TS ti tx:txToTxs' xs
 
 txToOmp :: T.Text -> ObMap
-txToOmp tx = txToOmp' (T.splitOn ":" tx)
+txToOmp tx = let nomp = txToOmp' (T.splitOn ":" tx)
+              in if nomp==[blankObj] then [] else nomp
 
 txToOmp' :: [T.Text] -> ObMap
 txToOmp'  = map txToObject 
