@@ -1,6 +1,6 @@
 module CWidget (dyChara, imgsrc, elSpace, evElButton, evElButtonH, mkHidden
                , evElNumberPad, dyElTimer, dyElCharaAnime, elTextScroll,elRandom
-               ,saveState, loadState, clear, elImage0) where
+               ,saveState, loadState, clear, elImage0, elVibration) where
 
 import JSDOM
 --import qualified JSDOM.Generated.Document as DOM
@@ -8,7 +8,8 @@ import qualified JSDOM.Generated.NonElementParentNode as DOM
 import qualified JSDOM.Generated.Element as DOM
 import JSDOM.Generated.Storage (getItem, removeItem, setItem)
 import JSDOM.Types (FromJSString, Storage, ToJSString, JSM, liftJSM)
-import JSDOM.Generated.Window (getLocalStorage)
+import JSDOM.Generated.Window (getLocalStorage,getNavigator)
+import JSDOM.Generated.Navigator (vibrate_)
 
 import Control.Monad.IO.Class (liftIO,MonadIO)
 import Control.Monad.Fix (MonadFix)
@@ -214,6 +215,12 @@ elTextScroll = prerender_ blank $ do
   case scrollText of
     Just scrT -> DOM.scrollBy scrT (-20) 0 
     Nothing -> return ()
+  
+elVibration :: (DomBuilder t m, Prerender t m) => m ()
+elVibration = prerender_ blank $ do
+  win <- currentWindowUnchecked
+  nav <- getNavigator win
+  vibrate_ nav 50
   
 getLocalStorageUnchecked :: JSM Storage
 getLocalStorageUnchecked = currentWindowUnchecked >>= getLocalStorage
