@@ -32,7 +32,7 @@ project ./. ({ pkgs, ... }: {
     };
     version = {
       code = "1";
-      name = "0.2";
+      name = "0.3";
     };
   };
   ios.bundleIdentifier = "org.yokop.hen";
