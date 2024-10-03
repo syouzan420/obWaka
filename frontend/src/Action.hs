@@ -19,7 +19,7 @@ type MapWinPos = Pos
 
 movePlayer :: WkEvent -> Maybe Object -> MapSize -> MapWinPos -> MapPos  
                              -> ObMap -> ([PEvent],ObMap,MapPos,Maybe Object) 
-movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =  
+movePlayer ev hv msz mwps mps omp =  
   let pps = getPosByName "player" omp
       dps = dirToDelta $ inpToDir ev 
       tps = pps + dps
@@ -27,11 +27,11 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
       obj = getObjByPos tps omp  -- map opr on target
       oname = maybe T.empty getObjName obj
       obc = obj <&> getObjCon
-      isBlock = case obc of Just oc-> oc==CBlock; Nothing -> False
-      isPush = case obc of Just oc -> oc==CMove; Nothing -> False
-      isGet = case obc of Just oc -> oc==CGet; Nothing -> False
-      isEnter = case obc of Just oc -> oc==CEnter; Nothing -> False
-      isOn = case obc of Just oc -> oc==COn; Nothing -> False
+      isBlock = Just CBlock == obc
+      isPush =  Just CMove == obc 
+      isGet = Just CGet == obc 
+      isEnter = Just CEnter == obc
+      isOn = Just COn == obc
       isLeave = isOn && oname=="leave"
       tops = if isPush then tps + dps else tps
       isObInMap = isInMap tops msz 
@@ -39,15 +39,8 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
       isPushTo = isPush && isAnotherObj
       aoName = maybe T.empty getObjName (getObjByPos tops omp)
       nops = if isObInMap && not isAnotherObj then tops else tps
-      npps@(V2 nx ny) = if imp && not isBlock && not isPushTo then tps else pps
-      nmx 
-        | nx-mx < 1 && mx > 0 = mx - 1 
-        | nx-mx > w-2 && mx < mw-w = mx + 1
-        | otherwise = mx
-      nmy 
-        | ny-my < 1 && my > 0 = my - 1
-        | ny-my > h-2 && my < mh-h = my + 1
-        | otherwise = my
+      npps = if imp && not isBlock && not isPushTo then tps else pps
+      nmps = updateMapPos npps msz mwps mps
       nomp = if npps/=pps then updatePosByName "player" npps omp else omp
       nomp2 = if isPush then updatePosByName oname nops nomp else nomp 
       nomp3 = if isGet && isNothing hv then deleteObjByPos nops nomp2 else nomp2  
@@ -56,7 +49,19 @@ movePlayer ev hv msz@(V2 mw mh) (V2 w h) (V2 mx my) omp =
             <>[PGet oname | isGet]<>[PLeave | isLeave]
             <>[PEnter pps oname | isEnter]
       nphv = if isGet && isNothing hv then obj else hv
-   in (npevs, nomp3, V2 nmx nmy, nphv)
+   in (npevs, nomp3, nmps, nphv)
+
+updateMapPos :: Pos -> MapSize -> MapWinPos -> MapPos -> MapPos
+updateMapPos (V2 nx ny) (V2 mw mh) (V2 w h) (V2 mx my) =
+  let nmx 
+        | nx-mx < 1 && mx > 0 = mx - 1 
+        | nx-mx > w-2 && mx < mw-w = mx + 1
+        | otherwise = mx
+      nmy 
+        | ny-my < 1 && my > 0 = my - 1
+        | ny-my > h-2 && my < mh-h = my + 1
+        | otherwise = my
+   in V2 nmx nmy
 
 data MoveType = MV | AP | SH | BL | NN deriving stock Eq
 
