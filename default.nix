@@ -31,7 +31,7 @@ project ./. ({ pkgs, ... }: {
       src = ./assets/chara.png;
     };
     version = {
-      code = "1";
+      code = "3";
       name = "0.3";
     };
   };
