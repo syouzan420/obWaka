@@ -14,7 +14,7 @@ import Reflex.Dom.Core
   , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
-  , Dynamic
+  , Dynamic, Event
   )
 
 import CWidget (dyChara,imgsrc,elSpace,evElButton,evElButtonH,elTextScroll
@@ -50,7 +50,6 @@ wakaMain gs = do
     let beIsLSave = fmap (==LSave) beETR
     let evTxTime = gate beTxtOn evTime
     let evWTick = WTick <$ evTime
-    let evBtList = [evWUp] <> [evWSub] <> evWDir <> [evWDown]
     let evWk = leftmost (evBtList<>[evWTick])
     let evBt = leftmost evBtList 
     let evSave = gate beIsSave evWTick 
@@ -88,18 +87,24 @@ wakaMain gs = do
     divClass "tbox" $ 
       elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
     elSpace  
-    evWUp <- evElButton "pad3" "↑" <&> (<$) WUp
-    _ <- el "div" $ text "" 
-    evWDir <- mapM (evElButton "pad") ["←","●","→"] <&>
-                                     zipWith (<$) [WLeft,WOk,WRight]
-    _ <- el "div" $ text "" 
-    evWDown <- evElButton "pad3" "↓" <&> (<$) WDown
-    evWSub <- evElButton "pad2" "□" <&> (<$) WSub
+    evBtList <- evWkButtons
     divClass "lnk" $ elDynAttr "a" dyAtr $ dynText dyLnt
     widgetHold_ blank (elVibration <$ evBt)
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
     widgetHold_ blank (lastSave dyGs <$ evLSave)
+
+evWkButtons :: (DomBuilder t m) => m [Event t WkEvent]
+evWkButtons = do
+  evWUp <- evElButton "pad3" "↑" <&> (<$) WUp
+  _ <- el "div" $ text "" 
+  evWDir <- mapM (evElButton "pad") ["←","●","→"] <&>
+                                   zipWith (<$) [WLeft,WOk,WRight]
+  _ <- el "div" $ text "" 
+  evWDown <- evElButton "pad3" "↓" <&> (<$) WDown
+  evWSub <- evElButton "pad2" "□" <&> (<$) WSub
+  return $ [evWUp,evWSub]<>evWDir<>[evWDown]
+  
 
 lastSave :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
 lastSave dyGs = do 
