@@ -184,16 +184,30 @@ getSections' (Just tx) acc (x:xs)
 type IsStop = Bool
 type IsTyping = Bool
 type IsCode = Bool
+type IsRubi = Bool
 
-getInfoFromChar :: T.Text -> Int -> (IsStop,IsTyping,IsCode,Char,T.Text,Int)
+getInfoFromChar :: T.Text -> Int 
+              -> (IsStop,IsTyping,IsCode,IsRubi,Char,T.Text,T.Text,Int)
 getInfoFromChar wtx i = 
   let ch = T.index wtx i
       isCode = ch==';'
       isStop = ch=='。'
+      isRubi = ch=='$' && T.index wtx (i+1)=='r'
       isTyping = not (isStop || ch=='、' || isCode)
       codeText = if isCode then T.tail (T.takeWhile (/='\n') (T.drop i wtx)) else T.empty
-      scanLength = if isCode then T.length codeText + 1 else 1
-   in (isStop,isTyping,isCode,ch,codeText,scanLength)
+      rubiText = if isRubi then T.takeWhile (/=' ') (T.drop (i+2) wtx) else T.empty
+      scanLength 
+        | isCode = T.length codeText + 1 
+        | isRubi = T.length rubiText + 3
+        | otherwise = 1
+   in (isStop,isTyping,isCode,isRubi,ch,codeText,rubiText,scanLength)
+
+makeRubiHtml :: T.Text -> T.Text
+makeRubiHtml rubiText =
+  let txRubi = T.splitOn "-" rubiText
+   in case txRubi of
+        [tx,rb] -> "<ruby>"<>tx<>"<rp>(</rp><rt>"<>rb<>"</rt><rp>)</rp></ruby>"
+        _ -> T.empty
 
 lookupFromSections :: [TextSection] -> T.Text -> T.Text
 lookupFromSections textSections tx = 

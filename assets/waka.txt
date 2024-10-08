@@ -1,7 +1,7 @@
 init:
 ようこそ。
 君が來るのを 待ってゐたよ。
-さあ この世界を 見て。
+さあ この$r世界-せかい を 見て。
 ;a_block.Anna.1_md_textA0 a_block.Tana.1_md_textT0 sm_0 cd_w sc_1 md_scene0
 
 map0:

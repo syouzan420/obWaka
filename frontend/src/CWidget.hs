@@ -69,7 +69,7 @@ data StColor = Black | Red | Blue | Yellow deriving stock (Eq, Show)
 elSText :: (PostBuild t m, DomBuilder t m) => Dynamic t T.Text -> m () 
 elSText dyTx = do 
   let dySL = fmap makeStyleList dyTx
-  fmap (\st -> (mapM_ elStyleText st)) dySL
+
 
 elStyleText :: DomBuilder t m => (Style, T.Text) -> m ()
 elStyleText (st,tx) = do
@@ -91,7 +91,8 @@ elStyleText (st,tx) = do
                          [_,txt] -> txt
                          _ -> tx
   elAttr "div" attr $ text t 
-{--
+
+
 elStyleText :: DomBuilder t m => Dynamic t (Style, T.Text) -> m ()
 elStyleText dst = do
   let attr = fmap (\(st,tx) -> case st of
@@ -114,7 +115,8 @@ elStyleText dst = do
                          _ -> tx
                ) dst
   elDynAttr "div" attr $ dynText t 
---}
+
+
 
 makeStyleList :: T.Text -> [(Style, T.Text)]
 makeStyleList tx =
@@ -136,6 +138,7 @@ makeStyle tx =
           _ -> Plane
                   
 --}
+
 
 dyElTimer :: 
   ( DomBuilder t m

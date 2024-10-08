@@ -5,13 +5,14 @@ import Control.Monad.IO.Class (MonadIO)
 import Linear.V2 (V2(..))
 import qualified Data.Map as M 
 import Data.List (nub)
-import Data.Functor ((<&>))
+import Data.Functor ((<&>),void)
 import Data.Maybe (isNothing,isJust,fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, constDyn, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
   , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
+  , prerender_, elDynHtmlAttr' 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
   , Dynamic, Event
@@ -25,7 +26,8 @@ import Initialize (newGame)
 import TextData (textData)
 import Converter (getInfoFromChar,showMap,putMapInFrame,inpToDir,getSections
                  ,setMapStartPos,dirToText,lookupFromSections,updateTextSection
-                 ,updateMapData,makeObjectDatas,makeGameStateText,toGameState)
+                 ,updateMapData,makeObjectDatas,makeGameStateText,toGameState
+                 ,makeRubiHtml)
 import Object (getDirByName,updateDirByName,updatePosByName,getObjName
               ,getObjDef,deleteObjByName,getObjByName,getPosByName)
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject,shootBullet)
@@ -84,8 +86,11 @@ wakaMain gs = do
 --    let dyEvas = _evas <$> dyGs
 --    let dyTxs = _txs <$> dyGs
 --    dynText (T.pack . show <$> dyObjectMap)
-    divClass "tbox" $ 
-      elAttr "div" ("id" =: "wkText" <> "class" =: "tate") (dynText dyVText)
+    divClass "tbox" $  
+--      elAttr "div" ("id" =: "wkText" <> "class" =: "tate") $ 
+      prerender_ blank $ void $ 
+            elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") dyVText
+        -- (dynText dyVText)
     elSpace  
     evBtList <- evWkButtons
     divClass "lnk" $ elDynAttr "a" dyAtr $ dynText dyLnt
@@ -412,10 +417,12 @@ textUpdate gs =
       pgs = if eventTrigger==NoEvent then gs else gs{_etr=NoEvent}
    in if isText && isTextShowing then 
         let textView = _txv pgs
-            (isStop,isTyping,isCode,targetChar,codeText,scanLength)
+            (isStop,isTyping,isCode,isRubi,targetChar,codeText,rubiText,scanLength)
               = getInfoFromChar wholeText textCount
             nitx = not isStop && isText && isTextShowing
-            ntxv = if isTyping then textView <> T.singleton targetChar
+            ntxv = if isTyping then if isRubi 
+                                        then textView <> makeRubiHtml rubiText
+                                        else textView <> T.singleton targetChar
                                else textView
             ntct = textCount + scanLength 
             ngs0 = pgs{_itx=nitx, _txv=ntxv, _tct=ntct, _tcs=_tcs pgs + 1}
