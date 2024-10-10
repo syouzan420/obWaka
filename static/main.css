@@ -19,6 +19,15 @@ button:active {
   background-color: #FFF7BA;
 }
 
+@font-face {
+  font-family: 'oshide';
+  src: url('oshide.otf') format('opentype'),
+  src: url('oshide_old-webfont.woff') format('woff'),
+  src: url('oshide_old-webfont.woff2') format('woff2');
+  font-style: normal;
+  font-weight: normal;
+}
+
 #map {
   touch-action: none;
 }
@@ -29,7 +38,7 @@ button:active {
 .kai {
   white-space: pre;
   text-align: justify;
-  font: 400 18px monospace;
+  font: 400 18px oshide;
 }
 
 .pad {

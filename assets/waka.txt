@@ -1,49 +1,51 @@
 init:
-ようこそ。
-君が來るのを 待ってゐたよ。
-さあ この$r世界-せかい を 見て。
-;a_block.Anna.1_md_textA0 a_block.Tana.1_md_textT0 sm_0 cd_w sc_1 md_scene0
+あきのたの かりほのいほの
+とまをあらみ
+わかころもては つゆにぬれつつ
+
+emerald:
+これは $r偽-いつは りのない $r真實-しんじつ である。
+上なるものは 下なるが$r如-ごと く。
+下なるものは 上なるが如く。
+これは ひとへに $r一-いち なるものの $r奇跡-きせき を行ふためである。
+$r萬物-ばんぶつ は 一より 生ずる。
+一により すべてのものが $r媒介-ばいかい され $r適應-てきおう により $r創造-さうざう される。
+
+太陽は その父であり 月は その母であり。
+風は それを$r胎内-たいない で運び 地は その$r乳母-うば である。
+これは 全世界の すべての完成の父であり 地に$r至-いた りて$r統合-とうがふ される。
+
+地を 火から。 $r粗大-そだい なものから $r微細-びさい なものを $r勤-つと めて$r丁寧-ていねい に $r分離-ぶんり せよ。
+それは 地から天に$r昇-のぼ り $r再-ふたた び地へと降りて 上なるものと 下なるものの力を受けとる。
+この方法により $r汝-なんぢ は 全世界の$r榮光-えいくわう を$r得-え  すべてのものが 明らかになる。
+
+その力は すべての力を$r凌-しの ぎ $r精妙-せいめう なものにも$r勝-まさ り あらゆる$r堅固-けんこ なものを$r貫通-かんつう する。
+かうして 世界は 創造された。
+このやうにして すべての$r素晴-すば らしい適應が 行なはれたのである。
+
+それ$r故-ゆへ  私は 世界の$r総合-そうがふ 的な$r哲學-てつがく の 三つの$r要素-えうそ を持つ $r三重-みへ に$r偉大-ゐだい なヘルメス と呼ばれる。
+以上で 私は 太陽の作業について語るべきことを$r完了-くわんれう した。
+
+    「エメラルド・タブレット」。
 
 map0:
 *******************
-**************s****
-***A***************
 *******************
 *******************
 *******************
-********Y@*********
-****************C**
-*******************
-******B************
 *******************
 *******************
-*************g*****
+*********@*********
+*******************
+*******************
+*******************
+*******************
+*******************
+*******************
 *******************
 
 obj0:
 A,Anna,live,,block,north
-B,Box,block,,move,north
-C,Conbiner,func tool tool tool,map1,enter,north
-Y,Yoko,live,,block,north
-T,Tana,approach 20 3,,block,north
-g,Glasses,tool,,get,nodir
-s,Super,tool,,get,nodir
-G,SuperG,tool,,get,nodir
-m,Mask,tool,,get,nodir
-V,virus1,move 7,,block,north
-V,virus2,move 6,,block,north
-V,virus3,approach 5 5,,block,north
-r,rna1,tool,,get,nodir
-r,rna2,tool,,get,nodir
-r,rna3,tool,,get,nodir
-x,xVaccine,tool,,get,nodir
-Z,ZVaccine,shoot 4,,block,south
-a,ame,tool,,get,nodir
-P,PCR,func tool tool,map3,enter,nodir
-b,ZBuster,tool,,get,nodir
-E,E,block,,block,nodir
-N,N,block,,block,nodir
-D,D,block,,block,nodir
 
 map1:
 **********@
@@ -88,12 +90,9 @@ x,xVaccine,block,,block,nodir
 b,ZBuster,tool,,get,nodir
 
 scene0:
-君が今までゐた世界とは ずいぶん違って見えるかな。
-・・・今 君の力が必要なんだ。
-ある時から ここには 變化といふものが なくなってしまった。
-それに どんな意味があるのか。
-まづ この世界を歩いて 自分の目と感覺で 確かめて欲しい。
-;a_block.Yoko.0_if_?pHave.Super_md.textYs_if_?pHave.Glasses_md.textYg_if_?pHave.SuperG_md.textYG_if_?pHave.Mask_md.textYM0_el_md.textY0 a_pushto.Box-Yoko.0_md_textYB a_attack.Box.3_co_Box-Mask a_block.Super.0_md_texts0 a_block.Glasses.0_md_textg0 a_block.SuperG.0_md_textG0 a_block.Conbiner.0_md_textC0
+;sc_4
+ここがどこか 知りたいか？。
+;cho_はい_textT1_いいえ_textT2
 
 textSave:
 ;save

@@ -46,25 +46,17 @@ wakaMain ::
 wakaMain gs = do
   elAttr "div" ("id" =: "map") $ mdo
     evTime <- tickLossyFromPostBuildTime 0.1
-    let beTxtOn = current dyTxtOn
-    let beETR = current dyETR
-    let beIsSave = fmap (==Save) beETR
-    let beIsLSave = fmap (==LSave) beETR
-    let evTxTime = gate beTxtOn evTime
+    let beIsSave = fmap (\etr -> etr==Save || etr==LSave) (current dyETR) 
     let evWTick = WTick <$ evTime
     let evWk = leftmost (evBtList<>[evWTick])
     let evBt = leftmost evBtList 
+    let evTxTime = gate (current dyTxtOn) evTime
     let evSave = gate beIsSave evWTick 
-    let evLSave = gate beIsLSave evWTick
     dyGs <- accumDyn wakaUpdate gs evWk
-    let dyVText = _txv <$> dyGs
-    let dyIsText = _itx <$> dyGs
-    let dyIMode = _imd <$> dyGs
-    let dyETR = _etr <$> dyGs 
-    let dyLife = _lif <$> dyGs
-    let dyLnu = _lnu <$> dyGs
+    let (dyVText,dyIsText,dyIMode,dyETR,dyLife,dyLnu,dyLnt) =
+          (_txv <$> dyGs, _itx <$> dyGs, _imd <$> dyGs, _etr <$> dyGs
+          , _lif<$> dyGs, _lnu <$> dyGs, _lnt <$> dyGs)
     let dyAtr = fmap (\t -> ("href" =: t)::M.Map T.Text T.Text) dyLnu
-    let dyLnt = _lnt <$> dyGs
     let dyIsShowLife = isJust <$> dyLife
     let dyHide = mkHidden <$> dyIsShowLife
     let dyTxtOn = zipDynWith (\a b -> a && (b==Txt || b==Cho)) dyIsText dyIMode
@@ -82,22 +74,15 @@ wakaMain gs = do
          dynText $ dyHave <&> 
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
---    let dyObjectMap = _omp <$> dyGs
---    let dyEvas = _evas <$> dyGs
---    let dyTxs = _txs <$> dyGs
---    dynText (T.pack . show <$> dyObjectMap)
     divClass "tbox" $  
---      elAttr "div" ("id" =: "wkText" <> "class" =: "tate") $ 
       prerender_ blank $ void $ 
             elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") dyVText
-        -- (dynText dyVText)
     elSpace  
     evBtList <- evWkButtons
     divClass "lnk" $ elDynAttr "a" dyAtr $ dynText dyLnt
     widgetHold_ blank (elVibration <$ evBt)
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
-    widgetHold_ blank (lastSave dyGs <$ evLSave)
 
 evWkButtons :: (DomBuilder t m) => m [Event t WkEvent]
 evWkButtons = do
@@ -109,19 +94,15 @@ evWkButtons = do
   evWDown <- evElButton "pad3" "↓" <&> (<$) WDown
   evWSub <- evElButton "pad2" "□" <&> (<$) WSub
   return $ [evWUp,evWSub]<>evWDir<>[evWDown]
-  
-
-lastSave :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
-lastSave dyGs = do 
-  gs <- sample (current dyGs)
-  let gmc = _gmc gs
-  let txs = getSections $ T.lines textData
-  (saveState . makeGameStateText) newGame{_txs=txs, _gmc=gmc+1}
 
 saveGame :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
 saveGame dyGs = do 
   gs <- sample (current dyGs)
-  (saveState . makeGameStateText) gs
+  let etr = _etr gs
+  let gmc = _gmc gs
+  let txs = getSections $ T.lines textData
+  let ngs = if etr==LSave then newGame{_txs= txs, _gmc=gmc+1} else gs
+  (saveState . makeGameStateText) ngs
 
 loadGame ::
   ( DomBuilder t m
@@ -141,7 +122,7 @@ loadGame = mdo
   let dyIsClearGame = fmap (\st -> _gmc st>0) dySt
   elDynAttr "div" dyHide $ do 
         elImage0
-        divClass "kai" $ text "變〜へん〜現實の向かう側"
+        divClass "kai" $ text gameTitle
   evFromBegin <- evElButtonH dyBool "pad4" "はじめから" <&> (<$) 1
   evContinue <- evElButtonH dyBool2 "pad4" "つづき" <&> (<$) 2
   evExtra <- evElButtonH dyBool3 "pad4" "おまけ" <&> (<$) 3
@@ -166,15 +147,16 @@ gameStart ::
 gameStart dst di = do
   st <- (sample . current) dst
   i <- (sample . current) di 
-  if st==newGame || i==1 then let txs = getSections $ T.lines textData
-                                  (TS _ tx) = head txs
-                               in wakaMain newGame{_txs=txs, _txw=tx}
-                         else if i==2 then 
-                           let omp = _omp st
-                               txs = _txs st
-                               (TS _ tx) = head txs
-                               nst = if null omp then st{_txw=tx,_itx=True} else st
-                            in wakaMain nst 
+  if st==newGame || i==1 
+    then let txs = getSections $ T.lines textData
+             (TS _ tx) = head txs
+          in wakaMain newGame{_txs=txs, _txw=tx}
+    else if i==2 then 
+            let omp = _omp st
+                txs = _txs st
+                (TS _ tx) = head txs
+                nst = if null omp then st{_txw=tx,_itx=True} else st
+             in wakaMain nst 
     else let nomp =  
               [Ob '@' "player" (TLive LStand) T.empty CBlock North (V2 6 3)
               ,Ob 'V' "vaccine1" (TLive (LShoot 4 0)) T.empty CBlock South (V2 1 0)]
@@ -207,14 +189,11 @@ wakaUpdate gs wev =
         Cho -> 
           let titles = _cho gs
               tln = length titles
-              title = case wev of
-                WOk -> if tln>0 then head titles else T.empty 
-                WUp -> if tln>1 then titles!!1 else T.empty
-                WSub -> if tln>2 then titles!!2 else T.empty
-                WLeft -> if tln>3 then titles!!3 else T.empty
-                WDown -> if tln>4 then titles!!4 else T.empty
-                WRight -> if tln>5 then titles!!5 else T.empty
-                _ -> T.empty 
+              cNum = lookup wev 
+                        (zip [WOk,WUp,WSub,WLeft,WDown,WRight] [(0::Int)..]) 
+              title = case cNum of
+                Just cn -> if tln>cn then titles!!cn else T.empty 
+                _ -> T.empty
            in if title==T.empty then gs else moveDialog gs{_imd=Txt} title
         Mov -> case wev of 
           WTick -> 

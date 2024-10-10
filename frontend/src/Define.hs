@@ -120,5 +120,8 @@ data Game = Game {_imd :: !IMode
                  ,_gmc :: !Int
                  } deriving stock (Eq,Show)
 
+gameTitle :: T.Text
+gameTitle = "わかひめ"
+
 mapWinSize :: Size 
 mapWinSize = V2 12 6
