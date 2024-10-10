@@ -151,7 +151,7 @@ showMap :: MapSize -> ObMap -> ObMap -> T.Text
 showMap ms om tm = T.unlines $ showObMap (om <> tm) (makeFlatMap ms) 
 
 makeFlatMap :: MapSize -> FlatMap
-makeFlatMap (V2 w h) = replicate h $ T.pack (replicate w '空')
+makeFlatMap (V2 w h) = replicate h $ T.pack (replicate w oNon)
 
 showObMap :: ObMap -> FlatMap -> [T.Text]
 showObMap [] mtx = mtx 

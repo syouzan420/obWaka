@@ -22,6 +22,8 @@ type ObName = T.Text
 
 data Dir = NoDir | East | North | West | South deriving stock (Eq,Show,Enum)
 
+data Color = Black | Red | Orange | Blue | Cyan deriving stock (Eq,Show,Enum)
+
 data ObCon = CBlock | CMove | CGet | COn | CEnter deriving stock (Eq,Show)
 
 data ObType = TKazu | TMozi | TFood | TTool | TTile | TBlock |
@@ -136,7 +138,7 @@ oNon :: Char
 oNon = '・'
 
 eAt0 :: Char
-eAt0 = 'と'
+eAt0 = '／'
 
 eAt1 :: Char
-eAt1 = 'ろ'
+eAt1 = '＼'
