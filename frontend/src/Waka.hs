@@ -65,7 +65,7 @@ wakaMain gs = do
     let dyHave = _hav <$> dyGs
     divClass "flexbox" $ do
       el "div" $ dyChara dyImg
-      divClass "kai" $ do
+      divClass "kaimap" $ do
          elDynAttr "div" dyHide $ divClass "cen" $ 
                   dynText (fmap (fromMaybe T.empty) dyLife) 
          dynText (showMapRect <$> dyGs)
@@ -158,7 +158,7 @@ gameStart dst di = do
                 nst = if null omp then st{_txw=tx,_itx=True} else st
              in wakaMain nst 
     else let nomp =  
-              [Ob '@' "player" (TLive LStand) T.empty CBlock North (V2 6 3)
+              [Ob pChar "player" (TLive LStand) T.empty CBlock North (V2 6 3)
               ,Ob 'V' "vaccine1" (TLive (LShoot 4 0)) T.empty CBlock South (V2 1 0)]
           in wakaMain st{_imd=Ext,_msz=V2 12 6,_omp=nomp,_cnn=1,_lif=Just "★★★★★"}
 
@@ -373,8 +373,8 @@ okButton gs =
 scanEffect :: ObMap -> ObMap
 scanEffect [] = []
 scanEffect (ob@(Ob ch nm tp df oc dr ps):xs)
-  | ch=='/' = Ob '\\' nm tp df oc dr ps:scanEffect xs
-  | ch=='\\' = scanEffect xs
+  | ch==eAt0 = Ob eAt1 nm tp df oc dr ps:scanEffect xs
+  | ch==eAt1 = scanEffect xs
   | otherwise = ob:scanEffect xs
 
 effectUpdate :: Game -> Game

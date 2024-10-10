@@ -38,6 +38,11 @@ button:active {
 .kai {
   white-space: pre;
   text-align: justify;
+}
+
+.kaimap {
+  white-space: pre;
+  text-align: justify;
   font: 400 18px oshide;
 }
 

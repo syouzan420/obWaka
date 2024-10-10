@@ -60,17 +60,17 @@ makeObjectMap tx =
       searchResult = searchObject 0 (T.unpack txnc)
    in (map (\(i,ch)->
        let p = mod i w ; q = div i w 
-           oname = case ch of
-                    '@' -> "player"
-                    '%' -> "leave"
-                    _   -> T.empty
-           otype = case ch of 
-                    '@' -> TLive LStand
-                    '%' -> TTile
-                    _   -> TBlock
-           ocon = case ch of
-                    '%' -> COn
-                    _   -> CBlock
+           oname 
+              | ch==pChar = "player"
+              | ch==oLeave = "leave"
+              | otherwise = T.empty
+           otype 
+              | ch==pChar = TLive LStand
+              | ch==oLeave = TTile
+              | otherwise = TBlock
+           ocon
+              | ch==oLeave = COn
+              | otherwise = CBlock
         in Ob ch oname otype T.empty ocon North (V2 p q))
                                searchResult,V2 w (length lns))
 
@@ -144,14 +144,14 @@ txDir = [("east",East),("north",North),("west",West),("south",South),("nodir",No
 
 searchObject :: Int -> String -> [(Int,Char)]
 searchObject _ [] = []
-searchObject i (x:xs) = if x=='*' then searchObject (i+1) xs
+searchObject i (x:xs) = if x==oNon then searchObject (i+1) xs
                                   else (i,x):searchObject (i+1) xs
 
 showMap :: MapSize -> ObMap -> ObMap -> T.Text
 showMap ms om tm = T.unlines $ showObMap (om <> tm) (makeFlatMap ms) 
 
 makeFlatMap :: MapSize -> FlatMap
-makeFlatMap (V2 w h) = replicate h $ T.pack (replicate w '.')
+makeFlatMap (V2 w h) = replicate h $ T.pack (replicate w '空')
 
 showObMap :: ObMap -> FlatMap -> [T.Text]
 showObMap [] mtx = mtx 
@@ -230,7 +230,7 @@ makeMpLines :: Int -> ObMap -> [T.Text] -> [T.Text]
 makeMpLines _ _ [] = []
 makeMpLines i omp (ml:xs) =
   let listXCh = makeListXCh i omp
-      plInd = T.findIndex (=='@') ml
+      plInd = T.findIndex (==pChar) ml
    in T.pack (makeMpLine plInd (T.length ml - 1) (reverse $ sort listXCh))
           :makeMpLines (i+1) omp xs
       
@@ -240,17 +240,18 @@ makeListXCh i (Ob ch _ _ _ _ _ (V2 px py):xs)
   = if i==py then (px,ch):makeListXCh i xs else makeListXCh i xs 
 
 makeMpLine :: Maybe Int -> Int -> [(Int,ObChar)] -> String
-makeMpLine Nothing 0 [] = "*"  
-makeMpLine (Just n) 0 [] = if n==0 then "@" else "*"  
+makeMpLine Nothing 0 [] = [oNon]  
+makeMpLine (Just n) 0 [] = if n==0 then [pChar] else [oNon]  
 makeMpLine _ 0 [(0,ch)] = [ch]
-makeMpLine Nothing x [] = makeMpLine Nothing (x-1) []<>"*"
-makeMpLine (Just n) x [] = makeMpLine (Just n) (x-1) []<>if n==x then "@" else "*"
+makeMpLine Nothing x [] = makeMpLine Nothing (x-1) []<>[oNon]
+makeMpLine (Just n) x [] = makeMpLine (Just n) (x-1) []
+                                <>if n==x then [pChar] else [oNon] 
 makeMpLine Nothing x xch@((i,ch):xs) = 
   if x==i then makeMpLine Nothing (x-1) xs <> [ch]
-          else makeMpLine Nothing (x-1) xch <> "*"
+          else makeMpLine Nothing (x-1) xch <> [oNon] 
 makeMpLine (Just n) x xch@((i,ch):xs) = 
   if x==i then makeMpLine (Just n) (x-1) xs <> [ch]
-          else makeMpLine (Just n) (x-1) xch <> if x==n then "@" else "*"
+          else makeMpLine (Just n) (x-1) xch <> if x==n then [pChar] else [oNon] 
 
 
 updateObjectData :: T.Text -> Object -> T.Text

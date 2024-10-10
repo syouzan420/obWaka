@@ -125,3 +125,18 @@ gameTitle = "わかひめ"
 
 mapWinSize :: Size 
 mapWinSize = V2 12 6
+
+pChar :: Char
+pChar = 'ひ'
+
+oLeave :: Char
+oLeave = 'ん'
+
+oNon :: Char
+oNon = '・'
+
+eAt0 :: Char
+eAt0 = 'と'
+
+eAt1 :: Char
+eAt1 = 'ろ'

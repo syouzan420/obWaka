@@ -175,7 +175,7 @@ hitAction onm msz om tm =
       pDir = getDirByName onm om
       eps = pPos + dirToDelta pDir 
       isShow = isInMap eps msz
-   in if isShow then Ob '/' "hit" (TLive LStand) T.empty COn pDir eps:tm else tm 
+   in if isShow then Ob eAt0 "hit" (TLive LStand) T.empty COn pDir eps:tm else tm 
 
 putAction :: Object -> Dir -> MapSize -> ObMap -> ([PEvent],ObMap,Maybe Object)
 putAction tob pDir msz om =
