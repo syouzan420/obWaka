@@ -128,7 +128,8 @@ makeBullet g pps pos =
       (dirNum,ng) = if isRange then approach g dff else uniformR (0,4) g
       dir = toEnum dirNum :: Dir
       npos = pos + dirToDelta dir 
-      blObj = Ob '*' "bullet" (TLive (LBullet 3 0)) T.empty CBlock dir npos 
+      blObj = 
+        Ob oBullet "bullet" (TLive (LBullet 3 0)) T.empty CBlock dir Orange npos 
    in (blObj,npos,ng)
 
 
@@ -175,7 +176,8 @@ hitAction onm msz om tm =
       pDir = getDirByName onm om
       eps = pPos + dirToDelta pDir 
       isShow = isInMap eps msz
-   in if isShow then Ob eAt0 "hit" (TLive LStand) T.empty COn pDir eps:tm else tm 
+   in if isShow then 
+        Ob eAt0 "hit" (TLive LStand) T.empty COn pDir Blue eps:tm else tm 
 
 putAction :: Object -> Dir -> MapSize -> ObMap -> ([PEvent],ObMap,Maybe Object)
 putAction tob pDir msz om =
@@ -197,7 +199,7 @@ shootBullet tob pDir msz om =
 makeZBullet :: Dir -> Pos -> (Object,Pos)
 makeZBullet dr pps =
   let bps = pps + dirToDelta dr 
-      blObj = Ob '●' "zbullet" (TLive (LBullet 2 0)) T.empty CBlock dr bps 
+      blObj = Ob oZBul "zbullet" (TLive (LBullet 2 0)) T.empty CBlock dr Red bps 
    in (blObj,bps)
   
 attackAction :: [TextSection] -> Dir -> MapName 

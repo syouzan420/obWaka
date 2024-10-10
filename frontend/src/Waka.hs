@@ -12,7 +12,7 @@ import Reflex.Dom.Core
   ( dynText, current, gate, blank, elAttr, constDyn, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
   , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
-  , prerender_, elDynHtmlAttr' 
+  , prerender_, elDynHtmlAttr', elDynHtml' 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
   , Dynamic, Event
@@ -68,12 +68,14 @@ wakaMain gs = do
       divClass "kaimap" $ do
          elDynAttr "div" dyHide $ divClass "cen" $ 
                   dynText (fmap (fromMaybe T.empty) dyLife) 
-         dynText (showMapRect <$> dyGs)
+         prerender_ blank $ void $ 
+            elDynHtml' "div" $ showMapRect <$> dyGs 
       divClass "kai" $ do
          dynText $ fmap (<>"\n") dyDir 
          dynText $ dyHave <&> 
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
+
     divClass "tbox" $  
       prerender_ blank $ void $ 
             elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") dyVText
@@ -158,8 +160,8 @@ gameStart dst di = do
                 nst = if null omp then st{_txw=tx,_itx=True} else st
              in wakaMain nst 
     else let nomp =  
-              [Ob pChar "player" (TLive LStand) T.empty CBlock North (V2 6 3)
-              ,Ob 'V' "vaccine1" (TLive (LShoot 4 0)) T.empty CBlock South (V2 1 0)]
+              [Ob pChar "player" (TLive LStand) T.empty CBlock North Orange (V2 6 3)
+              ,Ob 'V' "vaccine1" (TLive (LShoot 4 0)) T.empty CBlock South Black (V2 1 0)]
           in wakaMain st{_imd=Ext,_msz=V2 12 6,_omp=nomp,_cnn=1,_lif=Just "★★★★★"}
 
 showMapRect :: Game -> T.Text
@@ -274,14 +276,14 @@ wakaUpdate gs wev =
                   nmsz = if isNoEnemy then msz+1 else msz
                   nnnomp = if isNoEnemy then nnomp<>map (\i ->
                     Ob 'V' ("vaccine"<>(T.pack . show) i) (TLive (LShoot 4 0))
-                            T.empty CBlock South (V2 (mod ncnn sx) (div ncnn sx)))
+                      T.empty CBlock South Black (V2 (mod ncnn sx) (div ncnn sx)))
                                                                       [1..ncnn]
                                         else nnomp
                in gs{_imd=nimd,_txv=txt,_msz=nmsz,_omp=nnnomp,_stg=nstg
                     ,_lif=nlif,_cnn=ncnn}
              WSub -> gs
              WOk -> 
-               let tob = Ob 'b' "ZBuster" TTool T.empty CBlock NoDir (V2 0 0) 
+               let tob = Ob 'b' "ZBuster" TTool T.empty CBlock NoDir Black (V2 0 0) 
                    (npevs,nomp,_) = shootBullet tob pDir mapSize obMap
                    ngs = gs{ _omp=nomp}
                 in exeEvActs ngs npevs evActs
@@ -372,8 +374,8 @@ okButton gs =
 
 scanEffect :: ObMap -> ObMap
 scanEffect [] = []
-scanEffect (ob@(Ob ch nm tp df oc dr ps):xs)
-  | ch==eAt0 = Ob eAt1 nm tp df oc dr ps:scanEffect xs
+scanEffect (ob@(Ob ch nm tp df oc dr co ps):xs)
+  | ch==eAt0 = Ob eAt1 nm tp df oc dr co ps:scanEffect xs
   | ch==eAt1 = scanEffect xs
   | otherwise = ob:scanEffect xs
 

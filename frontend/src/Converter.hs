@@ -49,8 +49,24 @@ setMapStartPos (V2 x y) (V2 w h) (V2 mw mh) =
 
 putMapInFrame :: MapWinSize -> MapPos -> T.Text -> T.Text
 putMapInFrame (V2 mw mh) (V2 mx my) mpText =
-  let lns = map (T.take mw . T.drop mx) $ take mh $ drop my $ T.lines mpText
+  let lns = map (takeHTML mw . dropHTML mx) $ take mh $ drop my $ T.lines mpText
    in T.unlines lns
+
+dropHTML :: Int -> T.Text -> T.Text
+dropHTML 0 txt = txt
+dropHTML i txt = if T.isPrefixOf "<span" txt then dropHTML (i-1) $ T.drop 7 $ snd 
+                                                           $ T.breakOn "</span>" txt
+                                             else dropHTML (i-1) $ T.tail txt
+
+takeHTML :: Int -> T.Text -> T.Text
+takeHTML 0 _ = T.empty 
+takeHTML i txt 
+        | T.isPrefixOf "<span" txt = 
+            let (fs,sc) = T.breakOn "</span>" txt 
+             in fs<>T.take 7 sc<>takeHTML (i-1) (T.drop 7 sc)
+        | txt==T.empty = T.empty
+        | otherwise = T.singleton (T.head txt)<>takeHTML (i-1) (T.tail txt)
+
 
 makeObjectMap :: T.Text -> (ObMap,MapSize) 
 makeObjectMap tx =  
@@ -71,24 +87,28 @@ makeObjectMap tx =
            ocon
               | ch==oLeave = COn
               | otherwise = CBlock
-        in Ob ch oname otype T.empty ocon North (V2 p q))
+           ocolor
+              | ch==pChar = Orange 
+              | otherwise = Black
+        in Ob ch oname otype T.empty ocon North ocolor (V2 p q))
                                searchResult,V2 w (length lns))
 
 setObjectData :: [T.Text] -> ObMap -> ObMap
 setObjectData _ [] = [] 
-setObjectData obdts (ob@(Ob ch _ _ _ _ _ ps):obs) =
+setObjectData obdts (ob@(Ob ch _ _ _ _ _ _ ps):obs) =
   let tgtDt = fromMaybe T.empty $
         find (\obdt -> 
           let dtl = T.splitOn "," obdt
            in case dtl of
-                [_,_,_,_,_,_,tpx,tpy] ->
+                [_,_,_,_,_,_,_,tpx,tpy] ->
                    V2 ((read . T.unpack) tpx) ((read . T.unpack) tpy) == ps
+                [tch,_,_,_,_,_,_] -> tch==T.singleton ch
                 [tch,_,_,_,_,_] -> tch==T.singleton ch
                 _ -> False ) obdts
       dtList = T.splitOn "," tgtDt
       newObj = case dtList of
-        (_:tnm:ttp:tdf:tcn:tdr:_) ->
-               Ob ch tnm (txToType ttp) tdf (txToCon tcn) (txToDir tdr) ps 
+        (_:tnm:ttp:tdf:tcn:tdr:tco:_) ->
+               Ob ch tnm (txToType ttp) tdf (txToCon tcn) (txToDir tdr) (txToCol tco) ps 
         _ -> ob
    in newObj:setObjectData obdts obs
 
@@ -97,10 +117,15 @@ makeObjectByName _ [] = Nothing
 makeObjectByName oname (obdt:xs) =
   let dtList = T.splitOn "," obdt 
    in case dtList of
+        [tch,tnm,ttp,tdf,tcn,tdr,tco] ->
+            if tnm==oname then 
+                Just (Ob (T.head tch) tnm (txToType ttp) tdf 
+                        (txToCon tcn) (txToDir tdr) (txToCol tco) (V2 0 0))
+                          else makeObjectByName oname xs 
         [tch,tnm,ttp,tdf,tcn,tdr] ->
             if tnm==oname then 
                 Just (Ob (T.head tch) tnm (txToType ttp) tdf 
-                                        (txToCon tcn) (txToDir tdr) (V2 0 0))
+                                 (txToCon tcn) (txToDir tdr) Black (V2 0 0))
                           else makeObjectByName oname xs 
         _ -> makeObjectByName oname xs 
 
@@ -130,6 +155,9 @@ txToCon txt = fromMaybe CBlock $ lookup txt txCon
 txToDir :: T.Text -> Dir
 txToDir txt = fromMaybe NoDir $ lookup txt txDir
 
+txToCol :: T.Text -> Color
+txToCol txt = fromMaybe Black $ lookup txt txColor 
+
 txType :: [(T.Text,ObType)]
 txType = [("kazu",TKazu),("mozi",TMozi),("live",TLive LStand),("food",TFood),("tool",TTool),("block",TBlock)]
 
@@ -139,8 +167,8 @@ txCon = [("block",CBlock),("move",CMove),("get",CGet),("on",COn),("enter",CEnter
 txDir :: [(T.Text,Dir)]
 txDir = [("east",East),("north",North),("west",West),("south",South),("nodir",NoDir)]
 
---txLive :: Int -> Int -> [(T.Text,ObLive)]
---txLive ct c = [("move",LMove ct c),("attack",LAttack ct c),("shoot",LShoot ct c),("bullet",LBullet ct c)]
+txColor :: [(T.Text,Color)]
+txColor = [("black",Black),("gray",Gray),("red",Red),("orange",Orange),("blue",Blue),("cyan",Cyan)]
 
 searchObject :: Int -> String -> [(Int,Char)]
 searchObject _ [] = []
@@ -155,13 +183,16 @@ makeFlatMap (V2 w h) = replicate h $ T.pack (replicate w oNon)
 
 showObMap :: ObMap -> FlatMap -> [T.Text]
 showObMap [] mtx = mtx 
-showObMap ((Ob ch _ _ _ _ _ (V2 x y)):xs) mtx = showObMap xs (insertChar ch x y mtx)
+showObMap ((Ob ch _ _ _ _ _ co (V2 x y)):xs) mtx = showObMap xs (insertChar ch co x y mtx)
 
-insertChar :: Char -> Int -> Int -> [T.Text] -> [T.Text]
-insertChar ch x y txs =  
+insertChar :: Char -> Color -> Int -> Int -> [T.Text] -> [T.Text]
+insertChar ch co x y txs =  
   let ln = txs!!y
-      (hd,tl) = T.splitAt x ln
-      nln = hd <> T.singleton ch <> T.tail tl
+      (hd,tl) = (takeHTML x ln,dropHTML (x+1) ln)
+      chtx = T.singleton ch
+      insTxt = if co==Black then chtx else
+         "<span style=\"color:"<>coToText co<>";\">"<>chtx<>"</span>" 
+      nln = hd <> insTxt <> tl
       (bln,aln) = splitAt y txs
     in bln ++ [nln] ++ tail aln 
 
@@ -236,7 +267,7 @@ makeMpLines i omp (ml:xs) =
       
 makeListXCh :: Int -> ObMap -> [(Int,ObChar)]
 makeListXCh _ [] = []
-makeListXCh i (Ob ch _ _ _ _ _ (V2 px py):xs) 
+makeListXCh i (Ob ch _ _ _ _ _ _ (V2 px py):xs) 
   = if i==py then (px,ch):makeListXCh i xs else makeListXCh i xs 
 
 makeMpLine :: Maybe Int -> Int -> [(Int,ObChar)] -> String
@@ -255,7 +286,7 @@ makeMpLine (Just n) x xch@((i,ch):xs) =
 
 
 updateObjectData :: T.Text -> Object -> T.Text
-updateObjectData tx (Ob ch nm tp df cn dr (V2 px py)) = 
+updateObjectData tx (Ob ch nm tp df cn dr co (V2 px py)) = 
   let txList = T.lines tx
       traceText = T.singleton ch <> "," <> nm 
       traceLng = T.length traceText
@@ -263,25 +294,30 @@ updateObjectData tx (Ob ch nm tp df cn dr (V2 px py)) =
       tpTx = tpToText tp 
       cnTx = cnToText cn
       drTx = drToText dr 
+      coTx = coToText co
    in T.unlines $ traceText<>","<>tpTx<>","<>df<>","<>cnTx<>","<>drTx<>","
-                           <>(T.pack . show) px<>","<>(T.pack . show) py:newList
+                    <>coTx<>","<>(T.pack . show) px<>","<>(T.pack . show) py:newList
 
 makeObjectDatas :: ObMap -> [T.Text]
 makeObjectDatas  = map objToText 
 
 objToText :: Object -> T.Text
-objToText (Ob ch nm tp df cn dr (V2 px py)) =
+objToText (Ob ch nm tp df cn dr co (V2 px py)) =
   let tpTx = tpToText tp
       cnTx = cnToText cn
       drTx = drToText dr 
+      coTx = coToText co
    in T.singleton ch<>","<>nm<>","<>tpTx<>","<>df<>","<>cnTx<>","
-         <>drTx<>","<>(T.pack . show) px<>","<>(T.pack . show) py
+         <>drTx<>","<>coTx<>","<>(T.pack . show) px<>","<>(T.pack . show) py
 
 drToText :: Dir -> T.Text
 drToText dr = fromMaybe "nodir" $ lookup dr $ map swap txDir
 
 cnToText :: ObCon -> T.Text
 cnToText cn = fromMaybe T.empty $ lookup cn $ map swap txCon 
+
+coToText :: Color -> T.Text
+coToText co = fromMaybe "black" $ lookup co $ map swap txColor  
    
 tpToText :: ObType -> T.Text
 tpToText (TFunc []) = "func"
@@ -400,9 +436,13 @@ txToObject obtx =
             tp = txToType txTp
             cn = txToCon txCn
             dr = txToDir txDr
+            co = case xs of
+                  [txCol,_,_] -> txToCol txCol 
+                  [txCol] -> txToCol txCol 
+                  _ -> Black
             ps = case xs of 
-                  [txPx,txPy] -> 
+                  [_,txPx,txPy] -> 
                         V2 ((read . T.unpack) txPx) ((read . T.unpack) txPy)
                   _ -> V2 0 0
-         in Ob ch nm tp df cn dr ps
+         in Ob ch nm tp df cn dr co ps
     _ -> blankObj 

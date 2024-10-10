@@ -22,7 +22,7 @@ type ObName = T.Text
 
 data Dir = NoDir | East | North | West | South deriving stock (Eq,Show,Enum)
 
-data Color = Black | Red | Orange | Blue | Cyan deriving stock (Eq,Show,Enum)
+data Color = Black | Gray | Red | Orange | Blue | Cyan deriving stock (Eq,Show,Enum)
 
 data ObCon = CBlock | CMove | CGet | COn | CEnter deriving stock (Eq,Show)
 
@@ -37,7 +37,7 @@ data ObLive = LStand | LMove Int Int | LApproach Int Int Int | LShoot Int Int |
 
 type ObDef = T.Text
 
-data Object = Ob ObChar ObName ObType ObDef ObCon Dir Pos
+data Object = Ob ObChar ObName ObType ObDef ObCon Dir Color Pos
                                                 deriving stock (Eq,Show)
 
 type ObMap = [Object]
@@ -126,13 +126,19 @@ gameTitle :: T.Text
 gameTitle = "わかひめ"
 
 mapWinSize :: Size 
-mapWinSize = V2 12 6
+mapWinSize = V2 12 8
 
 pChar :: Char
 pChar = 'ひ'
 
 oLeave :: Char
 oLeave = 'ん'
+
+oBullet :: Char
+oBullet = 'あ'
+
+oZBul :: Char
+oZBul = '阿'
 
 oNon :: Char
 oNon = '・'
