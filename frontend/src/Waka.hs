@@ -76,6 +76,9 @@ wakaMain gs = do
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
 
+--    let dyOmp = _omp <$> dyGs
+--    dynText $ T.pack . show <$> dyOmp
+
     divClass "tbox" $  
       prerender_ blank $ void $ 
             elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") dyVText

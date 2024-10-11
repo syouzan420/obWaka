@@ -132,7 +132,7 @@ pChar :: Char
 pChar = 'ひ'
 
 oLeave :: Char
-oLeave = 'ん'
+oLeave = 'わ'
 
 oBullet :: Char
 oBullet = 'あ'

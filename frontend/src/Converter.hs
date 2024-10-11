@@ -109,6 +109,8 @@ setObjectData obdts (ob@(Ob ch _ _ _ _ _ _ ps):obs) =
       newObj = case dtList of
         (_:tnm:ttp:tdf:tcn:tdr:tco:_) ->
                Ob ch tnm (txToType ttp) tdf (txToCon tcn) (txToDir tdr) (txToCol tco) ps 
+        (_:tnm:ttp:tdf:tcn:tdr:_) ->
+               Ob ch tnm (txToType ttp) tdf (txToCon tcn) (txToDir tdr) Black ps 
         _ -> ob
    in newObj:setObjectData obdts obs
 
