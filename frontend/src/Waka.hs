@@ -19,7 +19,7 @@ import Reflex.Dom.Core
   )
 
 import CWidget (dyChara,imgsrc,elSpace,evElButton,evElButtonH,elTextScroll
-               ,saveState,loadState,mkHidden,elImage0,elVibration)
+               ,saveState,loadState,mkHidden,elImage0,elVibration,elPlayMusic)
 
 import Define
 import Initialize (newGame)
@@ -150,6 +150,7 @@ gameStart ::
   , Prerender t m
   ) => Dynamic t Game -> Dynamic t Int -> m () 
 gameStart dst di = do
+  elPlayMusic
   st <- (sample . current) dst
   i <- (sample . current) di 
   if st==newGame || i==1 
