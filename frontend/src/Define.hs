@@ -64,6 +64,8 @@ data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 
 data HitSt = HNon | HBullet | HBulletTo ObName deriving stock (Eq,Show)
 
+data DType = DPlane Color | DOsite Color | DStop | DCode | DRubi deriving stock (Eq,Show)
+
 
 --imd: input mode (Txt or Cho or Ply)
 --txs: text sections

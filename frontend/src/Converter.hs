@@ -214,26 +214,30 @@ getSections' (Just tx) acc (x:xs)
     | T.last x == ':' = TS tx ((T.unlines . init) acc) : getSections' (Just (T.init x)) [] xs 
     | otherwise = getSections' (Just tx) (acc++[x]) xs  
                       
-type IsStop = Bool
 type IsTyping = Bool
-type IsCode = Bool
-type IsRubi = Bool
 
 getInfoFromChar :: T.Text -> Int 
-              -> (IsStop,IsTyping,IsCode,IsRubi,Char,T.Text,T.Text,Int)
+              -> (IsTyping,DType,Char,T.Text,Int)
 getInfoFromChar wtx i = 
   let ch = T.index wtx i
       isCode = ch==';'
       isStop = ch=='。'
       isRubi = ch=='$' && T.index wtx (i+1)=='r'
+      dtype
+        | isStop = DStop
+        | isRubi = DRubi
+        | isCode = DCode
+        | otherwise = DPlane Black
       isTyping = not (isStop || ch=='、' || isCode)
-      codeText = if isCode then T.tail (T.takeWhile (/='\n') (T.drop i wtx)) else T.empty
-      rubiText = if isRubi then T.takeWhile (/=' ') (T.drop (i+2) wtx) else T.empty
+      doc
+        | isCode = T.tail (T.takeWhile (/='\n') (T.drop i wtx))
+        | isRubi = T.takeWhile (/=' ') (T.drop (i+2) wtx)
+        | otherwise = T.empty
       scanLength 
-        | isCode = T.length codeText + 1 
-        | isRubi = T.length rubiText + 3
+        | isCode = T.length doc + 1 
+        | isRubi = T.length doc + 3
         | otherwise = 1
-   in (isStop,isTyping,isCode,isRubi,ch,codeText,rubiText,scanLength)
+   in (isTyping,dtype,ch,doc,scanLength)
 
 makeRubiHtml :: T.Text -> T.Text
 makeRubiHtml rubiText =

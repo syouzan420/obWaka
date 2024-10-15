@@ -3,11 +3,10 @@ module CWidget (dyChara, imgsrc, elSpace, evElButton, evElButtonH, mkHidden
                ,saveState, loadState, clear, elImage0, elVibration) where
 
 import JSDOM
-import qualified JSDOM.Generated.NonElementParentNode as DOM
 import qualified JSDOM.Generated.Element as DOM
 import JSDOM.Generated.HTMLMediaElement (play,setLoop)
 import JSDOM.Generated.Storage (getItem, removeItem, setItem)
-import JSDOM.Generated.ParentNode (querySelectorUnchecked)
+import JSDOM.Generated.ParentNode (querySelector)
 import JSDOM.Types (FromJSString, Storage, ToJSString, JSM, HTMLMediaElement(..), liftJSM)
 import JSDOM.Generated.Window (getLocalStorage,getNavigator)
 import JSDOM.Generated.Navigator (vibrate_)
@@ -75,19 +74,25 @@ imgsrc = ["src" =: $(static "chara0.png")
 
 elTextScroll :: (DomBuilder t m, Prerender t m) => m ()
 elTextScroll = prerender_ blank $ do
-  doc <- currentDocumentUnchecked
-  scrollText <- DOM.getElementById doc ("wkText" :: String)
-  case scrollText of
-    Just scrT -> DOM.scrollBy scrT (-20) 0 
+  docMb <- currentDocument
+  case docMb of
+    Just doc -> do
+       scrollText <- querySelector doc ("#wkText" :: String)
+       case scrollText of
+          Just scrT -> DOM.scrollBy scrT (-20) 0 
+          Nothing -> return ()
     Nothing -> return ()
   
 elPlayMusic :: (DomBuilder t m, Prerender t m) => m ()
 elPlayMusic = prerender_ blank $ do
   doc <- currentDocumentUnchecked
-  music <- querySelectorUnchecked doc ("#music"::String)
-  let mel = HTMLMediaElement (DOM.unElement music)
-  setLoop mel True
-  play mel
+  music <- querySelector doc ("#music"::String)
+  case music of
+    Just muse -> do
+          let mel = HTMLMediaElement (DOM.unElement muse)
+          setLoop mel True
+          play mel
+    Nothing -> return ()
 
 elVibration :: (DomBuilder t m, Prerender t m) => m ()
 elVibration = prerender_ blank $ do

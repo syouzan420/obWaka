@@ -402,17 +402,19 @@ textUpdate gs =
       pgs = if eventTrigger==NoEvent then gs else gs{_etr=NoEvent}
    in if isText && isTextShowing then 
         let textView = _txv pgs
-            (isStop,isTyping,isCode,isRubi,targetChar,codeText,rubiText,scanLength)
+            (isTyping,dtype,targetChar,doc,scanLength)
               = getInfoFromChar wholeText textCount
+            isStop = dtype == DStop
+            isCode = dtype == DCode
+            isRubi = dtype == DRubi
             nitx = not isStop && isText && isTextShowing
             ntxv = if isTyping then if isRubi 
-                                        then textView <> makeRubiHtml rubiText
+                                        then textView <> makeRubiHtml doc 
                                         else textView <> T.singleton targetChar
                                else textView
             ntct = textCount + scanLength 
             ngs0 = pgs{_itx=nitx, _txv=ntxv, _tct=ntct, _tcs=_tcs pgs + 1}
-            ngs1 = if isCode then exeCode ngs0 codeText else ngs0
+            ngs1 = if isCode then exeCode ngs0 doc else ngs0
          in ngs1
                                 else 
          if isTextShowing then pgs else exeCode pgs "sc_0 sp"
-
