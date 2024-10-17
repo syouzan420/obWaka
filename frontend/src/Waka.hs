@@ -9,7 +9,7 @@ import Data.Functor ((<&>),void)
 import Data.Maybe (isNothing,isJust,fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
-  ( dynText, current, gate, blank, elAttr, constDyn, el, text
+  ( dynText, current, gate, blank, elAttr, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
   , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
   , prerender_, elDynHtmlAttr', elDynHtml' 
@@ -18,8 +18,8 @@ import Reflex.Dom.Core
   , Dynamic, Event
   )
 
-import CWidget (dyChara,imgsrc,elSpace,evElButton,evElButtonH,elTextScroll
-               ,saveState,loadState,mkHidden,elImage0,elVibration,elPlayMusic)
+import CWidget (elChara,elSpace,evElButton,evElButtonH,elTextScroll
+               ,saveState,loadState,mkHidden,elImage0,elVibration)
 
 import Define
 import Initialize (newGame)
@@ -53,18 +53,17 @@ wakaMain gs = do
     let evTxTime = gate (current dyTxtOn) evTime
     let evSave = gate beIsSave evWTick 
     dyGs <- accumDyn wakaUpdate gs evWk
-    let (dyVText,dyIsText,dyIMode,dyETR,dyLife,dyLnu,dyLnt) =
+    let (dyVText,dyIsText,dyIMode,dyETR,dyLife,dyLnu,dyLnt,dyChn,dyHave) =
           (_txv <$> dyGs, _itx <$> dyGs, _imd <$> dyGs, _etr <$> dyGs
-          , _lif<$> dyGs, _lnu <$> dyGs, _lnt <$> dyGs)
+          , _lif<$> dyGs, _lnu <$> dyGs, _lnt <$> dyGs, _chn <$> dyGs
+          , _hav <$> dyGs)
     let dyAtr = fmap (\t -> ("href" =: t)::M.Map T.Text T.Text) dyLnu
     let dyIsShowLife = isJust <$> dyLife
     let dyHide = mkHidden <$> dyIsShowLife
     let dyTxtOn = zipDynWith (\a b -> a && (b==Txt || b==Cho)) dyIsText dyIMode
-    let dyImg = dyGs >>= (\n -> constDyn (imgsrc!!n)) . _chn
     let dyDir = (dirToText <$> getDirByName "player") . _omp <$> dyGs
-    let dyHave = _hav <$> dyGs
     divClass "flexbox" $ do
-      el "div" $ dyChara dyImg
+      el "div" $ elChara dyChn
       divClass "kaimap" $ do
          elDynAttr "div" dyHide $ divClass "cen" $ 
                   dynText (fmap (fromMaybe T.empty) dyLife) 
@@ -150,7 +149,6 @@ gameStart ::
   , Prerender t m
   ) => Dynamic t Game -> Dynamic t Int -> m () 
 gameStart dst di = do
-  elPlayMusic
   st <- (sample . current) dst
   i <- (sample . current) di 
   if st==newGame || i==1 
@@ -196,7 +194,7 @@ wakaUpdate gs wev =
           let titles = _cho gs
               tln = length titles
               cNum = lookup wev 
-                        (zip [WOk,WUp,WSub,WLeft,WDown,WRight] [(0::Int)..]) 
+                        (zip [WRight,WLeft,WUp,WDown,WOk,WSub] [(0::Int)..]) 
               title = case cNum of
                 Just cn -> if tln>cn then titles!!cn else T.empty 
                 _ -> T.empty

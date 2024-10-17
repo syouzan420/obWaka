@@ -245,7 +245,7 @@ setEventAction gs ead pcd =
         _ -> gs
 
 txsByName :: [T.Text]
-txsByName = ["block","push","get","on","consume","attack","shoot"]
+txsByName = map fst (txPevByName T.empty) 
 
 txPevByName :: ObName -> [(T.Text,PEvent)]
 txPevByName nm = [("block",PBlock nm),("push",PPush nm),("get",PGet nm)
@@ -326,7 +326,7 @@ deleteMap gs = gs{_omp=[], _tmp=[], _mnm=T.empty, _msz=V2 0 0, _mps=V2 0 0}
 choiceDialog :: Game -> [T.Text] -> Game
 choiceDialog gs args = 
   choiceDialog' gs{_imd=Cho,_cho=[],_txv=_txv gs<>"\n",_tct=_tct gs + 1}
-                                          args ["●","←","□","↑","→","↓"] 
+                                          args ["↑","↓","←","→","●","□"] 
 
 choiceDialog' :: Game -> [T.Text] -> [T.Text] -> Game
 choiceDialog' gs [] _ = gs

@@ -1,4 +1,4 @@
-module CWidget (dyChara, imgsrc, elSpace, evElButton, evElButtonH, mkHidden
+module CWidget (elChara, elMusic, elSpace, evElButton, evElButtonH, mkHidden
                ,elTextScroll,elRandom, elPlayMusic
                ,saveState, loadState, clear, elImage0, elVibration) where
 
@@ -21,7 +21,7 @@ import Obelisk.Generated.Static (static)
 import Reflex.Dom.Core 
   ( text, el, elAttr, elAttr', blank, sample
   , (=:), elDynAttr, elDynAttr', domEvent
-  , current, prerender_, prerender 
+  , current, prerender_, prerender, constDyn 
   , DomBuilder, PostBuild, Event, EventName(Click), MonadHold, Dynamic, Prerender
   )
 
@@ -54,14 +54,23 @@ elRandom = do
   dyRand <- prerender (return (0::Int)) $ liftIO $ randomRIO (0,4)
   sample (current dyRand)
 
-dyChara :: (DomBuilder t m, PostBuild t m) => Dynamic t (Map.Map T.Text T.Text) -> m ()
-dyChara di = elDynAttr "img" di blank
+elChara :: (DomBuilder t m, PostBuild t m) => Dynamic t Int -> m ()
+elChara dyI = elDynAttr "img" (dyI >>= (\i -> constDyn (imgSrc!!i))) blank
+
+--dyChara :: (DomBuilder t m, PostBuild t m) 
+--                => Dynamic t (Map.Map T.Text T.Text) -> m ()
+--dyChara di = elDynAttr "img" di blank
+
+elMusic :: (DomBuilder t m, PostBuild t m) => Dynamic t Int -> m ()
+elMusic dyI = do
+  let mid n = "music" <> (T.pack . show) n 
+  elDynAttr "audio" (dyI >>= (\i -> constDyn (museSrc!!i <> "id" =: mid i))) blank
 
 elImage0 :: DomBuilder t m => m ()
 elImage0 = elAttr "img" ("src" =: $(static "title.png")) blank
 
-imgsrc :: [Map.Map T.Text T.Text]
-imgsrc = ["src" =: $(static "chara0.png")
+imgSrc :: [Map.Map T.Text T.Text]
+imgSrc = ["src" =: $(static "chara0.png")
          ,"src" =: $(static "chara1.png")
          ,"src" =: $(static "chara2.png")
          ,"src" =: $(static "chara3.png")
@@ -71,6 +80,9 @@ imgsrc = ["src" =: $(static "chara0.png")
          ,"src" =: $(static "chara7.png")
          ,"src" =: $(static "chara8.png")
          ]
+
+museSrc :: [Map.Map T.Text T.Text]
+museSrc = ["src" =: $(static "music0.mp3")] 
 
 elTextScroll :: (DomBuilder t m, Prerender t m) => m ()
 elTextScroll = prerender_ blank $ do
@@ -83,10 +95,10 @@ elTextScroll = prerender_ blank $ do
           Nothing -> return ()
     Nothing -> return ()
   
-elPlayMusic :: (DomBuilder t m, Prerender t m) => m ()
-elPlayMusic = prerender_ blank $ do
+elPlayMusic :: (DomBuilder t m, Prerender t m) => Int -> m ()
+elPlayMusic i = prerender_ blank $ do
   doc <- currentDocumentUnchecked
-  music <- querySelector doc ("#music"::String)
+  music <- querySelector doc (("#music"<>show i)::String)
   case music of
     Just muse -> do
           let mel = HTMLMediaElement (DOM.unElement muse)

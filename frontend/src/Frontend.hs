@@ -40,11 +40,6 @@ frontendHead = do
       <> "rel" =: "stylesheet")
     blank
 
-  elAttr
-    "audio"
-    ("src" =: $(static "cooktest3.mp3") <> "id" =: "music")
-    blank
-
 frontendBody :: 
   ( DomBuilder t m
   , MonadFix m
