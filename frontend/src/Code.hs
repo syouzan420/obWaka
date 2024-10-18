@@ -147,7 +147,6 @@ updateObject gs tx =
            in gs{_txs=newTxs,_omp=nomp,_pmp=npmp}
         _ -> gs
 
-
 updateDef :: Game -> T.Text -> Game
 updateDef gs tx =
   let omp = _omp gs

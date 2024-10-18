@@ -21,7 +21,8 @@ library
                , common
                , jsaddle
                , jsaddle-dom
-               , lens
+               , microlens 
+               , microlens-th
                , obelisk-executable-config-lookup
                , obelisk-frontend
                , obelisk-generated-static

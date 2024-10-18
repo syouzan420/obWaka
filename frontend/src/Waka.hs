@@ -2,10 +2,12 @@ module Waka (loadGame) where
 
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
+import Lens.Micro
+import Lens.Micro.TH (makeLenses)
 import Linear.V2 (V2(..))
 import qualified Data.Map as M 
 import Data.List (nub)
-import Data.Functor ((<&>),void)
+import Data.Functor (void)
 import Data.Maybe (isNothing,isJust,fromMaybe)
 import qualified Data.Text as T
 import Reflex.Dom.Core 
@@ -33,6 +35,11 @@ import Object (getDirByName,updateDirByName,updatePosByName,getObjName
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject,shootBullet)
 import Code (exeCode,setMap,moveDialog)
 
+makeLenses ''Game
+
+(*.) :: Functor f => f s -> Getting b s b -> f b
+(*.) a b = a <&> (^. b)
+
 wakaMain ::
   ( DomBuilder t m
   , MonadFix m
@@ -46,24 +53,22 @@ wakaMain ::
 wakaMain gs = do
   elAttr "div" ("id" =: "map") $ mdo
     evTime <- tickLossyFromPostBuildTime 0.1
-    let beIsSave = fmap (\etr -> etr==Save || etr==LSave) (current dyETR) 
+    let beIsSave = fmap (\et -> et==Save || et==LSave) (current (dyGs*.etr)) 
     let evWTick = WTick <$ evTime
     let evWk = leftmost (evBtList<>[evWTick])
     let evBt = leftmost evBtList 
     let evTxTime = gate (current dyTxtOn) evTime
     let evSave = gate beIsSave evWTick 
     dyGs <- accumDyn wakaUpdate gs evWk
-    let (dyVText,dyIsText,dyIMode,dyETR,dyLife,dyLnu,dyLnt,dyChn,dyHave) =
-          (_txv <$> dyGs, _itx <$> dyGs, _imd <$> dyGs, _etr <$> dyGs
-          , _lif<$> dyGs, _lnu <$> dyGs, _lnt <$> dyGs, _chn <$> dyGs
-          , _hav <$> dyGs)
-    let dyAtr = fmap (\t -> ("href" =: t)::M.Map T.Text T.Text) dyLnu
+    let dyLife = dyGs*.lif  
+    let dyAtr = fmap (\t -> ("href" =: t)::M.Map T.Text T.Text) (dyGs*.lnu) 
     let dyIsShowLife = isJust <$> dyLife
     let dyHide = mkHidden <$> dyIsShowLife
-    let dyTxtOn = zipDynWith (\a b -> a && (b==Txt || b==Cho)) dyIsText dyIMode
-    let dyDir = (dirToText <$> getDirByName "player") . _omp <$> dyGs
+    let dyTxtOn = 
+          zipDynWith (\a b -> a && (b==Txt || b==Cho)) (dyGs*.itx) (dyGs*.imd)
+    let dyDir = dirToText . getDirByName "player" <$> (dyGs*.omp)
     divClass "flexbox" $ do
-      el "div" $ elChara dyChn
+      el "div" $ elChara (dyGs*.chn) 
       divClass "kaimap" $ do
          elDynAttr "div" dyHide $ divClass "cen" $ 
                   dynText (fmap (fromMaybe T.empty) dyLife) 
@@ -71,7 +76,7 @@ wakaMain gs = do
             elDynHtml' "div" $ showMapRect <$> dyGs 
       divClass "kai" $ do
          dynText $ fmap (<>"\n") dyDir 
-         dynText $ dyHave <&> 
+         dynText $ (dyGs*.hav) <&> 
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
 
@@ -80,10 +85,10 @@ wakaMain gs = do
 
     divClass "tbox" $  
       prerender_ blank $ void $ 
-            elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") dyVText
+        elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") (dyGs*.txv) 
     elSpace  
     evBtList <- evWkButtons
-    divClass "lnk" $ elDynAttr "a" dyAtr $ dynText dyLnt
+    divClass "lnk" $ elDynAttr "a" dyAtr $ dynText (dyGs*.lnt) 
     widgetHold_ blank (elVibration <$ evBt)
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
@@ -102,10 +107,8 @@ evWkButtons = do
 saveGame :: (DomBuilder t m, Prerender t m, MonadHold t m) => Dynamic t Game -> m ()
 saveGame dyGs = do 
   gs <- sample (current dyGs)
-  let etr = _etr gs
-  let gmc = _gmc gs
-  let txs = getSections $ T.lines textData
-  let ngs = if etr==LSave then newGame{_txs= txs, _gmc=gmc+1} else gs
+  let ntxs = getSections $ T.lines textData
+  let ngs = if gs^.etr==LSave then newGame{_txs= ntxs, _gmc=gs^.gmc+1} else gs
   (saveState . makeGameStateText) ngs
 
 loadGame ::
@@ -152,14 +155,12 @@ gameStart dst di = do
   st <- (sample . current) dst
   i <- (sample . current) di 
   if st==newGame || i==1 
-    then let txs = getSections $ T.lines textData
-             (TS _ tx) = head txs
-          in wakaMain newGame{_txs=txs, _txw=tx}
+    then let textSections = getSections $ T.lines textData
+             (TS _ tx) = head textSections 
+          in wakaMain newGame{_txs=textSections, _txw=tx}
     else if i==2 then 
-            let omp = _omp st
-                txs = _txs st
-                (TS _ tx) = head txs
-                nst = if null omp then st{_txw=tx,_itx=True} else st
+            let (TS _ tx) = head (st^.txs)
+                nst = if null (st^.omp) then st{_txw=tx,_itx=True} else st
              in wakaMain nst 
     else let nomp =  
               [Ob pChar "player" (TLive LStand) T.empty CBlock North Orange (V2 6 3)
@@ -167,31 +168,23 @@ gameStart dst di = do
           in wakaMain st{_imd=Ext,_msz=V2 12 6,_omp=nomp,_cnn=1,_lif=Just "★★★★★"}
 
 showMapRect :: Game -> T.Text
-showMapRect gs =
-  let obMap = _omp gs
-      tMap = _tmp gs
-      mapSize = _msz gs
-      mapPos = _mps gs
-      isMapShow = _ims gs
-   in if isMapShow then putMapInFrame mapWinSize mapPos $ showMap mapSize obMap tMap
-                   else T.empty
+showMapRect gs = if gs^.ims then putMapInFrame mapWinSize (gs^.mps) 
+                                $ showMap (gs^.msz) (gs^.omp) (gs^.tmp) 
+                            else T.empty
 
 wakaUpdate :: Game -> WkEvent -> Game
 wakaUpdate gs wev =
-  let imode = _imd gs
-   in case imode of
+   case gs^.imd of
         End -> gs
-        Wai -> let cnn = _cnn gs
-                   ncnn = if ncnn>10 then 0 else cnn + 1
+        Wai -> let ncnn = if ncnn>10 then 0 else gs^.cnn + 1
                 in gs{_imd=if ncnn>10 then Txt else Wai, _cnn=ncnn}
         Txt -> case wev of
           WTick -> let ngs = effectUpdate gs 
-                       iths = _iths ngs
-                    in if iths then repeatTexUpdate ngs else textUpdate ngs
+                    in if ngs^.iths then repeatTexUpdate ngs else textUpdate ngs
           WOk -> okButton gs
           _ -> gs
         Cho -> 
-          let titles = _cho gs
+          let titles = gs^.cho
               tln = length titles
               cNum = lookup wev 
                         (zip [WRight,WLeft,WUp,WDown,WOk,WSub] [(0::Int)..]) 
@@ -202,46 +195,44 @@ wakaUpdate gs wev =
         Mov -> case wev of 
           WTick -> 
             let ngs = objectUpdate gs 
-                cnn = _cnn gs
-                omp = _omp gs
-                pps = getPosByName "player" omp
-                apos = getPosByName "Anna" omp
-                ypos = getPosByName "Yoko" omp
-                tpos = getPosByName "Tana" omp
+                count = gs^.cnn
+                obMap = gs^.omp
+                pps = getPosByName "player" obMap
+                apos = getPosByName "Anna" obMap
+                ypos = getPosByName "Yoko" obMap
+                tpos = getPosByName "Tana" obMap
                 fIsCome (V2 x y) = x^(2::Int) + y^(2::Int) < 10 
                 adf = apos - pps
                 ydf = ypos - pps
                 tdf = tpos - pps
                 isCome = fIsCome adf && fIsCome ydf && fIsCome tdf 
-             in if isCome || cnn>100 then ngs{_imd=Txt} else ngs{_cnn=cnn+1}
+             in if isCome || count>100 then ngs{_imd=Txt} else ngs{_cnn=count+1}
           _     -> gs
         Ply -> 
-          let obMap = _omp gs
-              mapSize = _msz gs
-              pHave = _hav gs    
+          let obMap = gs^.omp
+              mapSize = gs^.msz
+              pHave = gs^.hav    
               pDir = getDirByName "player" obMap
-              evActs = _evas gs
-              mnm = _mnm gs
+              evActs = gs^.evas
            in case wev of
              WTick -> objectUpdate $ effectUpdate gs
              WSub -> 
-               let txw = ";cho_セーブ_textSave_もどる_textBack"
-                in gs{_imd=Txt, _itx=True, _txw=txw, _txv=T.empty, _tct=0}
+               let ntxw = ";cho_セーブ_textSave_もどる_textBack"
+                in gs{_imd=Txt, _itx=True, _txw=ntxw, _txv=T.empty, _tct=0}
              WOk -> 
-               let tmpMap = _tmp gs
-                   txSec = _txs gs
+               let tmpMap = gs^.tmp
                    ntmp = if isNothing pHave 
                              then hitAction "player" mapSize obMap tmpMap
                              else tmpMap
                    (npevs,nomp,nphv) = case pHave of
-                          Nothing -> attackAction txSec pDir mnm obMap 
+                          Nothing -> attackAction (gs^.txs) pDir (gs^.mnm) obMap 
                           Just tob -> if getObjName tob=="ZBuster"
                                  then shootBullet tob pDir mapSize obMap
                                  else putAction tob pDir mapSize obMap  
                    ngs = gs{_tmp=ntmp, _omp=nomp, _hav=nphv}
                 in exeEvActs ngs npevs evActs
              dirEv -> 
-               let mapPos = _mps gs
+               let mapPos = gs^.mps
                    keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
                    isSameDir = pDir == keyDir
                    (npevs,nomp,nmps,nphv) = if isSameDir 
@@ -251,31 +242,29 @@ wakaUpdate gs wev =
                    ngs2 = enterNewMap ngs npevs
                 in ngs2 
         Ext -> 
-          let obMap = _omp gs
+          let obMap = gs^.omp
               mapSize = _msz gs
               pDir = getDirByName "player" obMap
               evActs = _evas gs
            in case wev of
              WTick -> 
-              let omp = _omp gs
-                  msz@(V2 sx _) = _msz gs
-                  stg = _stg gs
-                  lif = _lif gs
-                  cnn = _cnn gs
-                  (nomp,(nhs,nstg)) = moveObject stg [] msz omp omp 
+              let mapSz@(V2 sx _) = gs^.msz
+                  life = gs^.lif
+                  count = gs^.cnn
+                  (nomp,(nhs,nstg)) = moveObject (gs^.stg) [] mapSz obMap obMap 
                   nlif = if HBullet `elem` nhs then 
-                    (\lf -> if lf==T.empty then lf else T.drop 1 lf) <$> lif
-                                               else lif
+                    (\lf -> if lf==T.empty then lf else T.drop 1 lf) <$> life
+                                               else life
                   nnomp = foldl (\acc ev-> case ev of
                                      HBulletTo nm -> deleteObjByName nm acc 
                                      _ -> acc) nomp nhs
                   isOver = nlif==Just T.empty
                   nimd = if isOver then End else Ext
-                  txt = if isOver then "Game Over On Stage "<>(T.pack . show) cnn
-                                  else "Stage: "<>(T.pack . show) cnn
+                  txt = if isOver then "Game Over On Stage "<>(T.pack . show) count
+                                  else "Stage: "<>(T.pack . show) count
                   isNoEnemy = length nnomp == 1
-                  ncnn = if isNoEnemy then cnn+1 else cnn
-                  nmsz = if isNoEnemy then msz+1 else msz
+                  ncnn = if isNoEnemy then count+1 else count
+                  nmsz = if isNoEnemy then mapSz+1 else mapSz
                   nnnomp = if isNoEnemy then nnomp<>map (\i ->
                     Ob 'V' ("vaccine"<>(T.pack . show) i) (TLive (LShoot 4 0))
                       T.empty CBlock South Black (V2 (mod ncnn sx) (div ncnn sx)))
@@ -290,7 +279,7 @@ wakaUpdate gs wev =
                    ngs = gs{ _omp=nomp}
                 in exeEvActs ngs npevs evActs
              dirEv -> 
-               let mapPos = _mps gs
+               let mapPos = gs^.mps
                    keyDir = (\d -> if d==NoDir then pDir else d) $ inpToDir dirEv
                    isSameDir = pDir == keyDir
                    (_,nomp,nmps,_) = if isSameDir 
@@ -299,54 +288,51 @@ wakaUpdate gs wev =
                 in gs{_omp=nomp,_mps=nmps} 
 
 objectUpdate :: Game -> Game
-objectUpdate gs = let omp = _omp gs
-                      msz = _msz gs
-                      stg = _stg gs
-                      lif = _lif gs
-                      evas = _evas gs
-                      (nomp,(nhs,nstg)) = moveObject stg [] msz omp omp 
-                      nlif = if HBullet `elem` nhs then 
-                        (\lf -> if lf==T.empty then lf else T.drop 1 lf) <$> lif
-                                                   else lif
-                      isShootZ = HBulletTo "ZVaccine" `elem` nhs
-                      pev = [PNoLife | nlif==Just T.empty] <>
+objectUpdate gs = 
+  let obMap = gs^.omp
+      life = gs^.lif
+      (nomp,(nhs,nstg)) = moveObject (gs^.stg) [] (gs^.msz) obMap obMap 
+      nlif = if HBullet `elem` nhs then 
+                (\lf -> if lf==T.empty then lf else T.drop 1 lf) <$> life
+                                   else life
+      isShootZ = HBulletTo "ZVaccine" `elem` nhs
+      pev = [PNoLife | nlif==Just T.empty] <>
                             [PShoot "ZVaccine" | isShootZ]
-                      ngs = exeEvActs gs{_omp=nomp,_stg=nstg,_lif=nlif} pev evas 
-                   in ngs
+      ngs = exeEvActs gs{_omp=nomp,_stg=nstg,_lif=nlif} pev (gs^.evas) 
+   in ngs
 
 enterNewMap :: Game -> [PEvent] -> Game 
 enterNewMap gs [] = gs 
 enterNewMap gs (PEnter pps oname:_) = 
-  let mnm = _mnm gs
-      omp = _omp gs
-      obj = getObjByName oname omp
+  let obMap = gs^.omp
+      obj = getObjByName oname obMap
       tdf = maybe T.empty getObjDef obj
-   in setMap gs{_pmp = (mnm,pps,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
+   in setMap gs{_pmp = (gs^.mnm,pps,obMap)} 
+                        (if tdf==T.empty then "0" else T.drop 3 tdf) 
 enterNewMap gs (PLeave:_) =
-  let txs = _txs gs
-      mnm = _mnm gs
-      lomp = deleteObjByName "player" (_omp gs)
-      titleM = "map"<>mnm
-      titleO = "obj"<>mnm
-      mapData = lookupFromSections txs titleM 
-      objData = lookupFromSections txs titleO
+  let textSections = gs^.txs
+      mapName = gs^.mnm
+      lomp = deleteObjByName "player" (gs^.omp)
+      titleM = "map"<>mapName
+      titleO = "obj"<>mapName
+      mapData = lookupFromSections textSections titleM 
+      objData = lookupFromSections textSections titleO
       newMapData = updateMapData mapData lomp
       newObjData = T.unlines $ nub $ makeObjectDatas lomp <> T.lines objData
       ntxs = updateTextSection (TS titleO newObjData) $ 
-                          updateTextSection (TS titleM newMapData) txs
-      (tmnm,tps,omp) = _pmp gs 
+                          updateTextSection (TS titleM newMapData) textSections 
+      (tmnm,tps,obMap) = gs^.pmp 
       ngs = setMap gs tmnm
-      msz = _msz ngs
-      nomp = updatePosByName "player" tps omp
-      mpos = setMapStartPos tps mapWinSize msz
+      nomp = updatePosByName "player" tps obMap
+      mpos = setMapStartPos tps mapWinSize (ngs^.msz) 
    in ngs{_txs=ntxs, _mps=mpos, _omp=nomp}
 enterNewMap gs (_:xs) = enterNewMap gs xs
 
 
 exeEvActs :: Game -> [PEvent] -> [EvAct] -> Game
 exeEvActs gs [] nevas = gs{_evas = nevas} 
-exeEvActs gs (pe:pes) evas = 
-  let (nevas,ncodes) = getCodes pe ([],[]) evas
+exeEvActs gs (pe:pes) evActs = 
+  let (nevas,ncodes) = getCodes pe ([],[]) evActs
       ngs = if null ncodes then gs else foldl exeCode gs ncodes
    in exeEvActs ngs pes nevas
 
@@ -367,11 +353,8 @@ checkAct pe (EA te _ n co) =
 
 okButton :: Game -> Game
 okButton gs = 
-  let imd = _imd gs
-      itx = _itx gs
-      iths = _iths gs
-      niths = itx && not iths
-   in gs{_itx=imd==Txt,_tcs=0,_iths=niths,_etr=NoEvent} 
+  let niths = gs^.itx && not (gs^.iths) 
+   in gs{_itx=gs^.imd==Txt,_tcs=0,_iths=niths,_etr=NoEvent} 
 
 
 scanEffect :: ObMap -> ObMap
@@ -385,16 +368,15 @@ effectUpdate :: Game -> Game
 effectUpdate gs = gs{_tmp = scanEffect (_tmp gs)}
 
 repeatTexUpdate :: Game -> Game
-repeatTexUpdate gs =
-  let isText = _itx gs
-   in if isText then repeatTexUpdate (textUpdate gs) else gs{_iths=False}
+repeatTexUpdate gs = 
+      if gs^.itx then repeatTexUpdate (textUpdate gs) else gs{_iths=False}
 
 textUpdate :: Game -> Game
 textUpdate gs =
-  let isText = _itx gs
-      eventTrigger = _etr gs
-      wholeText = _txw gs
-      textCount = _tct gs
+  let isText = gs^.itx
+      eventTrigger = gs^.etr
+      wholeText = gs^.txw
+      textCount = gs^.tct
       textLength = T.length wholeText 
       isTextShowing = textCount < textLength
       pgs = if eventTrigger==NoEvent then gs else gs{_etr=NoEvent}
@@ -411,7 +393,7 @@ textUpdate gs =
                                         else textView <> T.singleton targetChar
                                else textView
             ntct = textCount + scanLength 
-            ngs0 = pgs{_itx=nitx, _txv=ntxv, _tct=ntct, _tcs=_tcs pgs + 1}
+            ngs0 = pgs{_itx=nitx, _txv=ntxv, _tct=ntct, _tcs=pgs^.tcs + 1}
             ngs1 = if isCode then exeCode ngs0 doc else ngs0
          in ngs1
                                 else 
