@@ -4,6 +4,8 @@ import qualified Data.Text as T
 import Data.Maybe (fromMaybe,isJust)
 import Data.List (uncons,deleteBy,find)
 import Linear.V2 (V2(..))
+import Lens.Micro
+import Lens.Micro.TH (makeLenses)
 import Converter (makeObjectMap,setObjectData,setMapStartPos
                  ,lookupFromSections,makeObjectByName,updateTextSection
                  ,updateObjectData,txToObject)
@@ -11,6 +13,8 @@ import Object (getPosByName,getObjName,putObjOnPos,putablePos,updateDirByName
               ,deleteObjByPos,updateDefByName,updateObjByName,getObjByName
               ,updatePosByName,deleteObjByName,isInMap,isObjOnPos,getObjDef)
 import Define
+
+makeLenses ''Game
 
 exeCode :: Game -> T.Text -> Game 
 exeCode gs evt = do 
@@ -60,34 +64,30 @@ hideMap gs = gs{_ims=False}
 
 enterMap :: Game -> T.Text -> Game
 enterMap gs oname =
-  let omp = _omp gs
-      mnm = _mnm gs
-      msz = _msz gs
-      ops = getPosByName oname omp
+  let obMap = gs^.omp
+      ops = getPosByName oname obMap
       ppsList d = [ops+V2 d 0,ops+V2 0 (-d),ops+V2 (-d) 0,ops+V2 0 d]
       canPutPS 3 [] = V2 0 0
       canPutPS d [] = canPutPS (d+1) (ppsList (d+1)) 
-      canPutPS d (p:xs) = if isInMap p msz && not (isObjOnPos p omp) then p else
+      canPutPS d (p:xs) = if isInMap p (gs^.msz) && not (isObjOnPos p obMap) then p else
                               canPutPS d xs
       resPos = canPutPS 1 (ppsList 1)
-      obj = getObjByName oname omp
+      obj = getObjByName oname obMap
       tdf = maybe T.empty getObjDef obj
-   in setMap gs{_pmp = (mnm,resPos,omp)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
+   in setMap gs{_pmp = (gs^.mnm,resPos,obMap)} (if tdf==T.empty then "0" else T.drop 3 tdf) 
 
 hyperLink :: Game -> T.Text -> Game
 hyperLink gs tx =
   let lnTx = T.splitOn "-" tx
-      (lnu,lnt) = case lnTx of
+      (lnUrl,lnTxt) = case lnTx of
                     [ln,txt] -> (T.replace "+" ":" (T.replace "|" "_" ln),txt)
                     _ -> (T.empty,T.empty)
-   in gs{_lnu=lnu, _lnt=lnt}
+   in gs{_lnu=lnUrl, _lnt=lnTxt}
 
 endGame :: Game -> Game
 endGame gs =
-  let omp = _omp gs
-      mps = _mps gs
-      nomp = deleteObjByName "player" omp
-      V2 ex ey = mps + V2 5 2
+  let nomp = deleteObjByName "player" (gs^.omp) 
+      V2 ex ey = (gs^.mps) + V2 5 2
       showT = T.pack . show
       putList = ["E"<>"."<>showT ex<>"."<>showT ey
                 ,"N"<>"."<>showT (ex+1)<>"."<>showT ey 
@@ -105,45 +105,46 @@ changeMode gs tx =
 
 setPosition :: Game -> T.Text -> Game
 setPosition gs tx =
-  let nmpos = T.splitOn "." tx
-      omp = _omp gs
+  let obMap = gs^.omp
+      nmpos = T.splitOn "." tx
       nomp = case nmpos of
-        [oname,px,py] -> updatePosByName oname 
-                          (V2 ((read . T.unpack) px) ((read . T.unpack) py)) omp
-        _ -> omp
-   in gs {_omp = nomp} 
+        [oname,px,py] 
+          -> updatePosByName oname 
+                   (V2 ((read . T.unpack) px) ((read . T.unpack) py)) obMap 
+        _ -> obMap
+   in gs&omp.~nomp 
 
 getItem :: Game -> T.Text -> Game
 getItem gs nm =
   if isJust (_hav gs) then gs else
-        let mnm = _mnm gs
-            txs = _txs gs
-            obDatas = T.lines $ lookupFromSections txs ("obj"<>mnm)
+        let obDatas = T.lines $ lookupFromSections (gs^.txs) ("obj"<>(gs^.mnm))
             obj = makeObjectByName nm obDatas
-         in gs{_hav=obj} 
+         in gs&hav.~obj 
 
 updateObject :: Game -> T.Text -> Game
 updateObject gs tx =
   let mnObData = T.splitOn "." tx 
    in case mnObData of
-        [mnm,oname,odt] ->
-          let mnmNow = _mnm gs 
-              omp = _omp gs
-              pmp@(pmnm,pmps,pomp) = _pmp gs
-              txs = _txs gs
-              title = "obj"<>mnm
-              obList = T.lines $ lookupFromSections txs title 
+        [mapNum,oname,odt] ->
+          let mnmNow = gs^.mnm 
+              obMap = gs^.omp
+              preMap@(pmnm,pmps,pomp) = gs^.pmp
+              textSections = gs^.txs
+              title = "obj"<>mapNum
+              obList = T.lines $ lookupFromSections textSections title 
               getName name od = T.take (T.length name) $ T.drop 2 od 
               tgCh = maybe ' ' T.head (find (\dt -> oname==getName oname dt) obList)
               newObList = deleteBy (\nm1 nm2 -> nm1==getName oname nm2) 
                                                                   oname obList
               newObData = T.singleton tgCh<>","<>oname<>","<>T.replace "-" " " odt
               newOb = txToObject newObData 
-              nomp = if mnmNow==mnm then updateObjByName oname newOb omp else omp
-              npmp = if pmnm==mnm 
-                      then (pmnm,pmps,updateObjByName oname newOb pomp) else pmp  
+              nomp = if mnmNow==mapNum then updateObjByName oname newOb obMap 
+                                       else obMap
+              npmp = if pmnm==mapNum 
+                      then (pmnm,pmps,updateObjByName oname newOb pomp) 
+                      else preMap 
               newObText = T.unlines $ newObData :newObList 
-              newTxs = updateTextSection (TS title newObText) txs
+              newTxs = updateTextSection (TS title newObText) textSections
            in gs{_txs=newTxs,_omp=nomp,_pmp=npmp}
         _ -> gs
 
