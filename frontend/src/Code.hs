@@ -220,7 +220,7 @@ setPlayer :: Game -> Game
 setPlayer gs = gs& itx.~ False &imd.~ Ply 
 
 showLife :: Game -> Game
-showLife gs = gs&lif.~ Just "★★★★★"
+showLife gs = gs&lif?~ "★★★★★"
 
 setEventAction :: Game -> T.Text -> Code -> Game 
 setEventAction gs ead pcd = 
@@ -337,4 +337,4 @@ moveDialog gs title =
       &lnu.~T.empty &lnt.~ T.empty
 
 showChara :: Game -> T.Text -> Game
-showChara gs chnum = gs&chn.~ ((read . T.unpack) chnum)
+showChara gs chnum = gs&chn.~ (read . T.unpack) chnum
