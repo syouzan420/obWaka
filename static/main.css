@@ -28,6 +28,15 @@ button:active {
   font-weight: normal;
 }
 
+@font-face {
+  font-family: 'ipamjm';
+  src: url('ipamjm.ttf') format('truetype'),
+  src: url('oshide_old-webfont.woff') format('woff'),
+  src: url('oshide_old-webfont.woff2') format('woff2');
+  font-style: normal;
+  font-weight: normal;
+}
+
 #map {
   touch-action: none;
 }
@@ -43,7 +52,7 @@ button:active {
 .kaimap {
   white-space: pre;
   text-align: justify;
-  font: 400 18px oshide;
+  font: 400 18px ipamjm;
 }
 
 .pad {

@@ -88,7 +88,7 @@ moveObject g hs msz omp (obj:xs) =
                        MV -> confirmPos pos msz omp $ nextMVPos g pos
                        AP -> confirmPos pos msz omp $ nextAPPos g rg pps pos
                        SH -> confirmPos pos msz omp $ nextMVPos g pos
-                       BL -> confirmPos pos msz omp (nextBLPos dir pos,g)
+                       BL -> confirmPos pos msz omp (nextPos dir pos,g)
                        _  -> (False,pos,g)
                                     else (False,pos,g)
               ntp = case mvType of
@@ -101,9 +101,9 @@ moveObject g hs msz omp (obj:xs) =
               (shootNum,nng) = uniformR (0::Int,100) ng
               isShoot = shootNum > 95 && mvType==SH
               isRemove = iob && mvType==BL
-              isHitBullet = isRemove && nextBLPos dir pos==pps
+              isHitBullet = isRemove && nextPos dir pos==pps
               hitObName = if isRemove && isZB then 
-                  let nxPos = nextBLPos dir pos
+                  let nxPos = nextPos dir pos
                       imp = isInMap nxPos msz
                    in if imp then getNameByPos nxPos omp else T.empty
                                               else T.empty
@@ -127,7 +127,7 @@ makeBullet g pps pos =
       isRange = dx*dx + dy*dy < 36 
       (dirNum,ng) = if isRange then approach g dff else uniformR (0,4) g
       dir = toEnum dirNum :: Dir
-      npos = pos + dirToDelta dir 
+      npos = nextPos dir pos 
       blObj = 
         Ob oBullet "bullet" (TLive (LBullet 3 0)) T.empty CBlock dir Orange npos 
    in (blObj,npos,ng)
@@ -139,14 +139,13 @@ confirmPos pos msz omp (tps,g) =
       isObj = isObjOnPos tps omp
    in if imp && not isObj then (False,tps,g) else (True,pos,g) 
 
-nextBLPos :: Dir -> Pos -> Pos
-nextBLPos dir pos = pos + dirToDelta dir
-
+nextPos :: Dir -> Pos -> Pos
+nextPos dir pos = pos + dirToDelta dir
 
 nextMVPos :: StdGen -> Pos -> (Pos,StdGen)
 nextMVPos g pos = let (dirNum,ng) = uniformR (0,4) g
                       dir = toEnum dirNum :: Dir
-                   in (pos + dirToDelta dir, ng)
+                   in (nextPos dir pos, ng)
 
 nextAPPos :: StdGen -> Int -> Pos -> Pos -> (Pos,StdGen)
 nextAPPos g rg pps pos = let dff@(V2 dx dy) = pps - pos  
@@ -154,7 +153,7 @@ nextAPPos g rg pps pos = let dff@(V2 dx dy) = pps - pos
                              (dirNum,ng) = if isRange then approach g dff
                                                       else uniformR (0,4) g
                              dir = toEnum dirNum :: Dir
-                          in (pos + dirToDelta dir, ng)
+                          in (nextPos dir pos, ng)
 
 approach :: StdGen -> Pos -> (Int,StdGen) 
 approach g (V2 dx dy) = let ixp = dx >= 0
@@ -174,7 +173,7 @@ hitAction :: ObName -> MapSize -> ObMap -> ObMap -> ObMap
 hitAction onm msz om tm = 
   let pPos = getPosByName onm om 
       pDir = getDirByName onm om
-      eps = pPos + dirToDelta pDir 
+      eps = nextPos pDir pPos 
       isShow = isInMap eps msz
    in if isShow then 
         Ob eAt0 "hit" (TLive LStand) T.empty COn pDir Blue eps:tm else tm 
@@ -183,7 +182,7 @@ putAction :: Object -> Dir -> MapSize -> ObMap -> ([PEvent],ObMap,Maybe Object)
 putAction tob pDir msz om =
   let pPos = getPosByName "player" om
       oName = getObjName tob
-      tps = pPos + dirToDelta pDir   
+      tps = nextPos pDir pPos   
       canPut = isInMap tps msz && not (isObjOnPos tps om)
    in if canPut then ([PPut oName tps],putObjOnPos tob tps om,Nothing)
                 else ([],om,Just tob)    
@@ -198,7 +197,7 @@ shootBullet tob pDir msz om =
 
 makeZBullet :: Dir -> Pos -> (Object,Pos)
 makeZBullet dr pps =
-  let bps = pps + dirToDelta dr 
+  let bps = nextPos dr pps 
       blObj = Ob oZBul "zbullet" (TLive (LBullet 2 0)) T.empty CBlock dr Red bps 
    in (blObj,bps)
   
@@ -206,7 +205,7 @@ attackAction :: [TextSection] -> Dir -> MapName
                       -> ObMap -> ([PEvent],ObMap,Maybe Object)
 attackAction txSec pDir mnm om =
   let pPos = getPosByName "player" om
-      tps = pPos + dirToDelta pDir   
+      tps = nextPos pDir pPos   
       tob = getObjByPos tps om
       otp = maybe TBlock getObjType tob
       och = maybe ' ' getObjCh tob
@@ -225,7 +224,7 @@ attackAction txSec pDir mnm om =
 getArgs :: Dir -> Pos -> ObMap -> [ObType] -> [ObChar]  
 getArgs _ _ _ [] = [] 
 getArgs pDir tps om (atp:xs) =   
-  let agPos = tps + dirToDelta pDir 
+  let agPos = nextPos pDir tps 
       agObj = getObjByPos agPos om
       agTp = maybe TBlock getObjType agObj
       agCh = maybe ' ' getObjCh agObj
@@ -243,7 +242,7 @@ exeFunc txSec pDir mnm och tps df om argLng chs =
                         nomp = foldl (flip deleteObjByPos) om agPosList 
                         resCh = getResult resExp
                         resObj = fromMaybe blankObj $ lookup resCh objList
-                        resPos = tps + dirToDelta pDir
+                        resPos = nextPos pDir tps
                      in (resCh,putObjOnPos resObj resPos nomp) 
                else (' ',om) 
 

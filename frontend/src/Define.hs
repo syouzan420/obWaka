@@ -131,10 +131,10 @@ mapWinSize :: Size
 mapWinSize = V2 12 8
 
 pChar :: Char
-pChar = 'ひ'
+pChar = '♀'
 
 oLeave :: Char
-oLeave = 'わ'
+oLeave = '※'
 
 oBullet :: Char
 oBullet = 'あ'
