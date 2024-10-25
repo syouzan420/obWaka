@@ -13,11 +13,11 @@ import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
-  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
-  , prerender_, elDynHtmlAttr', elDynHtml' 
+  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn, tag 
+  , prerender_, elDynHtmlAttr', elDynHtml', inputElement, def, keypress 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
-  , Dynamic, Event
+  , Dynamic, Event, Key(Enter), InputElement(..)
   )
 
 import CWidget (elChara,elSpace,evElButton,evElButtonH,elTextScroll
@@ -82,23 +82,33 @@ wakaMain gs = do
 
 --    let dyOmp = _omp <$> dyGs
 --    dynText $ T.pack . show <$> dyOmp
-
-    divClass "tbox" $  
-      prerender_ blank $ void $ 
-        elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") (dyGs*.txv) 
+    dyInp <- divClass "flexbox2" $ do 
+      evInput <- divClass "tate2" evTextInput 
+      divClass "tbox" $
+        prerender_ blank $ void $ 
+          elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") (dyGs*.txv) 
+      return evInput
     elSpace  
-    evBtList <- evWkButtons
+    evBtList <- evWkButtons dyInp
     divClass "lnk" $ elDynAttr "a" dyAtr $ dynText (dyGs*.lnt) 
     widgetHold_ blank (elVibration <$ evBt)
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
 
-evWkButtons :: (DomBuilder t m) => m [Event t WkEvent]
-evWkButtons = do
+evTextInput :: (DomBuilder t m, MonadFix m) => m (Dynamic t T.Text)
+evTextInput = do
+  rec
+    input <- inputElement def
+  return (_inputElement_value input)  
+
+evWkButtons :: (DomBuilder t m, MonadHold t m) 
+                    => Dynamic t T.Text -> m [Event t WkEvent]
+evWkButtons dyInp = do
+  textInp <- (sample . current) dyInp
   evWUp <- evElButton "pad3" "↑" <&> (<$) WUp
   _ <- el "div" $ text "" 
   evWDir <- mapM (evElButton "pad") ["←","●","→"] <&>
-                                   zipWith (<$) [WLeft,WOk,WRight]
+                                   zipWith (<$) [WLeft,WOk textInp,WRight]
   _ <- el "div" $ text "" 
   evWDown <- evElButton "pad3" "↓" <&> (<$) WDown
   evWSub <- evElButton "pad2" "□" <&> (<$) WSub
@@ -182,13 +192,13 @@ wakaUpdate gs wev =
         Txt -> case wev of
           WTick -> let ngs = effectUpdate gs 
                     in if ngs^.iths then repeatTexUpdate ngs else textUpdate ngs
-          WOk -> okButton gs
+          WOk _ -> okButton gs
           _ -> gs
         Cho -> 
           let titles = gs^.cho
               tln = length titles
               cNum = lookup wev 
-                        (zip [WRight,WLeft,WUp,WDown,WOk,WSub] [(0::Int)..]) 
+                        (zip [WRight,WLeft,WUp,WDown,WSub] [(0::Int)..]) 
               title = case cNum of
                 Just cn -> if tln>cn then titles!!cn else T.empty 
                 _ -> T.empty
@@ -220,7 +230,7 @@ wakaUpdate gs wev =
              WSub -> 
                let ntxw = ";cho_セーブ_textSave_もどる_textBack"
                 in gs&imd.~ Txt &itx.~ True &txw.~ ntxw &txv.~ T.empty &tct.~ 0
-             WOk -> 
+             WOk _ -> 
                let tmpMap = gs^.tmp
                    ntmp = if isNothing pHave 
                              then hitAction "player" mapSize obMap tmpMap
@@ -274,7 +284,7 @@ wakaUpdate gs wev =
                in gs&imd.~ nimd &txv.~ txt &msz.~ nmsz &omp.~ nnnomp &stg.~nstg
                     &lif.~ nlif &cnn.~ ncnn
              WSub -> gs
-             WOk -> 
+             WOk _ -> 
                let tob = Ob 'b' "ZBuster" TTool T.empty CBlock NoDir Black (V2 0 0) 
                    (npevs,nomp,_) = shootBullet tob pDir mapSize obMap
                    ngs = gs&omp.~ nomp

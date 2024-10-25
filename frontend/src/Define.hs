@@ -51,7 +51,7 @@ data PEvent = PMove Pos | PBlock ObName | PPush ObName | PGet ObName | POn ObNam
 
 type Code = T.Text
 
-data WkEvent = WTick | WOk | WSub | WLeft | WUp | WDown | WRight
+data WkEvent = WTick | WOk T.Text | WSub | WLeft | WUp | WDown | WRight 
                                              deriving stock (Eq,Show)
 
 data EvAct = EA PEvent Code Int Int deriving stock (Eq,Show)

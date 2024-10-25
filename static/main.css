@@ -101,11 +101,27 @@ button:active {
 }
 .flexbox > div {
   margin: 1px;
-  padding: 3px;
+  padding : 2px;
 }
+.flexbox2 {
+  display: flex;
+}
+.flexbox2 > div:last-of-type{
+  margin-left: auto;
+}
+
 .tbox {
   width: auto;
   height: 300px;
+}
+.tate2 {
+  width: 50px;
+  height: 300px;
+  padding: 5px;
+  width: auto;
+  white-space: pre-wrap;
+  writing-mode: vertical-rl;
+  font: 400 24px monospace;
 }
 .tate {
   white-space: pre-wrap;

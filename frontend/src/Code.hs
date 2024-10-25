@@ -320,7 +320,7 @@ deleteMap gs = gs&omp.~ [] &tmp.~ [] &mnm.~ T.empty &msz.~ V2 0 0 &mps.~V2 0 0
 choiceDialog :: Game -> [T.Text] -> Game
 choiceDialog gs args = 
   choiceDialog' (gs&imd .~Cho &cho.~ [] &txv<>~ "\n" &tct+~ 1)
-                                          args ["↑","↓","←","→","●","□"] 
+                                          args ["↑","↓","←","→","□"] 
 
 choiceDialog' :: Game -> [T.Text] -> [T.Text] -> Game
 choiceDialog' gs [] _ = gs

@@ -64,6 +64,7 @@ level0:
 ここは 何だ？。
 ・・・。
 なんとなく ボタンの←↑→↓で$r方向-はうかう を$r變-か へたり $r移動-いどう したりできる$r氣-き がする・・・。
+;a_block.Kanasaki.1_md_textKana0
 
 textSave:
 ;save
