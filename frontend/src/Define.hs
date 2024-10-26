@@ -58,7 +58,8 @@ data EvAct = EA PEvent Code Int Int deriving stock (Eq,Show)
 
 data Ast = NAct | TAct | EAct deriving stock (Eq,Show)
 
-data IMode = Txt | Cho | Mov | Ply | Wai | End | Ext deriving stock (Eq,Show,Read)
+data IMode = Txt | Cho | Inp | Mov | Ply | Wai | End | Ext 
+                                                deriving stock (Eq,Show,Read)
 
 data Input = Ok | Sb | Ri | Up | Lf | Dn | Dm deriving stock (Eq,Show)
 
@@ -86,6 +87,7 @@ data DType = DPlane Color | DOsite Color | DStop | DCode | DRubi deriving stock 
 --chn: character number (0:NoChara)
 --hav: something having (not having: Nothing)
 --cho: choice destination (titles of texts)
+--tip: input text
 --stg: standard random generator
 --cnts: counters
 --etr: event trigger
@@ -113,6 +115,7 @@ data Game = Game {_imd :: !IMode
                  ,_chn :: !Int
                  ,_hav :: !(Maybe Object)
                  ,_cho :: ![T.Text]
+                 ,_tip :: ![T.Text]
                  ,_stg :: !StdGen
                  ,_cnts :: ![Counter]
                  ,_etr :: !ETR

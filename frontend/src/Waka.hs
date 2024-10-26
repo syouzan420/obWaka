@@ -13,11 +13,11 @@ import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
-  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn, tag 
-  , prerender_, elDynHtmlAttr', elDynHtml', inputElement, def, keypress 
+  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
+  , prerender_, elDynHtmlAttr', elDynHtml', inputElement, def, tag 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
-  , Dynamic, Event, Key(Enter), InputElement(..)
+  , Dynamic, Event, InputElement(..)
   )
 
 import CWidget (elChara,elSpace,evElButton,evElButtonH,elTextScroll
@@ -34,6 +34,8 @@ import Object (getDirByName,updateDirByName,updatePosByName,getObjName
               ,getObjDef,deleteObjByName,getObjByName,getPosByName)
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject,shootBullet)
 import Code (exeCode,setMap,moveDialog)
+
+import Debug.Trace (trace)
 
 makeLenses ''Game
 
@@ -61,11 +63,12 @@ wakaMain gs = do
     let evSave = gate beIsSave evWTick 
     dyGs <- accumDyn wakaUpdate gs evWk
     let dyLife = dyGs*.lif  
+    let dyImd = dyGs*.imd
     let dyAtr = fmap (\t -> ("href" =: t)::M.Map T.Text T.Text) (dyGs*.lnu) 
-    let dyIsShowLife = isJust <$> dyLife
-    let dyHide = mkHidden <$> dyIsShowLife
+    let dyHide = mkHidden . isJust <$> dyLife
+    let dyHide2 = mkHidden . (==Inp) <$> dyImd
     let dyTxtOn = 
-          zipDynWith (\a b -> a && (b==Txt || b==Cho)) (dyGs*.itx) (dyGs*.imd)
+          zipDynWith (\a b -> a && (b==Txt || b==Cho)) (dyGs*.itx) dyImd
     let dyDir = dirToText . getDirByName "player" <$> (dyGs*.omp)
     divClass "flexbox" $ do
       el "div" $ elChara (dyGs*.chn) 
@@ -80,36 +83,38 @@ wakaMain gs = do
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
     elSpace
 
---    let dyOmp = _omp <$> dyGs
---    dynText $ T.pack . show <$> dyOmp
+--    let dyTip = _tip <$> dyGs
+--    dynText $ T.pack . show <$> dyTip
+
     dyInp <- divClass "flexbox2" $ do 
-      evInput <- divClass "tate2" evTextInput 
+      evInput <- elDynAttr "div" dyHide2 $ divClass "tate2" evTextInput 
       divClass "tbox" $
         prerender_ blank $ void $ 
           elDynHtmlAttr' "div" ("id"=: "wkText" <> "class" =: "tate") (dyGs*.txv) 
       return evInput
     elSpace  
-    evBtList <- evWkButtons dyInp
+    evBtList <- evWkButtons (WOk <$> dyInp) 
     divClass "lnk" $ elDynAttr "a" dyAtr $ dynText (dyGs*.lnt) 
     widgetHold_ blank (elVibration <$ evBt)
     widgetHold_ blank (elTextScroll <$ evTxTime)
     widgetHold_ blank (saveGame dyGs <$ evSave)
 
-evTextInput :: (DomBuilder t m, MonadFix m) => m (Dynamic t T.Text)
+evTextInput :: DomBuilder t m => m (Dynamic t T.Text)
 evTextInput = do
-  rec
-    input <- inputElement def
-  return (_inputElement_value input)  
+  input <- inputElement def
+  return $ _inputElement_value input  
 
-evWkButtons :: (DomBuilder t m, MonadHold t m) 
-                    => Dynamic t T.Text -> m [Event t WkEvent]
+evWkButtons :: DomBuilder t m => Dynamic t WkEvent -> m [Event t WkEvent]
 evWkButtons dyInp = do
-  textInp <- (sample . current) dyInp
+  let beInp = current dyInp
   evWUp <- evElButton "pad3" "↑" <&> (<$) WUp
   _ <- el "div" $ text "" 
-  evWDir <- mapM (evElButton "pad") ["←","●","→"] <&>
-                                   zipWith (<$) [WLeft,WOk textInp,WRight]
+  evWLeft <- evElButton "pad" "←" <&> (<$) WLeft
+  evWOk <- evElButton "pad" "●" <&> (<$) (WOk T.empty)
+  let evWOk2 = tag beInp evWOk 
+  evWRight <- evElButton "pad" "→" <&> (<$) WRight
   _ <- el "div" $ text "" 
+  let evWDir = [evWLeft,evWOk2,evWRight]
   evWDown <- evElButton "pad3" "↓" <&> (<$) WDown
   evWSub <- evElButton "pad2" "□" <&> (<$) WSub
   return $ [evWUp,evWSub]<>evWDir<>[evWDown]
@@ -202,7 +207,16 @@ wakaUpdate gs wev =
               title = case cNum of
                 Just cn -> if tln>cn then titles!!cn else T.empty 
                 _ -> T.empty
-           in if title==T.empty then gs else moveDialog gs{_imd=Txt} title
+           in if title==T.empty then gs else moveDialog (gs&imd.~ Txt) title
+        Inp -> case wev of
+          WOk inpTex -> let inpData = gs^.tip
+                            isMatch = inpTex == head inpData
+                            ngs = gs&imd.~ Txt
+                         in if isMatch then moveDialog ngs (inpData!!1)
+                                       else if length inpData > 2 
+                                         then trace (show inpTex) $ moveDialog ngs (inpData!!2)
+                                         else ngs
+          _ -> gs
         Mov -> case wev of 
           WTick -> 
             let ngs = objectUpdate gs 

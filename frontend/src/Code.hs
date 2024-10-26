@@ -54,6 +54,7 @@ exeOneCode gs evt = do
     "cm" -> changeMode gs (head ags)
     "hl" -> hyperLink gs (head ags)
     "em" -> enterMap gs (head ags)
+    "ip" -> inputText gs ags
     _ -> gs 
 
 revealMap :: Game -> Game
@@ -317,9 +318,12 @@ setMap gs mapNm =
 deleteMap :: Game -> Game
 deleteMap gs = gs&omp.~ [] &tmp.~ [] &mnm.~ T.empty &msz.~ V2 0 0 &mps.~V2 0 0
 
+inputText :: Game -> [T.Text] -> Game
+inputText gs args = gs&imd.~ Inp &tip.~ args
+
 choiceDialog :: Game -> [T.Text] -> Game
 choiceDialog gs args = 
-  choiceDialog' (gs&imd .~Cho &cho.~ [] &txv<>~ "\n" &tct+~ 1)
+  choiceDialog' (gs&imd.~ Cho &cho.~ [] &txv<>~ "\n" &tct+~ 1)
                                           args ["↑","↓","←","→","□"] 
 
 choiceDialog' :: Game -> [T.Text] -> [T.Text] -> Game

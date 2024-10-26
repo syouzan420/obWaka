@@ -65,6 +65,7 @@ level0:
 ・・・。
 なんとなく ボタンの←↑→↓で$r方向-はうかう を$r變-か へたり $r移動-いどう したりできる$r氣-き がする・・・。
 ;a_block.Kanasaki.1_md_textKana0
+;a_block.Tochigi.1_md_textTochi0
 
 textSave:
 ;save
@@ -87,6 +88,17 @@ mapKantou:
 
 objKantou:
 か,Kanasaki,live,,block,north,blue
+栃,Tochigi,block,,block,noDir,red
+
+textTochi0:
+この県の首都は？。
+;ip_宇都宮_textTochi1_textTochi2
+
+textTochi1:
+せいかいです。
+
+textTochi2:
+ちがふよ。
 
 textKana0:
 ;sc_4
