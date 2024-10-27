@@ -85,6 +85,7 @@ imgSrc = ["src" =: $(static "chara0.png")
          ,"src" =: $(static "chara8.png")
          ,"src" =: $(static "nihon.png")
          ,"src" =: $(static "kanto.png")
+         ,"src" =: $(static "tochigi.png")
          ]
 
 museSrc :: [Map.Map T.Text T.Text]

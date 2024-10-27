@@ -13,7 +13,7 @@ import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
-  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn, constDyn
+  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn
   , prerender_, elDynHtmlAttr', elDynHtml', inputElement, def, tag 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
@@ -83,6 +83,7 @@ wakaMain gs = do
          dynText $ fmap (<>"\n") dyDir 
          dynText $ (dyGs*.hav) <&> 
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
+    elSpace
 
 --    let dyTip = _tip <$> dyGs
 --    dynText $ T.pack . show <$> dyTip
@@ -333,11 +334,12 @@ enterNewMap gs (PEnter pps oname:_) =
   let obMap = gs^.omp
       obj = getObjByName oname obMap
       tdf = maybe T.empty getObjDef obj
-   in setMap (gs&pmp.~ (gs^.mnm,pps,obMap))
+   in setMap (gs&pmp<>~ [(gs^.mnm,pps,obMap)])
              (if tdf==T.empty then "0" else T.drop 3 tdf) 
 enterNewMap gs (PLeave:_) =
   let textSections = gs^.txs
       mapName = gs^.mnm
+      preMap = gs^.pmp
       lomp = deleteObjByName "player" (gs^.omp)
       titleM = "map"<>mapName
       titleO = "obj"<>mapName
@@ -347,11 +349,11 @@ enterNewMap gs (PLeave:_) =
       newObjData = T.unlines $ nub $ makeObjectDatas lomp <> T.lines objData
       ntxs = updateTextSection (TS titleO newObjData) $ 
                           updateTextSection (TS titleM newMapData) textSections 
-      (tmnm,tps,obMap) = gs^.pmp 
+      (tmnm,tps,obMap) = last preMap 
       ngs = setMap gs tmnm
       nomp = updatePosByName "player" tps obMap
       mpos = setMapStartPos tps mapWinSize (ngs^.msz) 
-   in ngs&txs.~ ntxs &mps.~ mpos &omp.~ nomp
+   in ngs&txs.~ ntxs &mps.~ mpos &omp.~ nomp &pmp.~ init preMap
 enterNewMap gs (_:xs) = enterNewMap gs xs
 
 exeEvActs :: Game -> [PEvent] -> [EvAct] -> Game

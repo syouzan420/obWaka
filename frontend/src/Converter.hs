@@ -339,7 +339,7 @@ tpToText tp = fromMaybe T.empty $ lookup tp $ map swap txType
 
 makeGameStateText :: Game -> T.Text
 makeGameStateText gs =
-  let (imd,txs,omp,mnm,msz,mim,mps,(pmn,pmps,pomp),evas,hav,cnts,lif,llc,gmc) =
+  let (imd,txs,omp,mnm,msz,mim,mps,pmp,evas,hav,cnts,lif,llc,gmc) =
         (_imd gs,_txs gs,_omp gs,_mnm gs,_msz gs,_mim gs,_mps gs,_pmp gs,_evas gs
         ,_hav gs,_cnts gs,_lif gs,_llc gs,_gmc gs)
       imdText = (T.pack . show) imd
@@ -348,15 +348,19 @@ makeGameStateText gs =
       mszText = posToText msz
       mimText = (T.pack . show) mim
       mpsText = posToText mps 
-      pmpsText = posToText pmps 
-      pompText = T.intercalate ":" $ makeObjectDatas pomp
+      pmpText = pmpToText pmp
       evasText = evasToText evas
       havText = maybe T.empty objToText hav 
       cntsText = cntsToText cnts
       lifText = (T.pack . show) lif
       llcText = (T.pack . show) llc
       gmcText = (T.pack . show) gmc
-   in T.intercalate "~" [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText,lifText,llcText,gmcText]
+   in T.intercalate "~" [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmpText,evasText,havText,cntsText,lifText,llcText,gmcText]
+
+pmpToText :: [(MapName,Pos,ObMap)] -> T.Text
+pmpToText [] = "^"
+pmpToText ((pMapName,pMapPos,pObMap):xs) = "^"<> pMapName <>"^"<> posToText pMapPos
+              <>"^"<> T.intercalate ":" (makeObjectDatas pObMap) <> pmpToText xs
 
 posToText :: Pos -> T.Text
 posToText (V2 x y) = (T.pack . show) x <> ":" <> (T.pack . show) y 
@@ -375,14 +379,14 @@ evasToText evas = T.intercalate ":" $
 
 toGameState :: T.Text -> Game
 toGameState tx = case T.splitOn "~" tx of 
-    [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText,lifText,llcText,gmcText] -> 
+    [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmpText,evasText,havText,cntsText,lifText,llcText,gmcText] -> 
         let imd = read (T.unpack imdText) :: IMode
             txs = txToTxs txsText
             omp = txToOmp ompText
             msz = txToPos mszText
             mim = (read . T.unpack) mimText
             mps = txToPos mpsText
-            pmp = (pmn,txToPos pmpsText,txToOmp pompText)
+            pmp = txToPmp pmpText
             evas = txToEvas evasText
             hav = if havText==T.empty then Nothing else Just (txToObject havText) 
             cnts = txToCnts cntsText
@@ -396,6 +400,18 @@ toGameState tx = case T.splitOn "~" tx of
                  ,_stg=mkStdGen 100,_cnts=cnts,_etr=NoEvent,_lif=lif
                  ,_lnt=T.empty,_lnu=T.empty,_cnn=0,_llc=llc,_gmc=gmc}
     _ -> newGame 
+
+txToPmp :: T.Text -> [(MapName,Pos,ObMap)]
+txToPmp "^" = []
+txToPmp tx = let tls = T.splitOn "^" ((T.tail . T.init) tx)
+              in txToPmp' tls
+
+txToPmp' :: [T.Text] -> [(MapName,Pos,ObMap)]
+txToPmp' [] = []
+txToPmp' [_] = []
+txToPmp' [_,_] = []
+txToPmp' (txMapName:txPos:txObMap:xs) = 
+              (txMapName,txToPos txPos,txToOmp txObMap):txToPmp' xs
 
 txToCnts :: T.Text -> [Counter]
 txToCnts tx = txToCnts' (T.splitOn ":" tx)

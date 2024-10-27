@@ -75,7 +75,7 @@ enterMap gs oname =
       resPos = canPutPS 1 (ppsList 1)
       obj = getObjByName oname obMap
       tdf = maybe T.empty getObjDef obj
-   in setMap (gs&pmp.~ (gs^.mnm,resPos,obMap)) (if tdf==T.empty then "0" else T.drop 3 tdf) 
+   in setMap (gs&pmp<>~ [(gs^.mnm,resPos,obMap)]) (if tdf==T.empty then "0" else T.drop 3 tdf) 
 
 hyperLink :: Game -> T.Text -> Game
 hyperLink gs tx =
@@ -122,6 +122,14 @@ getItem gs nm =
             obj = makeObjectByName nm obDatas
          in gs&hav.~ obj 
 
+updatePreMapObj :: MapName -> Object -> [(MapName,Pos,ObMap)] 
+                                            -> [(MapName,Pos,ObMap)]
+updatePreMapObj _ _ [] = []
+updatePreMapObj mapName newOb (preMap@(pmn,pmps,pomp):xs) =
+  if mapName==pmn then 
+    (pmn,pmps,updateObjByName pmn newOb pomp):updatePreMapObj mapName newOb xs
+                  else preMap:updatePreMapObj mapName newOb xs
+
 updateObject :: Game -> T.Text -> Game
 updateObject gs tx =
   let mnObData = T.splitOn "." tx 
@@ -129,7 +137,7 @@ updateObject gs tx =
         [mapNm,oname,odt] ->
           let mnmNow = gs^.mnm 
               obMap = gs^.omp
-              preMap@(pmnm,pmps,pomp) = gs^.pmp
+              preMap = gs^.pmp
               textSections = gs^.txs
               title = "obj"<>mapNm
               obList = T.lines $ lookupFromSections textSections title 
@@ -141,9 +149,7 @@ updateObject gs tx =
               newOb = txToObject newObData 
               nomp = if mnmNow==mapNm then updateObjByName oname newOb obMap 
                                        else obMap
-              npmp = if pmnm==mapNm 
-                      then (pmnm,pmps,updateObjByName oname newOb pomp) 
-                      else preMap 
+              npmp = updatePreMapObj mapNm newOb preMap 
               newObText = T.unlines $ newObData :newObList 
               newTxs = updateTextSection (TS title newObText) textSections
            in gs&txs.~ newTxs &omp.~ nomp &pmp.~npmp

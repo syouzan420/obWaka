@@ -68,7 +68,7 @@ level0:
 ・・・。
 なんとなく ボタンの←↑→↓で$r方向-はうかう を$r變-か へたり $r移動-いどう したりできる$r氣-き がする・・・。
 ;a_block.Kanasaki.1_md_textKana0
-;a_block.Tochigi.1_md_textTochi0
+;a_block.Tochigi.0_md_textTochi0
 ;a_block.Gunma.0_md_textGun0
 
 textSave:
@@ -104,6 +104,8 @@ textTochi0:
 
 textTochi1:
 せいかいです。
+;d_block.Tochigi
+;uo_Kantou.Tochigi.tool,mapTochigi,enter,nodir,orange
 
 textTochi2:
 ちがふよ。
@@ -132,3 +134,22 @@ textKana3:
 ;sc_4
 うむ？？。
 おぬしは・・・。$r誰-だれ ぢゃ？。
+
+mapTochigi:
+・・・・・・・・・＠
+・・・・・・・・・・
+・・・・・・・・・・
+・・・・・・・・・・
+・・・・・・・・・・
+・・・・・・・・・・
+・・・・・宇・・・・
+・・・・・・・・・・
+・・・・・・・・・・
+・・・・・・・・・※
+
+mimTochigi:
+11
+
+objTochigi:
+宇,Utunomiya,block,,block,nodir,blue
+

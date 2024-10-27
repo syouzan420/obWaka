@@ -15,7 +15,7 @@ newGame = Game{_imd=Txt
               ,_mnm=T.empty,_msz=V2 0 0
               ,_mim=0
               ,_mps=V2 0 0
-              ,_pmp=(T.empty,V2 0 0,[])
+              ,_pmp=[]
               ,_evas=[]
               ,_chn=0
               ,_hav=Nothing

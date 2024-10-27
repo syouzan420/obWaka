@@ -112,7 +112,7 @@ data Game = Game {_imd :: !IMode
                  ,_msz :: !MapSize
                  ,_mim :: !Int
                  ,_mps :: !Pos
-                 ,_pmp :: !(MapName,Pos,ObMap)
+                 ,_pmp :: ![(MapName,Pos,ObMap)]
                  ,_evas :: ![EvAct]
                  ,_chn :: !Int
                  ,_hav :: !(Maybe Object)
