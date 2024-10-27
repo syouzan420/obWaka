@@ -81,6 +81,7 @@ data DType = DPlane Color | DOsite Color | DStop | DCode | DRubi deriving stock 
 --tmp: temporary object map (for animation effect)
 --mnm: map name
 --msz: map size
+--mim: map image number
 --mps: map position
 --pmp: previous map (Name,Position)
 --evas: event actions
@@ -109,6 +110,7 @@ data Game = Game {_imd :: !IMode
                  ,_tmp :: !ObMap
                  ,_mnm :: !MapName
                  ,_msz :: !MapSize
+                 ,_mim :: !Int
                  ,_mps :: !Pos
                  ,_pmp :: !(MapName,Pos,ObMap)
                  ,_evas :: ![EvAct]
@@ -134,7 +136,7 @@ mapWinSize :: Size
 mapWinSize = V2 12 8
 
 pChar :: Char
-pChar = '♀'
+pChar = '＠'
 
 oLeave :: Char
 oLeave = '※'

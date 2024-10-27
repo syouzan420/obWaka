@@ -309,11 +309,13 @@ setMap gs mapNm =
       nmnm = if obMapText==T.empty then T.empty else mapNm 
       (obMapPre,mapSize) = makeObjectMap obMapText
       objData = lookupFromSections textSections ("obj" <> mapNm)
+      mimData = lookupFromSections textSections ("mim" <> mapNm)
+      nmim = case mimData of "" -> 0::Int; mm -> (read . T.unpack ) mm
       obMap = if objData==T.empty then obMapPre 
                                   else setObjectData (T.lines objData) obMapPre
       pps = getPosByName "player" obMap 
       mpos = setMapStartPos pps mapWinSize mapSize
-   in gs&mnm.~ nmnm &msz.~ mapSize &mps.~ mpos &omp.~ obMap &ims.~ True
+   in gs&mnm.~ nmnm &msz.~ mapSize &mim.~ nmim &mps.~ mpos &omp.~ obMap &ims.~ True
    
 deleteMap :: Game -> Game
 deleteMap gs = gs&omp.~ [] &tmp.~ [] &mnm.~ T.empty &msz.~ V2 0 0 &mps.~V2 0 0

@@ -13,14 +13,14 @@ import qualified Data.Text as T
 import Reflex.Dom.Core 
   ( dynText, current, gate, blank, elAttr, el, text
   , accumDyn, divClass, leftmost, (=:), zipDynWith , sample, elDynAttr
-  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn 
+  , tickLossyFromPostBuildTime, widgetHold_, toggle, holdDyn, constDyn
   , prerender_, elDynHtmlAttr', elDynHtml', inputElement, def, tag 
   , DomBuilder, MonadHold, PostBuild, Prerender
   , Performable, PerformEvent, TriggerEvent
   , Dynamic, Event, InputElement(..)
   )
 
-import CWidget (elChara,elSpace,evElButton,evElButtonH,elTextScroll
+import CWidget (elChara,elBackImg,elSpace,evElButton,evElButtonH,elTextScroll
                ,saveState,loadState,mkHidden,elImage0,elVibration)
 
 import Define
@@ -67,6 +67,7 @@ wakaMain gs = do
     let dyAtr = fmap (\t -> ("href" =: t)::M.Map T.Text T.Text) (dyGs*.lnu) 
     let dyHide = mkHidden . isJust <$> dyLife
     let dyHide2 = mkHidden . (==Inp) <$> dyImd
+    let dyBack = zipDynWith (\i (V2 x y) -> (i,-x*18,-y*18)) (dyGs*.mim) (dyGs*.mps) 
     let dyTxtOn = 
           zipDynWith (\a b -> a && (b==Txt || b==Cho)) (dyGs*.itx) dyImd
     let dyDir = dirToText . getDirByName "player" <$> (dyGs*.omp)
@@ -75,6 +76,7 @@ wakaMain gs = do
       divClass "kaimap" $ do
          elDynAttr "div" dyHide $ divClass "cen" $ 
                   dynText (fmap (fromMaybe T.empty) dyLife) 
+         divClass "back" $ elBackImg dyBack 
          prerender_ blank $ void $ 
             elDynHtml' "div" $ showMapRect <$> dyGs 
       divClass "kai" $ do

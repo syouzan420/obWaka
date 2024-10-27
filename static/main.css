@@ -28,14 +28,6 @@ button:active {
   font-weight: normal;
 }
 
-@font-face {
-  font-family: 'ipamjm';
-  src: url('ipamjm.ttf') format('truetype'),
-  src: url('oshide_old-webfont.woff') format('woff'),
-  src: url('oshide_old-webfont.woff2') format('woff2');
-  font-style: normal;
-  font-weight: normal;
-}
 
 #map {
   touch-action: none;
@@ -50,9 +42,10 @@ button:active {
 }
 
 .kaimap {
+  color: gray;
   white-space: pre;
   text-align: justify;
-  font: 400 18px ipamjm;
+  font: 400 18px monospace;
 }
 
 .pad {
@@ -106,7 +99,7 @@ button:active {
 .flexbox2 {
   display: flex;
 }
-.flexbox2 > div:last-of-type{
+.flexbox2 > div {
   margin-left: auto;
 }
 
@@ -115,10 +108,9 @@ button:active {
   height: 300px;
 }
 .tate2 {
-  width: 50px;
+  width: 100%;
   height: 300px;
   padding: 5px;
-  width: auto;
   white-space: pre-wrap;
   writing-mode: vertical-rl;
   font: 400 24px monospace;
@@ -129,4 +121,9 @@ button:active {
   width: 100%;
   overflow-x: auto;
   font: 400 18px monospace;
+}
+
+.back {
+  position: absolute;
+  z-index: -1;
 }

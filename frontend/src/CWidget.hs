@@ -1,5 +1,5 @@
 module CWidget (elChara, elMusic, elSpace, evElButton, evElButtonH, mkHidden
-               ,elTextScroll,elRandom, elPlayMusic
+               ,elTextScroll,elRandom, elPlayMusic, elBackImg
                ,saveState, loadState, clear, elImage0, elVibration) where
 
 import JSDOM
@@ -57,9 +57,13 @@ elRandom = do
 elChara :: (DomBuilder t m, PostBuild t m) => Dynamic t Int -> m ()
 elChara dyI = elDynAttr "img" (dyI >>= (\i -> constDyn (imgSrc!!i))) blank
 
---dyChara :: (DomBuilder t m, PostBuild t m) 
---                => Dynamic t (Map.Map T.Text T.Text) -> m ()
---dyChara di = elDynAttr "img" di blank
+elBackImg :: (DomBuilder t m, PostBuild t m) => 
+              Dynamic t (Int,Int,Int) -> m ()
+elBackImg dyI  = elDynAttr "img" (dyI >>= 
+   (\(i,x,y) -> 
+     let obs = "object-fit: cover; object-position: "
+                  <>(T.pack . show) x<>"px "<>(T.pack . show) y<>"px"
+      in constDyn (imgSrc!!i<>"width"=:"200"<>"height"=:"160"<>"style"=:obs))) blank
 
 elMusic :: (DomBuilder t m, PostBuild t m) => Dynamic t Int -> m ()
 elMusic dyI = do
@@ -79,6 +83,8 @@ imgSrc = ["src" =: $(static "chara0.png")
          ,"src" =: $(static "chara6.png")
          ,"src" =: $(static "chara7.png")
          ,"src" =: $(static "chara8.png")
+         ,"src" =: $(static "nihon.png")
+         ,"src" =: $(static "kanto.png")
          ]
 
 museSrc :: [Map.Map T.Text T.Text]

@@ -339,13 +339,14 @@ tpToText tp = fromMaybe T.empty $ lookup tp $ map swap txType
 
 makeGameStateText :: Game -> T.Text
 makeGameStateText gs =
-  let (imd,txs,omp,mnm,msz,mps,(pmn,pmps,pomp),evas,hav,cnts,lif,llc,gmc) =
-        (_imd gs,_txs gs,_omp gs,_mnm gs,_msz gs,_mps gs,_pmp gs,_evas gs
+  let (imd,txs,omp,mnm,msz,mim,mps,(pmn,pmps,pomp),evas,hav,cnts,lif,llc,gmc) =
+        (_imd gs,_txs gs,_omp gs,_mnm gs,_msz gs,_mim gs,_mps gs,_pmp gs,_evas gs
         ,_hav gs,_cnts gs,_lif gs,_llc gs,_gmc gs)
       imdText = (T.pack . show) imd
       txsText = txsToText txs
       ompText = T.intercalate ":" $ makeObjectDatas omp
       mszText = posToText msz
+      mimText = (T.pack . show) mim
       mpsText = posToText mps 
       pmpsText = posToText pmps 
       pompText = T.intercalate ":" $ makeObjectDatas pomp
@@ -355,7 +356,7 @@ makeGameStateText gs =
       lifText = (T.pack . show) lif
       llcText = (T.pack . show) llc
       gmcText = (T.pack . show) gmc
-   in T.intercalate "~" [imdText,txsText,ompText,mnm,mszText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText,lifText,llcText,gmcText]
+   in T.intercalate "~" [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText,lifText,llcText,gmcText]
 
 posToText :: Pos -> T.Text
 posToText (V2 x y) = (T.pack . show) x <> ":" <> (T.pack . show) y 
@@ -374,11 +375,12 @@ evasToText evas = T.intercalate ":" $
 
 toGameState :: T.Text -> Game
 toGameState tx = case T.splitOn "~" tx of 
-    [imdText,txsText,ompText,mnm,mszText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText,lifText,llcText,gmcText] -> 
+    [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmn,pmpsText,pompText,evasText,havText,cntsText,lifText,llcText,gmcText] -> 
         let imd = read (T.unpack imdText) :: IMode
             txs = txToTxs txsText
             omp = txToOmp ompText
             msz = txToPos mszText
+            mim = (read . T.unpack) mimText
             mps = txToPos mpsText
             pmp = (pmn,txToPos pmpsText,txToOmp pompText)
             evas = txToEvas evasText
@@ -388,7 +390,8 @@ toGameState tx = case T.splitOn "~" tx of
             llc = (read . T.unpack) llcText
             gmc = (read . T.unpack) gmcText
           in Game{_imd=imd,_txs=txs,_txw=T.empty,_txv=T.empty,_tct=0,_tcs=0
-                 ,_itx=False,_iths=False,_ims=True,_omp=omp,_tmp=[],_mnm=mnm,_msz=msz
+                 ,_itx=False,_iths=False,_ims=True,_omp=omp,_tmp=[],_mnm=mnm
+                 ,_msz=msz,_mim=mim
                  ,_mps=mps,_pmp=pmp,_evas=evas,_chn=0,_hav=hav,_cho=[],_tip=[]
                  ,_stg=mkStdGen 100,_cnts=cnts,_etr=NoEvent,_lif=lif
                  ,_lnt=T.empty,_lnu=T.empty,_cnn=0,_llc=llc,_gmc=gmc}

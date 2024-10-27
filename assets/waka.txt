@@ -49,15 +49,18 @@ map0:
 ・・・・・・・・・・
 ・・・・・・・北・・
 ・・・・・・・・・・
-・・・・・・・東・・
-・・・・・♀・・・・
-・・・国・・・関・・
-・九・・・中・・・・
-・・・四・・・・・・
+・・・・＠・・・東・
+・・・・・・・・・・
+・・国・・中・関・・
+・九・・近・・・・・
+・・四・・・・・・・
 ・・・・・・・・・・
 
+mim0:
+9
+
 obj0:
-関,Higasi,tool,mapKantou,enter,nodir
+関,Higasi,tool,mapKantou,enter,nodir,blue
 
 level0:
 ・・・・・。
@@ -66,6 +69,7 @@ level0:
 なんとなく ボタンの←↑→↓で$r方向-はうかう を$r變-か へたり $r移動-いどう したりできる$r氣-き がする・・・。
 ;a_block.Kanasaki.1_md_textKana0
 ;a_block.Tochigi.1_md_textTochi0
+;a_block.Gunma.0_md_textGun0
 
 textSave:
 ;save
@@ -75,20 +79,24 @@ textBack:
 セーブをやめました
 
 mapKantou:
-・・・・・・・・・・・♀
+・・・・・・・・・・・＠
 ・・・・・・・・・・・・
-・・群・・栃・・茨・・・
-・・・・・・・・・・・・
+・・・・・栃・・・・・・
+・・群・・・・・茨・・・
+・・・・・・・・・・か・
 ・・・・埼・・・・・・・
+・・・・・東・・千・・・
+・・・神・・・・・・・・
 ・・・・・・・・・・・・
-・・か・・東・・千・・・
-・・・・・・・・・・・・
-・・・・・神・・・・・・
 ・・・・・・・・・・・※
+
+mimKantou:
+10
 
 objKantou:
 か,Kanasaki,live,,block,north,blue
-栃,Tochigi,block,,block,noDir,red
+栃,Tochigi,block,,block,noDir,blue
+群,Gunma,block,,block,nodir,blue
 
 textTochi0:
 この県の首都は？。
@@ -99,6 +107,13 @@ textTochi1:
 
 textTochi2:
 ちがふよ。
+
+textGun0:
+この県の首都は？。
+;ip_前橋_textGun1
+
+textGun1:
+せいかい！。
 
 textKana0:
 ;sc_4
