@@ -83,7 +83,6 @@ wakaMain gs = do
          dynText $ fmap (<>"\n") dyDir 
          dynText $ (dyGs*.hav) <&> 
             \case Just hv -> ">"<>getObjName hv; Nothing -> T.empty 
-    elSpace
 
 --    let dyTip = _tip <$> dyGs
 --    dynText $ T.pack . show <$> dyTip

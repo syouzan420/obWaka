@@ -44,7 +44,6 @@ button:active {
 .kaimap {
   color: gray;
   white-space: pre;
-  text-align: justify;
   font: 400 18px monospace;
 }
 
