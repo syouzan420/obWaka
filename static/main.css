@@ -44,7 +44,7 @@ button:active {
 .kaimap {
   color: gray;
   white-space: pre;
-  font: 400 18px monospace;
+  font: 400 20px monospace;
 }
 
 .pad {
@@ -93,7 +93,7 @@ button:active {
 }
 .flexbox > div {
   margin: 1px;
-  padding : 2px;
+  line-height: 1em;
 }
 .flexbox2 {
   display: flex;
