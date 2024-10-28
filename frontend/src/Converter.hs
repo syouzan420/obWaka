@@ -1,15 +1,18 @@
 module Converter where
 
---import Data.Maybe (fromMaybe)
 import Linear.V2 (V2(..))
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe)
 import Data.List (find,deleteBy,sort)
 import Data.Tuple (swap)
 import System.Random (mkStdGen)
+import Lens.Micro
+import Lens.Micro.TH (makeLenses)
 import Define
 import Initialize (newGame)
 import Object (blankObj)
+
+makeLenses ''Game
 
 type Width = Int
 type Height = Int
@@ -188,14 +191,14 @@ showObMap [] mtx = mtx
 showObMap ((Ob ch _ _ _ _ _ co (V2 x y)):xs) mtx = showObMap xs (insertChar ch co x y mtx)
 
 insertChar :: Char -> Color -> Int -> Int -> [T.Text] -> [T.Text]
-insertChar ch co x y txs =  
-  let ln = txs!!y
+insertChar ch co x y txList =  
+  let ln = txList!!y
       (hd,tl) = (takeHTML x ln,dropHTML (x+1) ln)
       chtx = T.singleton ch
       insTxt = if co==Black then chtx else
          "<span style=\"color:"<>coToText co<>";\">"<>chtx<>"</span>" 
       nln = hd <> insTxt <> tl
-      (bln,aln) = splitAt y txs
+      (bln,aln) = splitAt y txList 
     in bln ++ [nln] ++ tail aln 
 
 getSections :: [T.Text] -> [TextSection]
@@ -258,18 +261,18 @@ updateTextSection ts@(TS ti ntx) (TS title ptx:xs) =
                else TS title ptx:updateTextSection ts xs
 
 updateMapData :: T.Text -> ObMap -> T.Text
-updateMapData tx omp = 
+updateMapData tx obMap = 
   let mpLines = T.lines tx
-      newMpLines = makeMpLines 0 omp mpLines
+      newMpLines = makeMpLines 0 obMap mpLines
    in T.unlines newMpLines
 
 makeMpLines :: Int -> ObMap -> [T.Text] -> [T.Text]
 makeMpLines _ _ [] = []
-makeMpLines i omp (ml:xs) =
-  let listXCh = makeListXCh i omp
+makeMpLines i obMap (ml:xs) =
+  let listXCh = makeListXCh i obMap
       plInd = T.findIndex (==pChar) ml
    in T.pack (makeMpLine plInd (T.length ml - 1) (reverse $ sort listXCh))
-          :makeMpLines (i+1) omp xs
+          :makeMpLines (i+1) obMap xs
       
 makeListXCh :: Int -> ObMap -> [(Int,ObChar)]
 makeListXCh _ [] = []
@@ -339,23 +342,20 @@ tpToText tp = fromMaybe T.empty $ lookup tp $ map swap txType
 
 makeGameStateText :: Game -> T.Text
 makeGameStateText gs =
-  let (imd,txs,omp,mnm,msz,mim,mps,pmp,evas,hav,cnts,lif,llc,gmc) =
-        (_imd gs,_txs gs,_omp gs,_mnm gs,_msz gs,_mim gs,_mps gs,_pmp gs,_evas gs
-        ,_hav gs,_cnts gs,_lif gs,_llc gs,_gmc gs)
-      imdText = (T.pack . show) imd
-      txsText = txsToText txs
-      ompText = T.intercalate ":" $ makeObjectDatas omp
-      mszText = posToText msz
-      mimText = (T.pack . show) mim
-      mpsText = posToText mps 
-      pmpText = pmpToText pmp
-      evasText = evasToText evas
-      havText = maybe T.empty objToText hav 
-      cntsText = cntsToText cnts
-      lifText = (T.pack . show) lif
-      llcText = (T.pack . show) llc
-      gmcText = (T.pack . show) gmc
-   in T.intercalate "~" [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmpText,evasText,havText,cntsText,lifText,llcText,gmcText]
+  let imdText = (T.pack . show) (gs^.imd) 
+      txsText = txsToText (gs^.txs) 
+      ompText = T.intercalate ":" $ makeObjectDatas (gs^.omp) 
+      mszText = posToText (gs^.msz)
+      mimText = (T.pack . show) (gs^.mim)
+      mpsText = posToText (gs^.mps) 
+      pmpText = pmpToText (gs^.pmp)
+      evasText = evasToText (gs^.evas)
+      havText = maybe T.empty objToText (gs^.hav) 
+      cntsText = cntsToText (gs^.cnts)
+      lifText = (T.pack . show) (gs^.lif)
+      llcText = (T.pack . show) (gs^.llc)
+      gmcText = (T.pack . show) (gs^.gmc)
+   in T.intercalate "~" [imdText,txsText,ompText,gs^.mnm,mszText,mimText,mpsText,pmpText,evasText,havText,cntsText,lifText,llcText,gmcText]
 
 pmpToText :: [(MapName,Pos,ObMap)] -> T.Text
 pmpToText [] = "^"
@@ -366,39 +366,39 @@ posToText :: Pos -> T.Text
 posToText (V2 x y) = (T.pack . show) x <> ":" <> (T.pack . show) y 
 
 txsToText :: [TextSection] -> T.Text
-txsToText txs = T.intercalate ":" $ foldr (\(TS ti tx) acc -> ti:tx:acc) [] txs
+txsToText tTxs = T.intercalate ":" $ foldr (\(TS ti tx) acc -> ti:tx:acc) [] tTxs
 
 cntsToText :: [Counter] -> T.Text
-cntsToText cnts = T.intercalate ":" $ 
-    foldr (\(tx,n) acc -> tx:(T.pack . show) n:acc) [] cnts
+cntsToText tCnts = T.intercalate ":" $ 
+    foldr (\(tx,n) acc -> tx:(T.pack . show) n:acc) [] tCnts
 
 evasToText :: [EvAct] -> T.Text
-evasToText evas = T.intercalate ":" $
+evasToText tEvas = T.intercalate ":" $
     foldr (\(EA pe cd i n) acc -> 
-          (T.pack . show) pe:cd:(T.pack . show) i:(T.pack . show) n:acc) [] evas
+          (T.pack . show) pe:cd:(T.pack . show) i:(T.pack . show) n:acc) [] tEvas
 
 toGameState :: T.Text -> Game
 toGameState tx = case T.splitOn "~" tx of 
-    [imdText,txsText,ompText,mnm,mszText,mimText,mpsText,pmpText,evasText,havText,cntsText,lifText,llcText,gmcText] -> 
-        let imd = read (T.unpack imdText) :: IMode
-            txs = txToTxs txsText
-            omp = txToOmp ompText
-            msz = txToPos mszText
-            mim = (read . T.unpack) mimText
-            mps = txToPos mpsText
-            pmp = txToPmp pmpText
-            evas = txToEvas evasText
-            hav = if havText==T.empty then Nothing else Just (txToObject havText) 
-            cnts = txToCnts cntsText
-            lif = (read . T.unpack) lifText 
-            llc = (read . T.unpack) llcText
-            gmc = (read . T.unpack) gmcText
-          in Game{_imd=imd,_txs=txs,_txw=T.empty,_txv=T.empty,_tct=0,_tcs=0
-                 ,_itx=False,_iths=False,_ims=True,_omp=omp,_tmp=[],_mnm=mnm
-                 ,_msz=msz,_mim=mim
-                 ,_mps=mps,_pmp=pmp,_evas=evas,_chn=0,_hav=hav,_cho=[],_tip=[]
-                 ,_stg=mkStdGen 100,_cnts=cnts,_etr=NoEvent,_lif=lif
-                 ,_lnt=T.empty,_lnu=T.empty,_cnn=0,_llc=llc,_gmc=gmc}
+    [imdText,txsText,ompText,nmnm,mszText,mimText,mpsText,pmpText,evasText,havText,cntsText,lifText,llcText,gmcText] -> 
+        let nimd = read (T.unpack imdText) :: IMode
+            ntxs = txToTxs txsText
+            nomp = txToOmp ompText
+            nmsz = txToPos mszText
+            nmim = (read . T.unpack) mimText
+            nmps = txToPos mpsText
+            npmp = txToPmp pmpText
+            nevas = txToEvas evasText
+            nhav = if havText==T.empty then Nothing else Just (txToObject havText) 
+            ncnts = txToCnts cntsText
+            nlif = (read . T.unpack) lifText 
+            nllc = (read . T.unpack) llcText
+            ngmc = (read . T.unpack) gmcText
+         in Game{_imd=nimd,_txs=ntxs,_txw=T.empty,_txv=T.empty,_tct=0,_tcs=0
+                ,_itx=False,_iths=False,_ims=True,_omp=nomp,_tmp=[],_mnm=nmnm
+                ,_msz=nmsz,_mim=nmim
+                ,_mps=nmps,_pmp=npmp,_evas=nevas,_chn=0,_hav=nhav,_cho=[],_tip=[]
+                ,_stg=mkStdGen 100,_cnts=ncnts,_etr=NoEvent,_lif=nlif
+                ,_lnt=T.empty,_lnu=T.empty,_cnn=0,_llc=nllc,_gmc=ngmc}
     _ -> newGame 
 
 txToPmp :: T.Text -> [(MapName,Pos,ObMap)]

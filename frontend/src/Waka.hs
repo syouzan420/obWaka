@@ -35,8 +35,6 @@ import Object (getDirByName,updateDirByName,updatePosByName,getObjName
 import Action (movePlayer,hitAction,putAction,attackAction,moveObject,shootBullet)
 import Code (exeCode,setMap,moveDialog)
 
-import Debug.Trace (trace)
-
 makeLenses ''Game
 
 (*.) :: Functor f => f s -> Getting b s b -> f b
@@ -216,7 +214,7 @@ wakaUpdate gs wev =
                             ngs = gs&imd.~ Txt
                          in if isMatch then moveDialog ngs (inpData!!1)
                                        else if length inpData > 2 
-                                         then trace (show inpTex) $ moveDialog ngs (inpData!!2)
+                                         then moveDialog ngs (inpData!!2)
                                          else ngs
           _ -> gs
         Mov -> case wev of 

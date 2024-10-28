@@ -212,9 +212,8 @@ putObject gs (objNamePos:xs) =
               obj = makeObjectByName oname obDatas
               nomp = case obj of
                       Just ob -> 
-                        let msz = _msz gs
-                            tps = V2 ((read. T.unpack) opx) ((read . T.unpack) opy)
-                            nps = putablePos tps msz obMap
+                        let tps = V2 ((read. T.unpack) opx) ((read . T.unpack) opy)
+                            nps = putablePos tps (gs^.msz) obMap
                          in putObjOnPos ob nps obMap 
                       Nothing -> obMap
            in putObject (gs&omp.~ nomp) xs
@@ -299,9 +298,9 @@ conditions _ _ _ = False
 
 isMatchCount :: [Counter] -> [Counter] -> Bool
 isMatchCount _ [] = True
-isMatchCount cnts ((s,c):xs) =
-  let co = fromMaybe 0 $ lookup s cnts 
-   in (co >= c) && isMatchCount cnts xs
+isMatchCount tCnts ((s,c):xs) =
+  let co = fromMaybe 0 $ lookup s tCnts 
+   in (co >= c) && isMatchCount tCnts xs
 
 makeScPair :: [T.Text] -> [(T.Text,Int)]
 makeScPair [] = []
